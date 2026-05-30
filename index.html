@@ -1075,26 +1075,42 @@ function openMarkerPrintPage(){
     arucoSVG(2, FRAME_X + FRAME_W - MARKER,    FRAME_Y + FRAME_H - MARKER,    MARKER) +
     arucoSVG(3, FRAME_X,                       FRAME_Y + FRAME_H - MARKER,    MARKER);
 
-  // --- Bullseye rings ---
+  // --- Bullseye rings (classic NRA-style: black outer half, white inner half, black 10-ring) ---
+  // Ring i radius = RING_OUTER * i/RINGS.  i=1 is the outermost ring; i=10 is the innermost (X-ring).
+  // Layer order (back to front): big black disk (rings 1-5), white disk for rings 6-9 with black outlines, solid black 10-ring.
   let rings = '';
-  for (let i=RINGS; i>=1; i--){
-    const r = RING_OUTER * (i/RINGS);
-    // alternating dark/light for visibility (X-ring through 10 are dark; 9-7 light; 6-1 dark)
-    const fill = (i>=7 ? '#000' : (i>=4 ? '#fff' : '#000'));
-    const stroke = '#000';
-    rings += `<circle cx="${CX}" cy="${CY}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="0.01"/>`;
-  }
-  // Center dot (aim point)
-  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER*0.04}" fill="#fff"/>`;
-  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER*0.015}" fill="#000"/>`;
+  const blackOuterR = RING_OUTER * (5/RINGS);     // covers rings 1..5
+  const whiteInnerR = RING_OUTER * (9/RINGS);     // covers rings 6..9 (inner white aiming area)
+  const tenRingR    = RING_OUTER * (1/RINGS);     // solid black center
 
-  // Ring numbers (1–10) along horizontal axis on the LEFT half
+  // 1) White background under everything (so faint grid below shows through outside the bullseye)
+  // 2) Big black disk for rings 1-5 with thin white ring separators
+  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER}" fill="#000"/>`;
+  for (let i=1; i<=5; i++){
+    const r = RING_OUTER * (i/RINGS);
+    rings += `<circle cx="${CX}" cy="${CY}" r="${r}" fill="none" stroke="#fff" stroke-width="0.012"/>`;
+  }
+  // 3) White inner aiming area (rings 6-9) on top of black
+  rings += `<circle cx="${CX}" cy="${CY}" r="${whiteInnerR}" fill="#fff" stroke="#000" stroke-width="0.012"/>`;
+  for (let i=6; i<=9; i++){
+    const r = RING_OUTER * (i/RINGS);
+    rings += `<circle cx="${CX}" cy="${CY}" r="${r}" fill="none" stroke="#000" stroke-width="0.012"/>`;
+  }
+  // 4) Solid black 10-ring (center)
+  rings += `<circle cx="${CX}" cy="${CY}" r="${tenRingR}" fill="#000"/>`;
+  // 5) Tiny white aim dot in dead center
+  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER*0.015}" fill="#fff"/>`;
+
+  // Ring numbers (1–10) along horizontal axis on the LEFT half.
+  // Place each number between ring i and ring i+1 (so it's inside its own ring's band).
   let numbers = '';
   for (let i=1; i<=RINGS; i++){
     const r = RING_OUTER * (i/RINGS);
-    const tx = CX - r + (RING_OUTER/RINGS)/2; // sit on left side of each ring
-    const fontColor = (i>=7 || i<=3) ? '#fff' : '#000';
-    const fontSize = 0.14;
+    const rNext = RING_OUTER * ((i-1)/RINGS);
+    const tx = CX - (r + rNext)/2;  // midpoint of the band, on left side
+    // i 1-5 sit on black bg → white text; i 6-9 sit on white bg → black text; i=10 is on black center → white
+    const fontColor = (i<=5 || i===10) ? '#fff' : '#000';
+    const fontSize = 0.13;
     numbers += `<text x="${tx}" y="${CY + fontSize*0.35}" font-size="${fontSize}" font-family="Arial, sans-serif" font-weight="700" text-anchor="middle" fill="${fontColor}">${i}</text>`;
   }
 
@@ -1115,19 +1131,26 @@ function openMarkerPrintPage(){
   // --- Frame outline (helps confirm print scale) ---
   const frame = `<rect x="${FRAME_X}" y="${FRAME_Y}" width="${FRAME_W}" height="${FRAME_H}" fill="none" stroke="#000" stroke-width="0.008" stroke-dasharray="0.05 0.05"/>`;
 
-  // --- Footer labels (tells the user real dimensions + how to feed them to the app) ---
-  const labelY = FRAME_Y + FRAME_H - 0.08;
+  // --- Footer labels ---
+  // Top: title sits in the safe band BETWEEN the two top markers (x: MARKER+0.1 to FRAME_W-MARKER-0.1)
+  // Bottom: "App settings" line sits in the safe band BETWEEN the two bottom markers
+  // Both are inside the frame so nothing falls in the print margin.
+  const titleBandY = FRAME_Y + 0.45;            // 0.85" from page top — above bullseye, between top markers
+  const footerBandY = FRAME_Y + FRAME_H - 0.85; // 0.85" from frame bottom — between bottom markers, above their tops
   const footer = `
-    <text x="${FRAME_X + 1.1}" y="${FRAME_Y + 0.18}" font-size="0.12" font-family="Arial, sans-serif" font-weight="700" fill="#000">DRY-FIRE COACH · CALIBRATED TARGET</text>
-    <text x="${FRAME_X + 1.1}" y="${FRAME_Y + 0.34}" font-size="0.09" font-family="Arial, sans-serif" fill="#444">Print at 100% scale (no “fit to page”). Frame size: ${FRAME_W.toFixed(2)}" × ${FRAME_H.toFixed(2)}".</text>
-    <text x="${CX}" y="${labelY}" font-size="0.10" font-family="Arial, sans-serif" font-weight="700" text-anchor="middle" fill="#000">App settings → Target width: ${FRAME_W.toFixed(2)} in · Target height: ${FRAME_H.toFixed(2)} in</text>
+    <text x="${CX}" y="${titleBandY}" font-size="0.13" font-family="Arial, sans-serif" font-weight="700" text-anchor="middle" fill="#000">DRY-FIRE COACH · CALIBRATED TARGET</text>
+    <text x="${CX}" y="${titleBandY + 0.17}" font-size="0.085" font-family="Arial, sans-serif" text-anchor="middle" fill="#555">Print at 100% scale (no “fit to page”). Frame: ${FRAME_W.toFixed(2)}" × ${FRAME_H.toFixed(2)}".</text>
+    <text x="${CX}" y="${footerBandY}" font-size="0.105" font-family="Arial, sans-serif" font-weight="700" text-anchor="middle" fill="#000">App settings → Target width: ${FRAME_W.toFixed(2)} in · Target height: ${FRAME_H.toFixed(2)} in</text>
   `;
 
-  // --- 1" scale bar (lower-left, for double-checking print scale) ---
-  const sbX = FRAME_X + 0.2, sbY = FRAME_Y + FRAME_H - 0.35;
+  // --- 1" scale bar inside the frame, in the safe band BELOW the title row (between top markers) ---
+  // Positioned just under the subtitle, centered horizontally, well clear of the top ArUco markers.
+  const sbX = CX - 0.5, sbY = FRAME_Y + 0.78;
   const scaleBar = `
-    <rect x="${sbX}" y="${sbY}" width="1" height="0.06" fill="#000"/>
-    <text x="${sbX + 0.5}" y="${sbY - 0.04}" font-size="0.09" font-family="Arial, sans-serif" font-weight="600" text-anchor="middle" fill="#000">1” SCALE CHECK</text>
+    <rect x="${sbX}" y="${sbY}" width="1" height="0.045" fill="#000"/>
+    <line x1="${sbX}" y1="${sbY-0.04}" x2="${sbX}" y2="${sbY+0.085}" stroke="#000" stroke-width="0.012"/>
+    <line x1="${sbX+1}" y1="${sbY-0.04}" x2="${sbX+1}" y2="${sbY+0.085}" stroke="#000" stroke-width="0.012"/>
+    <text x="${sbX + 0.5}" y="${sbY + 0.20}" font-size="0.075" font-family="Arial, sans-serif" font-weight="600" text-anchor="middle" fill="#000">1” SCALE CHECK</text>
   `;
 
   const svg = `
