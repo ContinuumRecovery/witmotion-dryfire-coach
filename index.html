@@ -585,7 +585,6 @@
         "stage   sources"
         "stage   calib"
         "stage   actions"
-        "hero    actions"
         "hero    session"
         "diag    diag";
       gap:14px;
@@ -599,6 +598,8 @@
     main > .hero    { grid-area:hero; }
     main > .session-panel{ grid-area:session; }
     main > details  { grid-area:diag; }
+    /* Hide stray section labels on wide — the panel headers already convey context */
+    main > .section-label{ display:none; }
   }
 
 
