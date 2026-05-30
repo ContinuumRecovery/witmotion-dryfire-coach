@@ -249,6 +249,29 @@
   .stage .range-strip.armed .arm{color:var(--yellow);}
   .stage .range-strip.armed .arm::before{background:var(--yellow);box-shadow:0 0 8px var(--yellow);animation:dot-blink 1.2s ease-in-out infinite;}
 
+  /* On-stage toast (transient status that's actually visible) */
+  .stage-toast{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0.96);
+    background:linear-gradient(180deg, rgba(13,14,15,0.92) 0%, rgba(13,14,15,0.82) 100%);
+    backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);
+    border:1px solid rgba(250,226,50,0.35);
+    color:var(--text);font-weight:700;font-size:12px;letter-spacing:0.04em;
+    padding:11px 18px;border-radius:12px;
+    pointer-events:none;opacity:0;
+    box-shadow:0 12px 36px rgba(0,0,0,0.55), 0 0 0 1px rgba(250,226,50,0.10) inset;
+    transition:opacity .22s ease, transform .25s cubic-bezier(.22,1,.36,1);
+    text-align:center;max-width:80%;line-height:1.45;
+    z-index:5;
+  }
+  .stage-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  .stage-toast.ok{border-color:rgba(250,226,50,0.55);color:var(--yellow);}
+  .stage-toast.warn{border-color:rgba(217,199,160,0.55);color:var(--sand);}
+  .stage-toast.bad{border-color:rgba(232,131,107,0.6);color:var(--rust);}
+
+  /* Bright shot-flash overlay (whole stage briefly glows) */
+  .stage.flash{box-shadow:0 0 0 3px var(--yellow), 0 0 48px rgba(250,226,50,0.55);}
+  .stage{transition:box-shadow .35s ease;}
+
   /* ── Section labels (e.g. SOURCES, ACTIONS) ─────────────────────────── */
   /* On mobile we hide the standalone SOURCES label — the chip icons speak for themselves */
   .section-label{ display:none; }
@@ -690,8 +713,9 @@
     <a class="link" id="btn-print" href="#">Print one-page target sheet</a>
   </div>
 
-  <div class="row2 actions">
+  <div class="row3 actions">
     <button class="action primary" id="btn-start">Start Session</button>
+    <button class="action secondary glow" id="btn-test" title="Fire a synthetic shot to verify scoring works">Test Shot</button>
     <button class="action tertiary" id="btn-reset">Reset</button>
   </div>
 
@@ -754,6 +778,21 @@ function log(msg, kind=''){
   d.textContent = `[${t}] ${msg}`;
   logEl.appendChild(d);
   logEl.scrollTop = logEl.scrollHeight;
+}
+// On-stage toast so the user sees status feedback without opening the diagnostics drawer.
+function toast(msg, kind='info', ms=2200){
+  let t = document.getElementById('stage-toast');
+  if (!t){
+    t = document.createElement('div');
+    t.id = 'stage-toast';
+    t.className = 'stage-toast';
+    const s = document.getElementById('stage');
+    if (s) s.appendChild(t); else document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.className = 'stage-toast show ' + kind;
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(()=>{ t.className = 'stage-toast ' + kind; }, ms);
 }
 
 // ---- Feature pills ----
@@ -936,6 +975,7 @@ function syncRangeStrip(){
 ['in-width','in-height','in-dist'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input', syncRangeStrip); });
 syncRangeStrip();
 function setArmed(on){
+  sessionArmed = !!on;
   const s = document.getElementById('range-strip');
   const a = document.getElementById('rng-arm');
   if (!s||!a) return;
@@ -1309,7 +1349,11 @@ function micLoop(){
   for (let i=0;i<micData.length;i++){ const a=Math.abs(micData[i]); if (a>peak) peak=a; }
   audioBaseline = audioBaseline*0.97 + peak*0.03;
   const now = performance.now();
-  if (peak > Math.max(0.18, audioBaseline*6) && now-lastClickTs>350){
+  // Adaptive trigger threshold:
+  //   • baseline*5 catches a click that's clearly above ambient room noise
+  //   • floor of 0.07 prevents false positives in dead-silent rooms (was 0.18 — too high for phone mics with AGC off)
+  //   • 350ms refractory period prevents one click being counted twice
+  if (peak > Math.max(0.07, audioBaseline*5) && now-lastClickTs>350){
     lastClickTs = now; onClickDetected('mic', peak);
   }
   requestAnimationFrame(micLoop);
@@ -1372,10 +1416,48 @@ function onWitNotify(ev){
 
 // ---- Shot scoring ----
 let sessionShots = [];
+let sessionArmed = false; // mirrored from setArmed()
+
+// Always-visible feedback for any detected click. Even when target/laser data
+// is missing, register the click as an "untracked" shot so the user sees the
+// pipeline working and gets actionable feedback about what to enable next.
 function onClickDetected(source, intensity){
-  if (!homography || !aimTargetNorm){ log(`Click (${source}) — no target/aim`,'warn'); return; }
+  if (!sessionArmed){
+    // Pre-session clicks are ignored — but tell the user what they need to do.
+    toast('Click detected — tap START SESSION to begin', 'warn');
+    log(`Click (${source}) ignored — session not armed`, 'warn');
+    return;
+  }
+
+  // Visual flash + screen shake on EVERY detected click so the user knows the
+  // mic/IMU pipeline is alive, even if scoring isn't possible yet.
+  stage.classList.add('flash');
+  setTimeout(()=>stage.classList.remove('flash'), 280);
+
+  const haveTarget = !!homography;
+  const haveAim    = !!aimTargetNorm;
+  const haveLaser  = !!laserNorm;
+
+  if (!haveTarget){
+    toast('Click registered, but target not calibrated yet', 'warn', 2600);
+    pushUntrackedShot(source, 'no-calib');
+    log(`SHOT [${source}] untracked — calibrate target first`, 'warn');
+    return;
+  }
+  if (!haveAim){
+    // Auto-default to target center so the user doesn't have to set aim explicitly
+    aimTargetNorm = { x: 0.5, y: 0.5 };
+    log('Aim auto-set to target center', 'ok');
+  }
+  if (!haveLaser){
+    toast('Click registered — no laser dot visible (point bore-sighter at target)', 'warn', 2600);
+    pushUntrackedShot(source, 'no-laser');
+    log(`SHOT [${source}] untracked — no laser in frame`, 'warn');
+    return;
+  }
+
+  // Full scoring path — we have target, aim and laser dot.
   const lp = laserNorm;
-  if (!lp){ log(`Click (${source}) — no laser in target plane`,'warn'); return; }
   const dxN = lp.x - aimTargetNorm.x; // 0..1 of target width
   const dyN = lp.y - aimTargetNorm.y;
   const tWin = parseFloat($('#in-width').value) || 8.5;
@@ -1410,13 +1492,20 @@ function onClickDetected(source, intensity){
   if (sb) sb.style.setProperty('--score-cover', Math.max(0, Math.min(1, 1 - score/100)));
   sessionShots.push({devIn, moa, score, source, t:Date.now()});
   $('#ss-shots').textContent = sessionShots.length;
-  const avg = sessionShots.reduce((a,b)=>a+b.moa,0)/sessionShots.length;
-  const best = Math.min(...sessionShots.map(s=>s.moa));
-  $('#ss-avg').textContent = avg.toFixed(1);
-  $('#ss-best').textContent = best.toFixed(1);
+  const tracked = sessionShots.filter(s=>typeof s.moa === 'number' && !s.untracked);
+  if (tracked.length){
+    const avg = tracked.reduce((a,b)=>a+b.moa,0)/tracked.length;
+    const best = Math.min(...tracked.map(s=>s.moa));
+    $('#ss-avg').textContent = avg.toFixed(1);
+    $('#ss-best').textContent = best.toFixed(1);
+  }
+  toast(`${devIn.toFixed(2)}” · ${moa.toFixed(1)} MOA · ${score}`, score>=80 ? 'ok' : (score>=50 ? 'warn' : 'bad'));
   log(`SHOT [${source}] ${devIn.toFixed(2)}in / ${moa.toFixed(1)}MOA → ${score}`,'ok');
-  stage.style.boxShadow='0 0 0 3px rgba(250,226,50,0.7), 0 0 32px rgba(250,226,50,0.35)';
-  setTimeout(()=>stage.style.boxShadow='',250);
+}
+
+function pushUntrackedShot(source, reason){
+  sessionShots.push({untracked:true, reason, source, t:Date.now()});
+  $('#ss-shots').textContent = sessionShots.length;
 }
 
 // ---- Start / Reset ----
@@ -1424,11 +1513,45 @@ $('#btn-cam').addEventListener('click', startCamera);
 $('#btn-mic').addEventListener('click', startMic);
 $('#btn-ble').addEventListener('click', connectBLE);
 $('#btn-start').addEventListener('click', async ()=>{
-  if (!camStream) await startCamera();
-  if (!micRunning) await startMic();
+  if (sessionArmed){
+    // Toggle off
+    setArmed(false);
+    $('#btn-start').textContent = 'Start Session';
+    toast('Session stopped', 'warn');
+    return;
+  }
+  if (!camStream){
+    try { await startCamera(); }
+    catch(e){ toast('Camera blocked — grant permission and retry', 'bad', 3000); return; }
+  }
+  if (!micRunning){
+    try { await startMic(); }
+    catch(e){ toast('Mic blocked — grant permission to detect dry-fire clicks', 'bad', 3000); return; }
+  }
   if (!aimTargetNorm && homography){ aimTargetNorm = {x:0.5, y:0.5}; log('Default aim set to target center'); }
   setArmed(true);
+  $('#btn-start').textContent = 'Stop Session';
+  if (!homography){
+    toast('Live — calibrate the target to score shots', 'warn', 2800);
+  } else {
+    toast('Live — ready for shots', 'ok');
+  }
 });
+// Manual TEST SHOT — fires a synthetic click so the user can verify the pipeline
+// without needing a real laser bore-sighter, mic-detected click, or BLE sensor.
+function testShot(){
+  if (!sessionArmed){ setArmed(true); $('#btn-start').textContent='Stop Session'; }
+  if (homography && !laserNorm){
+    // Fabricate a random laser position near aim for demonstration purposes
+    const ax = (aimTargetNorm && aimTargetNorm.x) || 0.5;
+    const ay = (aimTargetNorm && aimTargetNorm.y) || 0.5;
+    // ±5% jitter — maps to realistic 1-3 MOA at 15ft on a 8.5×11 target
+    laserNorm = { x: ax + (Math.random()-0.5)*0.1, y: ay + (Math.random()-0.5)*0.1 };
+  }
+  onClickDetected('test', 1);
+  // Don't leave the synthetic laser stuck on — clear shortly after scoring
+  setTimeout(()=>{ if (!laserImg) laserNorm = null; }, 100);
+}
 $('#btn-reset').addEventListener('click', ()=>{
   sessionShots = []; trailing=[];
   $('#ss-shots').textContent='0'; $('#ss-avg').textContent='—'; $('#ss-best').textContent='—';
@@ -1438,8 +1561,12 @@ $('#btn-reset').addEventListener('click', ()=>{
   });
   const sb=document.getElementById('score-bar'); if(sb) sb.style.setProperty('--score-cover', 1);
   setArmed(false);
+  $('#btn-start').textContent = 'Start Session';
+  toast('Session reset', 'warn');
   log('Session reset');
 });
+const btnTest = document.getElementById('btn-test');
+if (btnTest) btnTest.addEventListener('click', testShot);
 
 // ---- Printable target sheet (one-page, US Letter) ----
 function openMarkerPrintPage(){
