@@ -372,7 +372,7 @@
       <button class="action secondary" id="btn-clear">Clear</button>
     </div>
     <div class="hint" id="calib-hint">ArUco: print the 4 markers (link below) and tape one at each corner of your target. Manual: tap TL → TR → BR → BL. Auto: keep the target as the largest bright rectangle in view.</div>
-    <a class="link" id="btn-print" href="#">Print ArUco corner markers</a>
+    <a class="link" id="btn-print" href="#">Print one-page target sheet</a>
   </div>
 
   <div class="row2">
@@ -1031,37 +1031,162 @@ $('#btn-reset').addEventListener('click', ()=>{
   log('Session reset');
 });
 
-// ---- ArUco marker print page ----
+// ---- Printable target sheet (one-page, US Letter) ----
 function openMarkerPrintPage(){
-  if (!window.AR || !window.AR.Dictionary){ log('ArUco lib not loaded — cannot generate markers','err'); return; }
+  if (!window.AR || !window.AR.Dictionary){ log('ArUco lib not loaded — cannot generate target','err'); return; }
   const dict = new AR.Dictionary('ARUCO_MIP_36h12');
-  const ids = [0,1,2,3];
-  const labels = ['TL (ID 0)','TR (ID 1)','BR (ID 2)','BL (ID 3)'];
-  let svgs = '';
-  ids.forEach((id,i)=>{
-    const svg = dict.generateSVG(id);
-    svgs += `<div class="m"><div class="lbl">${labels[i]}</div>${svg}</div>`;
-  });
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>ArUco markers</title>
+
+  // --- Page layout (US Letter, inches) ---
+  // 8.5 × 11 in page · 0.4 in print margin
+  // Calibration frame: rectangle whose INSIDE corners are exactly defined by
+  // the inner corner of each ArUco marker → matches what the homography uses.
+  const PAGE_W = 8.5, PAGE_H = 11.0;
+  const MARGIN = 0.4;          // safe print margin
+  const MARKER = 1.0;          // 1.0" square ArUco — detectable from across a room
+  // Frame defined by the OUTER corners of the 4 markers (TL of marker 0 → TR of marker 1, etc.)
+  const FRAME_X = MARGIN, FRAME_Y = MARGIN;
+  const FRAME_W = PAGE_W - 2*MARGIN; // 7.7"
+  const FRAME_H = PAGE_H - 2*MARGIN; // 10.2"
+  // Bullseye is centered inside the frame
+  const CX = FRAME_X + FRAME_W/2;
+  const CY = FRAME_Y + FRAME_H/2;
+  // 10 rings; outer ring radius = (FRAME_W - 2*MARKER - 0.6) / 2  ≈ 2.55"
+  const RING_OUTER = Math.min(FRAME_W, FRAME_H)/2 - MARKER - 0.3;
+  const RINGS = 10;
+
+  // --- Build ArUco markers at the four frame corners ---
+  // IDs 0=TL, 1=TR, 2=BR, 3=BL  (matches detectAruco() ordering)
+  function arucoSVG(id, x, y, size){
+    // generateSVG returns a string '<svg ...>…</svg>' — wrap inside a <g> with translate+scale.
+    const inner = dict.generateSVG(id);
+    // Pull out the inner content (between the outer <svg ...> tags)
+    const m = inner.match(/<svg[^>]*viewBox="([^"]+)"[^>]*>([\s\S]*?)<\/svg>/);
+    if (!m) return '';
+    const vb = m[1].split(/\s+/).map(Number); // [minX, minY, vbW, vbH]
+    const body = m[2];
+    const s = size / vb[2];
+    // Place at (x,y) in inches, scale the marker's viewBox to that size
+    return `<g transform="translate(${x} ${y}) scale(${s})">${body}</g>`;
+  }
+
+  const markers =
+    arucoSVG(0, FRAME_X,                       FRAME_Y,                       MARKER) +
+    arucoSVG(1, FRAME_X + FRAME_W - MARKER,    FRAME_Y,                       MARKER) +
+    arucoSVG(2, FRAME_X + FRAME_W - MARKER,    FRAME_Y + FRAME_H - MARKER,    MARKER) +
+    arucoSVG(3, FRAME_X,                       FRAME_Y + FRAME_H - MARKER,    MARKER);
+
+  // --- Bullseye rings ---
+  let rings = '';
+  for (let i=RINGS; i>=1; i--){
+    const r = RING_OUTER * (i/RINGS);
+    // alternating dark/light for visibility (X-ring through 10 are dark; 9-7 light; 6-1 dark)
+    const fill = (i>=7 ? '#000' : (i>=4 ? '#fff' : '#000'));
+    const stroke = '#000';
+    rings += `<circle cx="${CX}" cy="${CY}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="0.01"/>`;
+  }
+  // Center dot (aim point)
+  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER*0.04}" fill="#fff"/>`;
+  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER*0.015}" fill="#000"/>`;
+
+  // Ring numbers (1–10) along horizontal axis on the LEFT half
+  let numbers = '';
+  for (let i=1; i<=RINGS; i++){
+    const r = RING_OUTER * (i/RINGS);
+    const tx = CX - r + (RING_OUTER/RINGS)/2; // sit on left side of each ring
+    const fontColor = (i>=7 || i<=3) ? '#fff' : '#000';
+    const fontSize = 0.14;
+    numbers += `<text x="${tx}" y="${CY + fontSize*0.35}" font-size="${fontSize}" font-family="Arial, sans-serif" font-weight="700" text-anchor="middle" fill="${fontColor}">${i}</text>`;
+  }
+
+  // --- Light 0.5" reference grid (very faint, won't visually compete) ---
+  let grid = '';
+  for (let gx = FRAME_X; gx <= FRAME_X + FRAME_W + 0.001; gx += 0.5){
+    grid += `<line x1="${gx}" y1="${FRAME_Y}" x2="${gx}" y2="${FRAME_Y+FRAME_H}" stroke="#000" stroke-opacity="0.06" stroke-width="0.005"/>`;
+  }
+  for (let gy = FRAME_Y; gy <= FRAME_Y + FRAME_H + 0.001; gy += 0.5){
+    grid += `<line x1="${FRAME_X}" y1="${gy}" x2="${FRAME_X+FRAME_W}" y2="${gy}" stroke="#000" stroke-opacity="0.06" stroke-width="0.005"/>`;
+  }
+  // Center crosshairs through the bullseye for visual alignment
+  grid += `<line x1="${CX-0.6}" y1="${CY}" x2="${CX-RING_OUTER*1.05}" y2="${CY}" stroke="#000" stroke-opacity="0.5" stroke-width="0.012"/>`;
+  grid += `<line x1="${CX+0.6}" y1="${CY}" x2="${CX+RING_OUTER*1.05}" y2="${CY}" stroke="#000" stroke-opacity="0.5" stroke-width="0.012"/>`;
+  grid += `<line x1="${CX}" y1="${CY-0.6}" x2="${CX}" y2="${CY-RING_OUTER*1.05}" stroke="#000" stroke-opacity="0.5" stroke-width="0.012"/>`;
+  grid += `<line x1="${CX}" y1="${CY+0.6}" x2="${CX}" y2="${CY+RING_OUTER*1.05}" stroke="#000" stroke-opacity="0.5" stroke-width="0.012"/>`;
+
+  // --- Frame outline (helps confirm print scale) ---
+  const frame = `<rect x="${FRAME_X}" y="${FRAME_Y}" width="${FRAME_W}" height="${FRAME_H}" fill="none" stroke="#000" stroke-width="0.008" stroke-dasharray="0.05 0.05"/>`;
+
+  // --- Footer labels (tells the user real dimensions + how to feed them to the app) ---
+  const labelY = FRAME_Y + FRAME_H - 0.08;
+  const footer = `
+    <text x="${FRAME_X + 1.1}" y="${FRAME_Y + 0.18}" font-size="0.12" font-family="Arial, sans-serif" font-weight="700" fill="#000">DRY-FIRE COACH · CALIBRATED TARGET</text>
+    <text x="${FRAME_X + 1.1}" y="${FRAME_Y + 0.34}" font-size="0.09" font-family="Arial, sans-serif" fill="#444">Print at 100% scale (no “fit to page”). Frame size: ${FRAME_W.toFixed(2)}" × ${FRAME_H.toFixed(2)}".</text>
+    <text x="${CX}" y="${labelY}" font-size="0.10" font-family="Arial, sans-serif" font-weight="700" text-anchor="middle" fill="#000">App settings → Target width: ${FRAME_W.toFixed(2)} in · Target height: ${FRAME_H.toFixed(2)} in</text>
+  `;
+
+  // --- 1" scale bar (lower-left, for double-checking print scale) ---
+  const sbX = FRAME_X + 0.2, sbY = FRAME_Y + FRAME_H - 0.35;
+  const scaleBar = `
+    <rect x="${sbX}" y="${sbY}" width="1" height="0.06" fill="#000"/>
+    <text x="${sbX + 0.5}" y="${sbY - 0.04}" font-size="0.09" font-family="Arial, sans-serif" font-weight="600" text-anchor="middle" fill="#000">1” SCALE CHECK</text>
+  `;
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="${PAGE_W}in" height="${PAGE_H}in"
+         viewBox="0 0 ${PAGE_W} ${PAGE_H}"
+         shape-rendering="crispEdges">
+      <rect x="0" y="0" width="${PAGE_W}" height="${PAGE_H}" fill="#fff"/>
+      ${grid}
+      ${frame}
+      ${rings}
+      ${numbers}
+      ${markers}
+      ${footer}
+      ${scaleBar}
+    </svg>
+  `;
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Dry-Fire Target · 8.5×11</title>
   <style>
-    body{font-family:system-ui;background:#fff;color:#000;margin:24px;}
-    h1{font-size:18px;}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px;}
-    .m{border:1px dashed #999;padding:12px;text-align:center;}
-    .m svg{width:2in;height:2in;display:block;margin:0 auto;}
-    .lbl{font-weight:600;margin-bottom:8px;}
-    @media print { body{margin:0.5in;} .m{break-inside:avoid;} }
+    html,body{margin:0;padding:0;background:#e9e9e9;}
+    .sheet{
+      width:8.5in;height:11in;background:#fff;margin:18px auto;
+      box-shadow:0 4px 18px rgba(0,0,0,0.18);
+      page-break-after:always;
+    }
+    .sheet svg{display:block;width:100%;height:100%;}
+    .toolbar{
+      position:fixed;top:10px;right:10px;display:flex;gap:8px;z-index:10;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    }
+    .toolbar button{
+      background:#FAE232;color:#1a1700;border:none;
+      padding:10px 16px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;
+      box-shadow:0 4px 12px rgba(0,0,0,0.2);
+    }
+    .toolbar button.alt{background:#1a1c1f;color:#fff;}
+    @page { size: 8.5in 11in; margin: 0; }
+    @media print {
+      html,body{background:#fff;}
+      .toolbar{display:none;}
+      .sheet{margin:0;box-shadow:none;}
+    }
   </style></head>
   <body>
-    <h1>Dry-Fire Coach — ArUco corner markers</h1>
-    <p>Print at actual size (no scaling). Cut out and tape one to each corner of your target in the labeled position. The marker outline matters — leave the white border intact.</p>
-    <div class="grid">${svgs}</div>
-    <p style="margin-top:24px;font-size:11px;color:#666;">Dictionary: ARUCO_MIP_36h12 · IDs 0–3</p>
-    <script>window.onload = ()=> setTimeout(()=>window.print(), 400);<\/script>
+    <div class="toolbar">
+      <button class="alt" onclick="window.close()">Close</button>
+      <button onclick="window.print()">Print target</button>
+    </div>
+    <div class="sheet">${svg}</div>
   </body></html>`;
+
   const w = window.open('', '_blank');
-  if (!w){ log('Popup blocked — allow popups to print markers','warn'); return; }
+  if (!w){ log('Popup blocked — allow popups to print the target','warn'); return; }
   w.document.open(); w.document.write(html); w.document.close();
+  log(`Target sheet generated · ${FRAME_W.toFixed(2)}" × ${FRAME_H.toFixed(2)}" frame`, 'ok');
+  // Pre-fill the app inputs to match the printed sheet
+  $('#in-width').value = FRAME_W.toFixed(2);
+  $('#in-height').value = FRAME_H.toFixed(2);
 }
 
 // ---- Init ----
