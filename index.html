@@ -859,8 +859,63 @@
 /* Laptop dashboard layout — only shown when role=laptop */
 body.role-laptop main{display:none}
 body.role-laptop header{display:none}
+/* ── Phone compact mode ────────────────────────────────────── */
+body.role-phone:not(.phone-advanced) .controls,
+body.role-phone:not(.phone-advanced) .calib-panel,
+body.role-phone:not(.phone-advanced) .row3.actions,
+body.role-phone:not(.phone-advanced) .hero,
+body.role-phone:not(.phone-advanced) .session-panel,
+body.role-phone:not(.phone-advanced) details,
+body.role-phone:not(.phone-advanced) .section-label
+  { display:none !important; }
+#phone-status-pill{
+  display:none;
+  background:rgba(5,10,18,0.88);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.09);border-radius:30px;
+  padding:7px 14px;margin:8px 12px 0;
+  font-family:'Manrope',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:0.4px;
+  flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap;
+}
+body.role-phone #phone-status-pill{display:flex;}
+.pill-dot{font-size:13px;}
+.pill-sep{width:1px;height:14px;background:rgba(255,255,255,0.12);}
+#phone-next-shot{
+  display:none;
+  width:calc(100% - 24px);margin:12px 12px 8px;
+  background:linear-gradient(135deg, #fae232, #FFE600);
+  color:#1a1700;border:none;border-radius:18px;
+  font-family:'Spectral',Georgia,serif;font-size:26px;font-weight:700;
+  letter-spacing:0.4px;padding:24px 0;cursor:pointer;
+  box-shadow:0 0 32px rgba(250,226,50,0.4), 0 6px 20px rgba(0,0,0,0.4);
+  transition:all .15s;flex-shrink:0;
+}
+body.role-phone #phone-next-shot{display:block;}
+#phone-next-shot:active{transform:scale(0.97);box-shadow:0 0 16px rgba(250,226,50,0.3);}
+#phone-diag-toggle{
+  display:none;
+  background:transparent;border:1px solid rgba(255,255,255,0.1);
+  color:rgba(216,224,232,0.5);border-radius:10px;padding:6px 16px;
+  font-size:11px;font-family:'Manrope',sans-serif;font-weight:600;
+  cursor:pointer;margin:0 12px 12px;width:calc(100% - 24px);
+  letter-spacing:0.5px;transition:all .2s;
+}
+body.role-phone #phone-diag-toggle{display:block;}
+#phone-diag-toggle:hover{border-color:rgba(255,255,255,0.2);color:rgba(216,224,232,0.8);}
+/* Sound widget */
+#sound-widget{
+  position:fixed;top:12px;right:12px;z-index:800;
+  display:none;
+  background:rgba(5,10,18,0.88);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.08);border-radius:14px;
+  padding:8px 12px;gap:8px;align-items:center;
+  box-shadow:0 4px 18px rgba(0,0,0,0.5);
+}
+body.role-laptop #sound-widget{display:flex;}
+#sound-toggle{background:transparent;border:none;font-size:18px;cursor:pointer;padding:2px 4px;line-height:1;}
+#sound-vol{width:70px;accent-color:#fae232;cursor:pointer;}
 /* ── Painterly laptop dashboard (Farewell-North inspired) ──────────────── */
-.laptop-dash{display:none;position:fixed;inset:0;padding:18px;gap:16px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;overflow:hidden;
+.laptop-dash{display:none;position:fixed;inset:0;overflow:hidden;
   background:
     radial-gradient(ellipse 1200px 700px at 50% -10%, rgba(255,138,76,0.10), transparent 60%),
     radial-gradient(ellipse 900px 600px at 100% 110%, rgba(198,97,232,0.08), transparent 65%),
@@ -872,29 +927,80 @@ body.role-laptop header{display:none}
 .laptop-dash::after{content:"";position:absolute;left:0;right:0;bottom:0;height:140px;pointer-events:none;z-index:0;
   background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 140' preserveAspectRatio='none'><defs><linearGradient id='m' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23061523' stop-opacity='0'/><stop offset='1' stop-color='%23030a14' stop-opacity='1'/></linearGradient></defs><path fill='url(%23m)' d='M0,80 C 120,40 200,100 320,70 C 460,40 540,90 680,60 C 820,30 920,95 1060,70 C 1200,45 1320,100 1460,75 C 1540,60 1580,75 1600,70 L1600,140 L0,140 Z'/><path fill='%23030a14' opacity='0.85' d='M0,110 C 160,90 260,120 420,105 C 580,90 700,125 880,108 C 1060,90 1200,128 1380,110 C 1480,100 1560,115 1600,108 L1600,140 L0,140 Z'/></svg>") bottom/cover no-repeat;
 }
-body.role-laptop .laptop-dash{display:grid}
+body.role-laptop .laptop-dash{display:block}
 .laptop-dash > *{position:relative;z-index:1}
 
 /* Painterly floating bloom particles */
 @keyframes paint-drift { 0%{transform:translateY(0) translateX(0);opacity:0} 10%{opacity:0.8} 90%{opacity:0.6} 100%{transform:translateY(-120vh) translateX(40px);opacity:0} }
+@keyframes threat-pulse { from{text-shadow:0 0 40px rgba(232,35,26,0.7);} to{text-shadow:0 0 120px rgba(232,35,26,1), 0 0 240px rgba(255,0,0,0.5);} }
 .laptop-dash .paint-particle{position:absolute;width:5px;height:5px;border-radius:50%;background:radial-gradient(circle, rgba(250,226,50,0.9), rgba(250,226,50,0));filter:blur(0.5px);pointer-events:none;z-index:0;animation:paint-drift 16s linear infinite}
 
 .dash-panel{
   background:linear-gradient(160deg, rgba(20,40,55,0.85), rgba(8,18,28,0.92));
   border:1px solid rgba(255,255,255,0.07);
-  border-radius:20px;padding:16px;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;
+  border-radius:20px;display:flex;flex-direction:column;min-height:0;overflow:hidden;
+  position:absolute;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.06),
     0 6px 18px rgba(0,0,0,0.55),
     0 0 0 1px rgba(255,255,255,0.02);
   backdrop-filter:blur(2px);
   transition:box-shadow .4s ease, border-color .4s ease;
+  z-index:10;
+  user-select:none;
 }
 .dash-panel::before{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,138,76,0.10), transparent 70%);opacity:0.9}
 .dash-panel:hover{border-color:rgba(250,226,50,0.18);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 24px rgba(0,0,0,0.6), 0 0 40px rgba(250,226,50,0.10)}
-.dash-panel h3{margin:0 0 12px;font-family:'Spectral', Georgia, serif;font-size:18px;font-weight:600;letter-spacing:0.2px;color:#fae232;display:flex;align-items:center;gap:10px;text-shadow:0 1px 12px rgba(250,226,50,0.18)}
-.dash-panel h3 .tag{font-family:'Manrope', sans-serif;font-size:10px;color:rgba(216,224,232,0.5);font-weight:500;letter-spacing:0.8px;text-transform:uppercase}
+/* ── Floating-window header & controls ─────────────────────────────────── */
+.dash-panel .win-header{
+  display:flex;align-items:center;justify-content:space-between;
+  height:36px;min-height:36px;padding:0 10px;
+  background:linear-gradient(180deg, rgba(30,55,72,0.85), rgba(14,34,50,0.9));
+  border-radius:18px 18px 0 0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  cursor:grab;cursor:-webkit-grab;
+  flex-shrink:0;
+}
+.dash-panel .win-header:active{cursor:grabbing;cursor:-webkit-grabbing}
+.dash-panel .win-header h3{margin:0;font-family:'Spectral', Georgia, serif;font-size:15px;font-weight:600;letter-spacing:0.2px;color:#fae232;display:flex;align-items:center;gap:8px;text-shadow:0 1px 12px rgba(250,226,50,0.18);pointer-events:none;flex:1;min-width:0;overflow:hidden;white-space:nowrap}
+.dash-panel .win-header h3 .tag{font-family:'Manrope', sans-serif;font-size:9px;color:rgba(216,224,232,0.45);font-weight:500;letter-spacing:0.8px;text-transform:uppercase}
+.win-controls{display:flex;align-items:center;gap:4px;flex-shrink:0;}
+.win-btn{width:22px;height:22px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:all .15s;line-height:1;padding:0;}
+.win-btn.min-btn{background:rgba(255,179,71,0.25);color:#FFB347;}
+.win-btn.min-btn:hover{background:rgba(255,179,71,0.6);color:#fff;}
+.win-btn.max-btn{background:rgba(100,180,100,0.2);color:#9fd3b5;}
+.win-btn.max-btn:hover{background:rgba(100,180,100,0.5);color:#fff;}
+.win-btn.close-btn{background:rgba(255,100,80,0.2);color:#FF8A4C;}
+.win-btn.close-btn:hover{background:rgba(255,100,80,0.55);color:#fff;}
+.dash-panel .panel-body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative;padding:12px;overflow:hidden;}
+.dash-panel.minimized .panel-body{display:none!important;}
+.dash-panel.minimized{min-height:0!important;height:36px!important;overflow:hidden;}
+.dash-panel.maximized{inset:0!important;width:100%!important;height:100%!important;border-radius:0!important;z-index:500!important;}
+.dash-panel.dragging{opacity:0.92;box-shadow:0 20px 60px rgba(0,0,0,0.8), 0 0 0 2px rgba(250,226,50,0.3)!important;}
+/* 8-way resize handles */
+.resize-handle{position:absolute;z-index:5;}
+.resize-handle.n{top:-4px;left:8px;right:8px;height:8px;cursor:n-resize;}
+.resize-handle.s{bottom:-4px;left:8px;right:8px;height:8px;cursor:s-resize;}
+.resize-handle.w{left:-4px;top:8px;bottom:8px;width:8px;cursor:w-resize;}
+.resize-handle.e{right:-4px;top:8px;bottom:8px;width:8px;cursor:e-resize;}
+.resize-handle.nw{top:-4px;left:-4px;width:16px;height:16px;cursor:nw-resize;}
+.resize-handle.ne{top:-4px;right:-4px;width:16px;height:16px;cursor:ne-resize;}
+.resize-handle.sw{bottom:-4px;left:-4px;width:16px;height:16px;cursor:sw-resize;}
+.resize-handle.se{bottom:-4px;right:-4px;width:16px;height:16px;cursor:se-resize;}
+/* Taskbar */
+#win-taskbar{position:fixed;bottom:0;left:0;right:0;height:40px;background:rgba(5,10,18,0.92);backdrop-filter:blur(8px);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px;padding:0 12px;z-index:900;}
+#win-taskbar .tb-btn{background:rgba(20,40,55,0.8);border:1px solid rgba(255,255,255,0.08);color:#fae232;padding:5px 12px;border-radius:8px;font-size:11px;font-family:'Manrope',sans-serif;font-weight:600;cursor:pointer;transition:all .15s;letter-spacing:0.3px;white-space:nowrap;}
+#win-taskbar .tb-btn:hover{border-color:rgba(250,226,50,0.4);background:rgba(35,60,80,0.9);}
+#win-taskbar .tb-btn.minimized-entry{opacity:0.65;}
+#win-taskbar .tb-btn.minimized-entry:hover{opacity:1;}
+#win-taskbar .tb-sep{flex:1;}
+#win-taskbar .tb-reset{background:rgba(255,138,76,0.15);border-color:rgba(255,138,76,0.25);color:#FF8A4C;}
+#win-taskbar .tb-reset:hover{background:rgba(255,138,76,0.3);border-color:rgba(255,138,76,0.5);}
+.dash-panel h3{margin:0;font-family:'Spectral', Georgia, serif;font-size:15px;font-weight:600;letter-spacing:0.2px;color:#fae232;display:flex;align-items:center;gap:8px;text-shadow:0 1px 12px rgba(250,226,50,0.18);}
+.dash-panel h3 .tag{font-family:'Manrope', sans-serif;font-size:9px;color:rgba(216,224,232,0.45);font-weight:500;letter-spacing:0.8px;text-transform:uppercase}
 .dash-panel .body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+/* Legacy compat — panel-body overrides body for floaters */
+.dash-panel .panel-body.body{padding:12px;}
 #dash-video{flex:1;min-height:0;background:#02060c;border-radius:14px;object-fit:contain;width:100%;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05)}
 #dash-rect-canvas{flex:1;min-height:0;background:#02060c;border-radius:14px;display:block;width:100%;height:100%;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05)}
 #dash-wobble-canvas{flex:1;min-height:0;background:#02060c;border-radius:14px;display:block;width:100%;height:100%;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05)}
@@ -927,11 +1033,8 @@ body.role-laptop .laptop-dash{display:grid}
 .dash-tools{display:flex;gap:8px;margin-top:10px}
 .dash-tools button{flex:1;background:rgba(20,40,55,0.7);color:#eee;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:8px 10px;font-size:12px;cursor:pointer;font-family:'Manrope', sans-serif;font-weight:600;letter-spacing:0.3px;transition:all .2s}
 .dash-tools button:hover{border-color:var(--yellow);background:rgba(30,55,72,0.85);transform:translateY(-1px)}
-@media (max-width:900px){.laptop-dash{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}}
-
-/* Control rail — lives in the dashboard grid as the top-left panel; expanded to span both top cells */
-body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-columns:1fr 1fr}
-#dash-controls-panel{grid-column:1 / -1; padding:16px 18px}
+/* Control rail — floating panel, no grid spans needed */
+#dash-controls-panel{}
 .ctrl-body{gap:12px}
 .ctrl-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-bottom:12px}
 @media (max-width:1500px){ .ctrl-grid{grid-template-columns:repeat(4,1fr)} }
@@ -1101,10 +1204,17 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
   <div class="paint-particle" style="left:67%;bottom:-10px;animation-delay:9s"></div>
   <div class="paint-particle" style="left:82%;bottom:-10px;animation-delay:12s;background:radial-gradient(circle, rgba(255,138,76,0.9), rgba(255,138,76,0))"></div>
   <div class="paint-particle" style="left:93%;bottom:-10px;animation-delay:14s"></div>
-  <!-- Top-row control rail: covers both top panels' header area -->
-  <div class="dash-panel" id="dash-controls-panel">
-    <h3>Control center <span class="tag" id="dash-ctrl-tag">drive the phone from here</span></h3>
-    <div class="body ctrl-body">
+  <!-- Top-row control rail -->
+  <div class="dash-panel" id="dash-controls-panel" data-window-id="controls">
+    <div class="win-header">
+      <h3>Control center <span class="tag" id="dash-ctrl-tag">drive the phone from here</span></h3>
+      <div class="win-controls">
+        <button class="win-btn min-btn" title="Minimize">&#8211;</button>
+        <button class="win-btn max-btn" title="Maximize">&#9633;</button>
+        <button class="win-btn close-btn" title="Close">&#215;</button>
+      </div>
+    </div>
+    <div class="panel-body body ctrl-body">
       <div class="ctrl-grid">
         <div class="ctrl-block">
           <div class="ctrl-label">Distance to target</div>
@@ -1150,6 +1260,7 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
           <div class="ctrl-seg" id="ctrl-mode-seg">
             <button data-mode="1p" class="active">1 player</button>
             <button data-mode="2p">2 players</button>
+            <button data-mode="qd">Quick Draw</button>
           </div>
         </div>
         <div class="ctrl-block" id="ctrl-player-block" style="display:none">
@@ -1185,17 +1296,57 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
       </div>
     </div>
   </div>
-  <div class="dash-panel">
-    <h3>Live camera <span class="tag" id="dash-video-tag">from phone</span></h3>
-    <div class="body"><video id="dash-video" autoplay playsinline muted></video></div>
+  <div class="dash-panel" data-window-id="camera">
+    <div class="win-header">
+      <h3>Live camera <span class="tag" id="dash-video-tag">from phone</span></h3>
+      <div class="win-controls">
+        <button class="win-btn min-btn" title="Minimize">&#8211;</button>
+        <button class="win-btn max-btn" title="Maximize">&#9633;</button>
+        <button class="win-btn close-btn" title="Close">&#215;</button>
+      </div>
+    </div>
+    <div class="panel-body body"><video id="dash-video" autoplay playsinline muted></video></div>
   </div>
-  <div class="dash-panel">
-    <h3>Rectified target <span class="tag">shot trail</span></h3>
-    <div class="body"><canvas id="dash-rect-canvas" width="600" height="600"></canvas></div>
+  <div class="dash-panel" data-window-id="target">
+    <div class="win-header">
+      <h3>Rectified target <span class="tag">shot trail</span></h3>
+      <div class="win-controls">
+        <button class="win-btn min-btn" title="Minimize">&#8211;</button>
+        <button class="win-btn max-btn" title="Maximize">&#9633;</button>
+        <button class="win-btn close-btn" title="Close">&#215;</button>
+      </div>
+    </div>
+    <div class="panel-body body" style="position:relative;">
+      <div class="rect-controls" style="position:absolute;top:4px;right:6px;z-index:20;display:flex;flex-direction:column;gap:4px;background:rgba(5,10,18,0.82);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px 8px;">
+        <select id="rect-style" style="background:rgba(14,34,50,0.9);color:#fae232;border:1px solid rgba(255,255,255,0.1);border-radius:6px;font-size:10px;padding:3px 5px;font-family:'Manrope',sans-serif;font-weight:600;letter-spacing:0.4px;">
+          <option value="bullseye">Bullseye</option>
+          <option value="ipsc">IPSC</option>
+          <option value="b8">B-8 (NRA)</option>
+          <option value="dot">Dot Drill</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(216,224,232,0.7);font-family:'Manrope',sans-serif;cursor:pointer;">
+          <input type="checkbox" id="rect-trail" style="accent-color:#fae232;"> Trail
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(216,224,232,0.7);font-family:'Manrope',sans-serif;cursor:pointer;">
+          <input type="checkbox" id="rect-heatmap" style="accent-color:#fae232;"> Heat
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(216,224,232,0.7);font-family:'Manrope',sans-serif;cursor:pointer;">
+          <input type="checkbox" id="rect-group" style="accent-color:#fae232;"> Group
+        </label>
+      </div>
+      <canvas id="dash-rect-canvas" width="600" height="600"></canvas>
+    </div>
   </div>
-  <div class="dash-panel">
-    <h3>Pre-shot wobble <span class="tag">last 200ms before break</span></h3>
-    <div class="body">
+  <div class="dash-panel" data-window-id="wobble">
+    <div class="win-header">
+      <h3>Pre-shot wobble <span class="tag">last 250ms before break</span></h3>
+      <div class="win-controls">
+        <button class="win-btn min-btn" title="Minimize">&#8211;</button>
+        <button class="win-btn max-btn" title="Maximize">&#9633;</button>
+        <button class="win-btn close-btn" title="Close">&#215;</button>
+      </div>
+    </div>
+    <div class="panel-body body">
       <canvas id="dash-wobble-canvas" width="600" height="360"></canvas>
       <div class="jerk-readout">
         <div class="col"><div class="lbl">Direction</div><div class="big" id="dash-jerk-dir">—</div></div>
@@ -1204,9 +1355,16 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
       </div>
     </div>
   </div>
-  <div class="dash-panel">
-    <h3>Session <span class="tag" id="dash-session-tag">no shots yet</span></h3>
-    <div class="body">
+  <div class="dash-panel" data-window-id="session">
+    <div class="win-header">
+      <h3>Session <span class="tag" id="dash-session-tag">no shots yet</span></h3>
+      <div class="win-controls">
+        <button class="win-btn min-btn" title="Minimize">&#8211;</button>
+        <button class="win-btn max-btn" title="Maximize">&#9633;</button>
+        <button class="win-btn close-btn" title="Close">&#215;</button>
+      </div>
+    </div>
+    <div class="panel-body body">
       <div class="dash-stats">
         <div class="stat"><div class="v" id="dash-shots">0</div><div class="k">Shots</div></div>
         <div class="stat"><div class="v" id="dash-avg">—</div><div class="k">Avg MOA</div></div>
@@ -1222,6 +1380,44 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
         <button id="dash-csv">Export CSV</button>
         <button id="dash-clear">Clear table</button>
       </div>
+    </div>
+  </div>
+</div>
+<!-- Taskbar -->
+<div id="win-taskbar">
+  <span style="font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(216,224,232,0.4);font-family:'Manrope',sans-serif;font-weight:600;">DRYFIRE COACH</span>
+  <div class="tb-sep"></div>
+  <button class="tb-btn tb-reset" id="tb-reset-layout">Reset Layout</button>
+</div>
+
+<!-- Quick Draw laptop HUD -->
+<div id="qd-laptop-hud" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(3,8,16,0.96);backdrop-filter:blur(12px);flex-direction:column;align-items:center;justify-content:flex-start;gap:0;overflow:hidden;">
+  <!-- THREAT banner -->
+  <div id="qd-threat-banner" style="display:none;position:fixed;inset:0;z-index:10;background:rgba(180,20,20,0.18);align-items:center;justify-content:center;pointer-events:none;">
+    <div style="font-family:'Spectral',Georgia,serif;font-size:clamp(60px,12vw,140px);font-weight:700;color:#e8231a;text-shadow:0 0 80px rgba(232,35,26,0.9), 0 0 200px rgba(232,35,26,0.4);letter-spacing:8px;animation:threat-pulse 0.4s ease-in-out infinite alternate;">THREAT!</div>
+  </div>
+  <!-- Main HUD content -->
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:16px;padding:40px 24px 16px;width:100%;max-width:900px;">
+    <div id="qd-label" style="font-family:'Manrope',sans-serif;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:rgba(216,224,232,0.6);">Ready</div>
+    <div id="qd-clock" style="font-family:'JetBrains Mono',monospace;font-size:clamp(48px,10vw,96px);font-weight:700;color:#fae232;text-shadow:0 0 40px rgba(250,226,50,0.5);line-height:1;">0.000</div>
+    <div id="qd-rep-counter" style="font-family:'Manrope',sans-serif;font-size:14px;color:rgba(216,224,232,0.5);letter-spacing:0.8px;">Rep 1 / 5</div>
+    <div id="qd-last-result" style="font-family:'JetBrains Mono',monospace;font-size:15px;color:#9fd3b5;min-height:22px;"></div>
+    <!-- Per-rep results table -->
+    <div id="qd-summary"></div>
+    <div style="max-width:680px;width:100%;overflow:auto;max-height:220px;border:1px solid rgba(255,255,255,0.06);border-radius:12px;background:rgba(8,18,28,0.5);">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;font-family:'JetBrains Mono',monospace;">
+        <thead><tr style="background:rgba(14,34,48,0.85);">
+          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">#</th>
+          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">Draw (s)</th>
+          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">Shot (s)</th>
+          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">Result</th>
+          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">MOA</th>
+        </tr></thead>
+        <tbody id="qd-rep-tbody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <button onclick="QuickDraw.stop()" style="background:rgba(255,138,76,0.2);border:1px solid rgba(255,138,76,0.4);color:#FF8A4C;padding:10px 24px;border-radius:12px;font-family:'Manrope',sans-serif;font-weight:600;font-size:13px;cursor:pointer;">Stop</button>
     </div>
   </div>
 </div>
@@ -1411,6 +1607,28 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
     <summary>Show diagnostics</summary>
     <div id="log"></div>
   </details>
+
+  <!-- Phone compact mode: status pill + NEXT SHOT button + diag toggle -->
+  <div id="phone-status-pill">
+    <span class="pill-dot" id="pp-laser" title="Laser">&#11044; Laser</span>
+    <span class="pill-sep"></span>
+    <span class="pill-dot" id="pp-target" title="Target">&#11044; Target</span>
+    <span class="pill-sep"></span>
+    <span class="pill-dot" id="pp-mic" title="Mic">&#11044; Mic</span>
+    <span class="pill-sep"></span>
+    <span class="pill-dot" id="pp-imu" title="IMU">&#11044; IMU</span>
+    <span id="pp-code" style="margin-left:4px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(250,226,50,0.7);"></span>
+  </div>
+  <button id="phone-next-shot">NEXT SHOT</button>
+  <button id="phone-diag-toggle">Show diagnostics</button>
+
+  <!-- Quick Draw phone overlay -->
+  <div id="qd-phone-overlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(5,10,18,0.94);backdrop-filter:blur(10px);flex-direction:column;align-items:center;justify-content:center;gap:24px;">
+    <div id="qd-phone-state-label" style="font-family:'Manrope',sans-serif;font-size:14px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(216,224,232,0.6);">Hold steady, muzzle down</div>
+    <div id="qd-phone-clock" style="font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:700;color:#fae232;text-shadow:0 0 30px rgba(250,226,50,0.4);">0.000</div>
+    <div id="qd-phone-threat" style="display:none;font-family:'Spectral',Georgia,serif;font-size:48px;font-weight:700;color:#e8231a;text-shadow:0 0 40px rgba(232,35,26,0.7);letter-spacing:4px;">THREAT!</div>
+    <div id="qd-phone-rep" style="font-family:'Manrope',sans-serif;font-size:13px;color:rgba(216,224,232,0.5);">Rep 1 / 5</div>
+  </div>
 </main>
 
 <!-- ============================ Setup wizard ============================ -->
@@ -2490,6 +2708,10 @@ let sessionArmed = false; // mirrored from setArmed()
 // Always-visible feedback for any detected click. Even when target/laser data
 // is missing, register the click as an "untracked" shot so the user sees the
 // pipeline working and gets actionable feedback about what to enable next.
+// Shot cooldown — filters slide-rack double-triggers from mic detection.
+// 1.5s default; manual ('manual') trigger bypasses the cooldown entirely.
+let _lastShotAt = 0;
+const SHOT_COOLDOWN_MS = 1500;
 function onClickDetected(source, intensity){
   if (!sessionArmed){
     // Pre-session clicks are ignored — but tell the user what they need to do.
@@ -2497,6 +2719,14 @@ function onClickDetected(source, intensity){
     log(`Click (${source}) ignored — session not armed`, 'warn');
     return;
   }
+  // Cooldown: ignore mic/auto triggers within 1.5s of the previous shot to
+  // filter slide-rack / re-cock noise. Manual button bypasses.
+  const _now = performance.now();
+  if (source !== 'manual' && source !== 'test' && (_now - _lastShotAt) < SHOT_COOLDOWN_MS){
+    log(`Click (${source}) suppressed by ${SHOT_COOLDOWN_MS}ms cooldown (slide-rack filter)`, 'warn');
+    return;
+  }
+  _lastShotAt = _now;
 
   // Visual flash + screen shake on EVERY detected click so the user knows the
   // mic/IMU pipeline is alive, even if scoring isn't possible yet.
@@ -2846,7 +3076,7 @@ if (!navigator.bluetooth) log('Web Bluetooth unavailable in this browser','warn'
 // Sampled at ~30Hz for laser (one sample per camera frame), ~100Hz for IMU.
 // Each entry: {t, x, y, synthetic?} for laser; {t, ax, ay, az, gx, gy, gz} for IMU.
 // We keep a longer 600ms window so analyzeJerk always has options even if the laser dropped briefly.
-const PRESHOT_WINDOW_MS = 600;
+const PRESHOT_WINDOW_MS = 250; // MantisX industry standard: quarter-second trigger-press window
 const preShotLaser = [];
 const preShotImu   = [];
 // Snapshot of the rectified canvas captured at low rate so we ALWAYS have a still-frame fallback to render
@@ -4046,7 +4276,7 @@ const LaptopCtrl = (function(){
       });
     });
 
-    // Mode segmented buttons (1P / 2P)
+    // Mode segmented buttons (1P / 2P / QD)
     document.querySelectorAll('#ctrl-mode-seg button').forEach(btn => {
       if (btn._wired) return; btn._wired = true;
       btn.addEventListener('click', () => {
@@ -4057,12 +4287,20 @@ const LaptopCtrl = (function(){
         sendCmd('setMode', { value: m });
         const playerBlock = document.getElementById('ctrl-player-block');
         if (playerBlock) playerBlock.style.display = (m === '2p') ? 'flex' : 'none';
-        // Reset table to render with/without player column
         if (typeof Dash !== 'undefined' && Dash.shots){ /* will re-render naturally on next shot/state */ }
         rebuildDashTableHead();
         rebuildSessionPanelFor2P();
       });
     });
+    // Wire ctrl-start for QD mode
+    const _qdStartOrig = document.getElementById('ctrl-start');
+    if (_qdStartOrig){
+      _qdStartOrig.addEventListener('click', () => {
+        if (currentMode === 'qd'){
+          try { QuickDraw.start(); } catch(e){ console.error('QD start error',e); }
+        }
+      });
+    }
 
     // Active-player toggle (only meaningful when 2P)
     document.querySelectorAll('#ctrl-player-seg button').forEach(btn => {
@@ -4792,6 +5030,961 @@ const LaptopCtrl = (function(){
 })();
 
 log('Control center + clip player + results modal ready', 'ok');
+
+// =====================================================================
+// WindowManager — draggable / resizable / min / max / close / taskbar
+// =====================================================================
+const WindowManager = (function(){
+  const DEFAULT_LAYOUT = {
+    controls: { x:12,  y:12,  w:600, h:300 },
+    camera:   { x:624, y:12,  w:480, h:360 },
+    target:   { x:12,  y:324, w:480, h:460 },
+    wobble:   { x:504, y:384, w:480, h:300 },
+    session:  { x:996, y:12,  w:420, h:660 }
+  };
+  const MIN_W = 280, MIN_H = 180;
+  const TASKBAR_H = 40;
+  let _topZ = 20;
+  const _windows = {}; // id -> { el, state: 'normal'|'minimized'|'maximized', savedRect }
+
+  function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+  function saveGeom(id){
+    const w = _windows[id];
+    if (!w || w.state === 'minimized' || w.state === 'maximized') return;
+    const el = w.el;
+    const r = { x: parseInt(el.style.left,10), y: parseInt(el.style.top,10),
+                 w: el.offsetWidth, h: el.offsetHeight };
+    try { localStorage.setItem('df_window_'+id, JSON.stringify(r)); } catch(e){}
+  }
+  const _saveTimers = {};
+  function schedSave(id){
+    clearTimeout(_saveTimers[id]);
+    _saveTimers[id] = setTimeout(() => saveGeom(id), 300);
+  }
+
+  function applyRect(id, r){
+    const w = _windows[id]; if (!w) return;
+    const el = w.el;
+    const vw = window.innerWidth, vh = window.innerHeight - TASKBAR_H;
+    const x = clamp(r.x, 0, vw - MIN_W);
+    const y = clamp(r.y, 0, vh - 36);
+    const rw = clamp(r.w, MIN_W, vw - x);
+    const rh = clamp(r.h, MIN_H, vh - y);
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+    el.style.width = rw + 'px'; el.style.height = rh + 'px';
+  }
+
+  function bringToFront(id){
+    _topZ++;
+    const w = _windows[id]; if (w) w.el.style.zIndex = _topZ;
+  }
+
+  function updateTaskbar(){
+    const tb = document.getElementById('win-taskbar'); if (!tb) return;
+    document.querySelectorAll('#win-taskbar .tb-minimized').forEach(e => e.remove());
+    Object.keys(_windows).forEach(id => {
+      const w = _windows[id];
+      if (w.state !== 'minimized') return;
+      const title = w.el.querySelector('h3') ? w.el.querySelector('h3').textContent.trim().split('\n')[0].trim() : id;
+      const btn = document.createElement('button');
+      btn.className = 'tb-btn minimized-entry tb-minimized';
+      btn.textContent = title.substring(0, 20);
+      btn.onclick = () => restore(id);
+      // insert before reset button
+      const resetBtn = document.getElementById('tb-reset-layout');
+      if (resetBtn) tb.insertBefore(btn, resetBtn.previousElementSibling || resetBtn);
+      else tb.appendChild(btn);
+    });
+  }
+
+  function minimize(id){
+    const w = _windows[id]; if (!w) return;
+    if (w.state === 'normal') w.savedRect = { x:parseInt(w.el.style.left,10), y:parseInt(w.el.style.top,10), w:w.el.offsetWidth, h:w.el.offsetHeight };
+    w.state = 'minimized';
+    w.el.classList.add('minimized');
+    w.el.classList.remove('maximized');
+    updateTaskbar();
+  }
+  function maximize(id){
+    const w = _windows[id]; if (!w) return;
+    if (w.state === 'maximized'){
+      restore(id); return;
+    }
+    if (w.state === 'normal') w.savedRect = { x:parseInt(w.el.style.left,10), y:parseInt(w.el.style.top,10), w:w.el.offsetWidth, h:w.el.offsetHeight };
+    w.state = 'maximized';
+    w.el.classList.add('maximized');
+    w.el.classList.remove('minimized');
+    w.el.style.zIndex = 500;
+    updateTaskbar();
+  }
+  function closeWin(id){
+    const w = _windows[id]; if (!w) return;
+    w.state = 'closed';
+    w.el.style.display = 'none';
+    updateTaskbar();
+  }
+  function restore(id){
+    const w = _windows[id]; if (!w) return;
+    w.state = 'normal';
+    w.el.classList.remove('minimized','maximized');
+    w.el.style.display = '';
+    if (w.savedRect) applyRect(id, w.savedRect);
+    bringToFront(id);
+    updateTaskbar();
+  }
+
+  function registerPanel(el){
+    const id = el.dataset.windowId; if (!id) return;
+    _windows[id] = { el, state: 'normal', savedRect: null };
+
+    // Load saved geometry or default
+    let r = DEFAULT_LAYOUT[id] || { x:20, y:20, w:380, h:300 };
+    try {
+      const saved = localStorage.getItem('df_window_'+id);
+      if (saved) r = JSON.parse(saved);
+    } catch(e){}
+    applyRect(id, r);
+
+    // Wire header buttons
+    const minBtn = el.querySelector('.min-btn');
+    const maxBtn = el.querySelector('.max-btn');
+    const closeBtn = el.querySelector('.close-btn');
+    if (minBtn) minBtn.addEventListener('click', (e) => { e.stopPropagation(); minimize(id); });
+    if (maxBtn) maxBtn.addEventListener('click', (e) => { e.stopPropagation(); maximize(id); });
+    if (closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeWin(id); });
+
+    // Drag from header
+    const header = el.querySelector('.win-header');
+    if (header){
+      header.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.win-controls')) return;
+        if (_windows[id].state === 'maximized') return;
+        bringToFront(id);
+        header.setPointerCapture(e.pointerId);
+        el.classList.add('dragging');
+        const startX = e.clientX, startY = e.clientY;
+        const ox = parseInt(el.style.left,10), oy = parseInt(el.style.top,10);
+        const vw = window.innerWidth, vh = window.innerHeight - TASKBAR_H;
+        function onMove(me){
+          const nx = clamp(ox + me.clientX - startX, 0, vw - 40);
+          const ny = clamp(oy + me.clientY - startY, 0, vh - 36);
+          el.style.left = nx + 'px'; el.style.top = ny + 'px';
+        }
+        function onUp(){
+          header.releasePointerCapture(e.pointerId);
+          el.classList.remove('dragging');
+          schedSave(id);
+          header.removeEventListener('pointermove', onMove);
+          header.removeEventListener('pointerup', onUp);
+        }
+        header.addEventListener('pointermove', onMove);
+        header.addEventListener('pointerup', onUp);
+      });
+    }
+
+    // 8-way resize
+    ['n','s','e','w','nw','ne','sw','se'].forEach(dir => {
+      const h = document.createElement('div');
+      h.className = 'resize-handle ' + dir;
+      el.appendChild(h);
+      h.addEventListener('pointerdown', (e) => {
+        if (_windows[id].state !== 'normal') return;
+        bringToFront(id);
+        e.stopPropagation(); e.preventDefault();
+        h.setPointerCapture(e.pointerId);
+        const startX = e.clientX, startY = e.clientY;
+        const ox = parseInt(el.style.left,10), oy = parseInt(el.style.top,10);
+        const ow = el.offsetWidth, oh = el.offsetHeight;
+        const vw = window.innerWidth, vh = window.innerHeight - TASKBAR_H;
+        function onMove(me){
+          const dx = me.clientX - startX, dy = me.clientY - startY;
+          let nx=ox, ny=oy, nw=ow, nh=oh;
+          if (dir.includes('e')){ nw = clamp(ow+dx, MIN_W, vw-ox); }
+          if (dir.includes('s')){ nh = clamp(oh+dy, MIN_H, vh-oy); }
+          if (dir.includes('w')){ const nw2=clamp(ow-dx,MIN_W,ow+ox); nx=ox+ow-nw2; nw=nw2; }
+          if (dir.includes('n')){ const nh2=clamp(oh-dy,MIN_H,oh+oy); ny=oy+oh-nh2; nh=nh2; }
+          el.style.left=nx+'px'; el.style.top=ny+'px';
+          el.style.width=nw+'px'; el.style.height=nh+'px';
+        }
+        function onUp(){
+          h.releasePointerCapture(e.pointerId);
+          schedSave(id);
+          h.removeEventListener('pointermove', onMove);
+          h.removeEventListener('pointerup', onUp);
+        }
+        h.addEventListener('pointermove', onMove);
+        h.addEventListener('pointerup', onUp);
+      });
+    });
+
+    // Click-to-front
+    el.addEventListener('pointerdown', () => bringToFront(id), true);
+  }
+
+  function resetLayout(){
+    Object.keys(DEFAULT_LAYOUT).forEach(id => {
+      try { localStorage.removeItem('df_window_'+id); } catch(e){}
+    });
+    // Adjust default positions relative to actual viewport
+    const vw = window.innerWidth, vh = window.innerHeight - TASKBAR_H;
+    const half = Math.floor(vw/2), third = Math.floor(vw/3);
+    const customLayout = {
+      controls: { x:12,  y:12,  w:Math.min(600,vw-24), h:Math.min(300,vh/2-24) },
+      camera:   { x:12+Math.min(610,half), y:12, w:Math.min(440,vw/2-24), h:Math.min(340,vh/2-24) },
+      target:   { x:12,  y:Math.min(324, vh/2+8), w:Math.min(460,vw/2-24), h:Math.min(vh/2-60, 440) },
+      wobble:   { x:12+Math.min(480,half), y:Math.min(370, vh/2+50), w:Math.min(440,vw/2-24), h:Math.min(280, vh/2-60) },
+      session:  { x:Math.max(vw-430,12), y:12, w:Math.min(410,vw/3), h:Math.min(660,vh-60) }
+    };
+    Object.keys(_windows).forEach(id => {
+      const w = _windows[id];
+      w.state = 'normal';
+      w.el.classList.remove('minimized','maximized');
+      w.el.style.display = '';
+      applyRect(id, customLayout[id] || DEFAULT_LAYOUT[id] || {x:20,y:20,w:380,h:300});
+    });
+    updateTaskbar();
+  }
+
+  function init(){
+    if (!document.body.classList.contains('role-laptop')) return;
+    document.querySelectorAll('.laptop-dash .dash-panel[data-window-id]').forEach(registerPanel);
+    const resetBtn = document.getElementById('tb-reset-layout');
+    if (resetBtn) resetBtn.addEventListener('click', resetLayout);
+    updateTaskbar();
+  }
+
+  // Init once laptop role assigned
+  let _initDone = false;
+  setInterval(() => {
+    if (_initDone) return;
+    if (document.body.classList.contains('role-laptop')){
+      _initDone = true;
+      setTimeout(init, 50);
+    }
+  }, 200);
+
+  return { init, resetLayout, restore, minimize, maximize, bringToFront };
+})();
+
+// =====================================================================
+// Phone compact UI wiring
+// =====================================================================
+(function(){
+  function initPhoneUI(){
+    if (!document.body.classList.contains('role-phone')) return;
+
+    // Diag toggle
+    const diagBtn = document.getElementById('phone-diag-toggle');
+    if (diagBtn){
+      diagBtn.addEventListener('click', () => {
+        const adv = document.body.classList.toggle('phone-advanced');
+        diagBtn.textContent = adv ? 'Hide diagnostics' : 'Show diagnostics';
+      });
+    }
+
+    // NEXT SHOT button — bypasses cooldown via 'manual'
+    const nextBtn = document.getElementById('phone-next-shot');
+    if (nextBtn){
+      nextBtn.addEventListener('click', () => {
+        try { onClickDetected('manual', 1); } catch(e){}
+      });
+    }
+
+    // Status pill updates — poll live status elements
+    function updatePill(){
+      const colors = { ok:'#9fd3b5', warn:'#fae232', off:'rgba(216,224,232,0.3)' };
+      const laserEl = document.getElementById('laser-status');
+      const targetEl = document.getElementById('target-status');
+      const micEl = document.getElementById('audio-status');
+      const imuEl = document.getElementById('imu-status');
+      const ppLaser = document.getElementById('pp-laser');
+      const ppTarget = document.getElementById('pp-target');
+      const ppMic = document.getElementById('pp-mic');
+      const ppImu = document.getElementById('pp-imu');
+      if (ppLaser && laserEl) ppLaser.style.color = (laserEl.textContent.includes('—') ? colors.off : colors.ok);
+      if (ppTarget && targetEl) ppTarget.style.color = (targetEl.textContent.includes('—') ? colors.off : colors.ok);
+      if (ppMic && micEl) ppMic.style.color = (micEl.textContent.includes('—') ? colors.off : colors.ok);
+      if (ppImu && imuEl) ppImu.style.color = (imuEl.textContent.includes('—') ? colors.off : colors.ok);
+    }
+    setInterval(updatePill, 800);
+
+    // Show pair code in pill
+    const ppCode = document.getElementById('pp-code');
+    let _pairShown = false;
+    setInterval(() => {
+      if (_pairShown) return;
+      const codeEl = document.getElementById('pair-code');
+      if (codeEl && codeEl.textContent && ppCode) {
+        ppCode.textContent = codeEl.textContent.trim();
+        if (document.body.classList.contains('role-phone') && Role.isConnected && Role.isConnected()) _pairShown = true;
+      }
+    }, 500);
+
+    // Auto-start camera + mic on connect
+    let _autoStarted = false;
+    setInterval(() => {
+      if (_autoStarted) return;
+      if (document.body.classList.contains('role-phone') && typeof camStream === 'undefined' || !window.camStream){
+        const camBtn = document.getElementById('btn-cam');
+        if (camBtn && !camBtn.classList.contains('active')){
+          try { camBtn.click(); } catch(e){}
+          _autoStarted = true;
+        }
+      } else {
+        _autoStarted = true;
+      }
+    }, 1200);
+  }
+
+  let _done = false;
+  setInterval(() => {
+    if (_done) return;
+    if (document.body.classList.contains('role-phone')){
+      _done = true;
+      initPhoneUI();
+    }
+  }, 300);
+})();
+
+// =====================================================================
+// SoundFX — gunshot audio with fallback synth
+// =====================================================================
+const SoundFX = (function(){
+  let _enabled = true;
+  let _vol = 0.6;
+  let _ac = null;
+  let _shotBuf = null;
+  let _loaded = false;
+
+  try {
+    _enabled = localStorage.getItem('df_sound_on') !== 'false';
+    _vol = parseFloat(localStorage.getItem('df_sound_vol') || '0.6');
+  } catch(e){}
+
+  function getAC(){
+    if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (_ac.state === 'suspended') _ac.resume();
+    return _ac;
+  }
+
+  function playSynth(volume){
+    try {
+      const ac = getAC();
+      const dur = 0.25;
+      const buf = ac.createBuffer(1, ac.sampleRate*dur, ac.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i=0;i<data.length;i++){
+        const t = i/ac.sampleRate;
+        const env = Math.exp(-t*30);
+        data[i] = (Math.random()*2-1)*env;
+      }
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const g = ac.createGain(); g.gain.value = volume;
+      const filt = ac.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=1500;
+      src.connect(filt); filt.connect(g); g.connect(ac.destination);
+      src.start();
+    } catch(e){}
+  }
+
+  function playBeep(freq, dur, volume, delay){
+    try {
+      const ac = getAC();
+      const osc = ac.createOscillator();
+      const g = ac.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      g.gain.value = volume;
+      osc.connect(g); g.connect(ac.destination);
+      const t0 = ac.currentTime + (delay||0);
+      osc.start(t0); osc.stop(t0 + dur);
+    } catch(e){}
+  }
+
+  function loadSample(){
+    if (_loaded || _shotBuf) return;
+    _loaded = true;
+    const ac = getAC();
+    fetch('https://cdn.jsdelivr.net/gh/Mrgwynd/whitenoise@main/gunshot.mp3')
+      .then(r => { if (!r.ok) throw new Error('404'); return r.arrayBuffer(); })
+      .then(ab => ac.decodeAudioData(ab))
+      .then(buf => { _shotBuf = buf; })
+      .catch(() => { _shotBuf = null; /* will use synth */ });
+  }
+
+  function play(){
+    if (!_enabled) return;
+    if (!_ac) loadSample();
+    if (_shotBuf){
+      try {
+        const ac = getAC();
+        const src = ac.createBufferSource(); src.buffer = _shotBuf;
+        const g = ac.createGain(); g.gain.value = _vol;
+        src.connect(g); g.connect(ac.destination);
+        src.start();
+      } catch(e){ playSynth(_vol); }
+    } else {
+      playSynth(_vol);
+    }
+  }
+
+  function setEnabled(v){
+    _enabled = v;
+    try { localStorage.setItem('df_sound_on', v); } catch(e){}
+    const btn = document.getElementById('sound-toggle');
+    if (btn) btn.textContent = v ? '\uD83D\uDD0A' : '\uD83D\uDD07';
+  }
+  function setVol(v){
+    _vol = v;
+    try { localStorage.setItem('df_sound_vol', v); } catch(e){}
+  }
+
+  // Wire UI once DOM ready
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('sound-toggle');
+    const slider = document.getElementById('sound-vol');
+    if (btn){ btn.textContent = _enabled ? '\uD83D\uDD0A' : '\uD83D\uDD07'; btn.addEventListener('click', () => setEnabled(!_enabled)); }
+    if (slider){ slider.value = _vol; slider.addEventListener('input', () => setVol(parseFloat(slider.value))); }
+  });
+
+  // Lazy-load on first user gesture
+  document.addEventListener('pointerdown', () => { if (!_loaded) loadSample(); }, { once: true });
+
+  return { play, setEnabled, setVol, playBeep, playSynth, _ac };
+})();
+
+// Hook SoundFX into Dash.onMessage — play shot sound on tracked shots
+(function(){
+  const origOM = Dash.onMessage;
+  Dash.onMessage = function(msg){
+    if (msg && msg.type === 'shot' && !msg.untracked){
+      try { SoundFX.play(); } catch(e){}
+    }
+    return origOM.call(Dash, msg);
+  };
+})();
+
+// =====================================================================
+// rectOpts + enhanced renderRect (TASK 4)
+// =====================================================================
+let rectOpts = { style:'bullseye', trail:false, heatmap:false, group:false };
+try {
+  const saved = localStorage.getItem('df_rect_opts');
+  if (saved) rectOpts = Object.assign(rectOpts, JSON.parse(saved));
+} catch(e){}
+
+(function wireRectControls(){
+  function wire(){
+    const styleEl = document.getElementById('rect-style');
+    const trailEl = document.getElementById('rect-trail');
+    const heatEl  = document.getElementById('rect-heatmap');
+    const groupEl = document.getElementById('rect-group');
+    if (!styleEl) return;
+    styleEl.value = rectOpts.style;
+    if (trailEl) trailEl.checked = rectOpts.trail;
+    if (heatEl)  heatEl.checked  = rectOpts.heatmap;
+    if (groupEl) groupEl.checked  = rectOpts.group;
+    function save(){ try { localStorage.setItem('df_rect_opts', JSON.stringify(rectOpts)); } catch(e){} }
+    styleEl.addEventListener('change', () => { rectOpts.style = styleEl.value; save(); try { Dash.renderRect(); } catch(e){} });
+    if (trailEl) trailEl.addEventListener('change', () => { rectOpts.trail = trailEl.checked; save(); try { Dash.renderRect(); } catch(e){} });
+    if (heatEl)  heatEl.addEventListener('change',  () => { rectOpts.heatmap = heatEl.checked; save(); try { Dash.renderRect(); } catch(e){} });
+    if (groupEl) groupEl.addEventListener('change',  () => { rectOpts.group = groupEl.checked; save(); try { Dash.renderRect(); } catch(e){} });
+  }
+  setTimeout(wire, 200);
+  document.addEventListener('DOMContentLoaded', wire);
+})();
+
+// Patch Dash.renderRect to use rectOpts
+(function(){
+  const origRR = Dash.renderRect;
+  Dash.renderRect = function(){
+    const c = document.getElementById('dash-rect-canvas');
+    if (!c) { origRR(); return; }
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    const shots = Dash.shots || [];
+
+    // --- Draw target background ---
+    const style = rectOpts.style || 'bullseye';
+    if (style === 'bullseye'){
+      ctx.fillStyle = '#f4f1e6'; ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle = '#222'; ctx.lineWidth = 1.5;
+      for (let r=1; r<=6; r++){ ctx.beginPath(); ctx.arc(W/2,H/2,(r/7)*Math.min(W,H)/2,0,Math.PI*2); ctx.stroke(); }
+      ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(W/2,H/2,(1/7)*Math.min(W,H)/2,0,Math.PI*2); ctx.fill();
+    } else if (style === 'b8'){
+      ctx.fillStyle = '#f9f6ee'; ctx.fillRect(0,0,W,H);
+      const ringColors = ['#111','#111','#111','#333','#888','#bbb','#ddd','#eed','#f5f2e8','#f9f6ee'];
+      const labels = ['10','9','8','7','6','5','4','3','2','1'];
+      const maxR = Math.min(W,H)/2 * 0.92;
+      for (let r=10; r>=1; r--){
+        const radius = (r/10)*maxR;
+        ctx.fillStyle = ringColors[r-1];
+        ctx.beginPath(); ctx.arc(W/2,H/2,radius,0,Math.PI*2); ctx.fill();
+      }
+      ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=0.8;
+      for (let r=1; r<=10; r++){ const rad=(r/10)*maxR; ctx.beginPath(); ctx.arc(W/2,H/2,rad,0,Math.PI*2); ctx.stroke(); }
+      ctx.font='bold 11px Manrope,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      for (let r=2; r<=10; r++){
+        const rad = ((r-0.5)/10)*maxR;
+        ctx.fillStyle = r >= 8 ? '#eee' : '#333';
+        ctx.fillText(labels[r-1], W/2 + rad * 0.72, H/2);
+      }
+    } else if (style === 'ipsc'){
+      ctx.fillStyle = '#e8e0d0'; ctx.fillRect(0,0,W,H);
+      // Silhouette — simplified humanoid
+      ctx.fillStyle = '#c8bfa8';
+      const cx=W/2, cy=H/2;
+      const sh = Math.min(W,H)*0.88;
+      // Body
+      ctx.beginPath(); ctx.ellipse(cx, cy+sh*0.1, sh*0.22, sh*0.32, 0, 0, Math.PI*2); ctx.fill();
+      // Head
+      ctx.beginPath(); ctx.ellipse(cx, cy-sh*0.28, sh*0.12, sh*0.14, 0, 0, Math.PI*2); ctx.fill();
+      // A-zone (center rectangle)
+      ctx.fillStyle = 'rgba(200,50,50,0.18)';
+      ctx.strokeStyle = 'rgba(200,50,50,0.6)'; ctx.lineWidth = 2;
+      const az_w = sh*0.28, az_h = sh*0.24;
+      ctx.beginPath(); ctx.roundRect(cx-az_w/2, cy-az_h/2+sh*0.05, az_w, az_h, 6); ctx.fill(); ctx.stroke();
+      // Label
+      ctx.fillStyle='rgba(200,50,50,0.5)'; ctx.font='bold 11px Manrope,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('A', cx, cy+sh*0.05);
+    } else if (style === 'dot'){
+      ctx.fillStyle = '#f0ede4'; ctx.fillRect(0,0,W,H);
+      // 2-inch dot — approximate scale: canvas = target width
+      const dotFrac = 2/8.5; // 2in / 8.5in target width
+      const dotR = (dotFrac/2) * Math.min(W,H);
+      ctx.fillStyle = '#111';
+      ctx.beginPath(); ctx.arc(W/2,H/2,dotR,0,Math.PI*2); ctx.fill();
+    }
+
+    // --- Heatmap layer ---
+    if (rectOpts.heatmap){
+      const prev = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = 'multiply';
+      for (const s of shots){
+        if (s.untracked || !s.poi) continue;
+        const x = s.poi.x*W, y = s.poi.y*H;
+        const grad = ctx.createRadialGradient(x,y,0, x,y, 40);
+        grad.addColorStop(0, 'rgba(255,80,0,0.45)');
+        grad.addColorStop(1, 'rgba(255,80,0,0)');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(x,y,40,0,Math.PI*2); ctx.fill();
+      }
+      ctx.globalCompositeOperation = prev;
+    }
+
+    // --- Trail ---
+    if (rectOpts.trail){
+      const pts = shots.filter(s => !s.untracked && s.poi);
+      if (pts.length >= 2){
+        ctx.strokeStyle = 'rgba(250,226,50,0.35)'; ctx.lineWidth = 1.5;
+        ctx.setLineDash([4,4]);
+        ctx.beginPath();
+        ctx.moveTo(pts[0].poi.x*W, pts[0].poi.y*H);
+        for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i].poi.x*W, pts[i].poi.y*H);
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+
+    // --- Shots ---
+    for (const s of shots){
+      if (s.untracked || !s.poi) continue;
+      const x = s.poi.x*W, y = s.poi.y*H;
+      ctx.fillStyle = s.score >= 80 ? '#0a8454' : s.score >= 50 ? '#fae232' : '#e8836b';
+      ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.stroke();
+    }
+
+    // --- Group ring ---
+    if (rectOpts.group){
+      const pts = shots.filter(s => !s.untracked && s.poi).map(s => ({x:s.poi.x*W,y:s.poi.y*H}));
+      if (pts.length >= 2){
+        // Simple min bounding circle (Ritter's algorithm)
+        let cx=pts[0].x, cy=pts[0].y, cr=1;
+        for (const p of pts){
+          const d = Math.hypot(p.x-cx, p.y-cy);
+          if (d > cr){ const r2=(d+cr)/2; const f=(r2-cr)/d; cx+=(p.x-cx)*f; cy+=(p.y-cy)*f; cr=r2; }
+        }
+        ctx.strokeStyle = 'rgba(250,226,50,0.7)'; ctx.lineWidth = 1.5; ctx.setLineDash([6,3]);
+        ctx.beginPath(); ctx.arc(cx,cy,cr,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+        // MOA label
+        const distFt = parseFloat((document.getElementById('ctrl-dist')||document.getElementById('in-dist')||{value:'15'}).value) || 15;
+        const tWIn   = parseFloat((document.getElementById('ctrl-tw')||document.getElementById('in-width')||{value:'8.5'}).value) || 8.5;
+        const inPerPx = tWIn / W;
+        const groupIn = (cr * 2) * inPerPx;
+        const groupMoa = groupIn / (distFt / 100);
+        ctx.font='bold 11px Manrope,sans-serif'; ctx.fillStyle='rgba(250,226,50,0.9)'; ctx.textAlign='center'; ctx.textBaseline='top';
+        ctx.fillText(`Group: ${groupMoa.toFixed(1)} MOA`, cx, Math.max(0, cy-cr-16));
+      }
+    }
+
+    // --- Live laser dot ---
+    const lt = (typeof lastTelemetry !== 'undefined') ? lastTelemetry : null;
+    if (lt && lt.laser){
+      const x=lt.laser.x*W, y=lt.laser.y*H;
+      ctx.fillStyle='rgba(232,131,107,0.9)';
+      ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+    }
+  };
+
+  // Keep reference to lastTelemetry visible here
+  // (Dash IIFE exposes it indirectly through onMessage; we peek at it from outside)
+  let lastTelemetry = null;
+  const _omPatch = Dash.onMessage;
+  Dash.onMessage = function(msg){
+    if (msg && msg.type === 'telemetry') lastTelemetry = msg;
+    if (msg && msg.type === 'state') lastTelemetry = Object.assign(lastTelemetry||{}, msg);
+    return _omPatch.call(Dash, msg);
+  };
+})();
+
+// =====================================================================
+// QuickDraw module (TASK 6)
+// =====================================================================
+const QuickDraw = (function(){
+  // States: idle -> arming -> holding -> cue -> drawing -> shot -> results
+  let _state = 'idle';
+  let _reps = parseInt(localStorage.getItem('df_qd_reps') || '5', 10);
+  let _pitchHold = parseFloat(localStorage.getItem('df_qd_pitch_threshold') || '-45');
+  let _pitchDraw = -10;
+  let _cueT = 0, _drawT = 0, _shotT = 0;
+  let _holdTimer = null;
+  let _holdStart = 0;
+  let _drawHighTimer = null;
+  let _results = []; // [{drawT, shotT, hit, moa}]
+  let _currentRep = 0;
+  let _totalReps = 5;
+  let _clockInterval = null;
+  let _active = false; // true when QD mode is running
+
+  // Compute pitch from IMU accelerometer
+  function getPitch(ax, ay, az){
+    return Math.atan2(-ax, Math.sqrt(ay*ay + az*az)) * 180 / Math.PI;
+  }
+
+  function setState(s){ _state = s; updateLaptopHUD(); updatePhoneOverlay(); }
+
+  function updateLaptopHUD(){
+    const hud = document.getElementById('qd-laptop-hud');
+    if (!hud) return;
+    const label = document.getElementById('qd-label');
+    const threat = document.getElementById('qd-threat-banner');
+    const repEl = document.getElementById('qd-rep-counter');
+    if (repEl) repEl.textContent = `Rep ${_currentRep+1} / ${_totalReps}`;
+    if (threat) threat.style.display = (_state === 'cue' || _state === 'drawing') ? 'flex' : 'none';
+    const labels = {
+      idle: 'Ready', arming: 'Hold steady — muzzle down',
+      holding: 'Stand by…', cue: 'THREAT!', drawing: 'DRAW!',
+      shot: 'Shot!', results: 'Session complete'
+    };
+    if (label) label.textContent = labels[_state] || _state;
+  }
+
+  function updatePhoneOverlay(){
+    const ov = document.getElementById('qd-phone-overlay');
+    if (!ov) return;
+    if (!_active){ ov.style.display = 'none'; return; }
+    ov.style.display = 'flex';
+    const sl = document.getElementById('qd-phone-state-label');
+    const threat = document.getElementById('qd-phone-threat');
+    const repEl = document.getElementById('qd-phone-rep');
+    if (repEl) repEl.textContent = `Rep ${_currentRep+1} / ${_totalReps}`;
+    if (threat) threat.style.display = (_state === 'cue' || _state === 'drawing') ? 'block' : 'none';
+    const labels = {
+      arming:'Hold steady — muzzle down', holding:'Stand by…', cue:'THREAT!', drawing:'DRAW!', shot:'Shot recorded'
+    };
+    if (sl) sl.textContent = labels[_state] || '';
+  }
+
+  function startClock(){
+    stopClock();
+    _clockInterval = setInterval(() => {
+      if (_state !== 'drawing' && _state !== 'shot') return;
+      const elapsed = (performance.now() - _cueT) / 1000;
+      const clockEl = document.getElementById('qd-clock');
+      const phoneClock = document.getElementById('qd-phone-clock');
+      if (clockEl) clockEl.textContent = elapsed.toFixed(3);
+      if (phoneClock) phoneClock.textContent = elapsed.toFixed(3);
+    }, 16);
+  }
+  function stopClock(){ clearInterval(_clockInterval); _clockInterval=null; }
+
+  function fireCue(){
+    _cueT = performance.now();
+    setState('cue');
+    // Announce to laptop
+    if (typeof Role !== 'undefined' && Role.isPhone && Role.isPhone() && Role.isConnected && Role.isConnected()){
+      try { Role.send({ type:'quickDrawCue', t: _cueT }); } catch(e){}
+    }
+    // Announce on laptop directly if we ARE the laptop (standalone test)
+    laptopOnCue(_cueT);
+    // Transition to drawing after 300ms (show cue)
+    setTimeout(() => { if(_state==='cue') setState('drawing'); startClock(); }, 300);
+  }
+
+  // Laptop-side: handle the cue
+  function laptopOnCue(cueT){
+    if (typeof Role !== 'undefined' && !Role.isLaptop()) return;
+    _cueT = cueT;
+    setState('drawing');
+    startClock();
+    // Speech synth
+    try {
+      if (window.speechSynthesis){
+        const utt = new SpeechSynthesisUtterance('Threat! Threat! Threat!');
+        utt.rate = 1.1; utt.pitch = 1.0;
+        window.speechSynthesis.speak(utt);
+      } else { throw new Error('no synth'); }
+    } catch(e){
+      // Fallback: 3 beeps 100ms apart
+      try { SoundFX.playBeep(880, 0.12, 0.7, 0); SoundFX.playBeep(880, 0.12, 0.7, 0.12); SoundFX.playBeep(1100, 0.15, 0.8, 0.24); } catch(ee){}
+    }
+    // Flash THREAT banner
+    const banner = document.getElementById('qd-threat-banner');
+    if (banner){ banner.style.display='flex'; setTimeout(()=>{ if (_state==='drawing') banner.style.display='flex'; }, 0); }
+  }
+
+  // Called from onWitNotify (IMU samples) when active
+  function onImuSample(ax, ay, az){
+    if (!_active) return;
+    const pitch = getPitch(ax, ay, az);
+
+    if (_state === 'arming' || _state === 'holding'){
+      if (pitch <= _pitchHold){
+        // Muzzle down — start or continue hold timer
+        if (_state === 'arming'){
+          _holdStart = performance.now();
+          setState('holding');
+          const holdDur = 5000 + Math.random() * 5000;
+          _holdTimer = setTimeout(() => {
+            if (_state === 'holding') fireCue();
+          }, holdDur);
+        }
+      } else {
+        // Gun raised prematurely — reset
+        if (_state === 'holding'){
+          clearTimeout(_holdTimer); _holdTimer = null;
+          setState('arming');
+        }
+      }
+    } else if (_state === 'drawing'){
+      if (pitch >= _pitchDraw){
+        // Gun raised — start debounce
+        if (!_drawHighTimer){
+          _drawHighTimer = setTimeout(() => {
+            if (_state === 'drawing'){
+              _drawT = performance.now() - _cueT;
+              setState('shot'); // wait for actual shot now
+            }
+          }, 80);
+        }
+      } else {
+        clearTimeout(_drawHighTimer); _drawHighTimer = null;
+      }
+    }
+  }
+
+  // Called when a shot is detected during QD mode
+  function onShot(shotData){
+    if (!_active) return;
+    if (_state !== 'drawing' && _state !== 'shot') return;
+    if (_shotT > 0) return; // already recorded
+    _shotT = performance.now() - _cueT;
+    if (_drawT === 0) _drawT = _shotT; // no draw detected yet, use shot time
+    stopClock();
+    const hit = shotData && !shotData.untracked;
+    const moa = (shotData && shotData.moa) || 0;
+    _results.push({ drawT: _drawT/1000, shotT: _shotT/1000, hit, moa });
+    // Show result briefly
+    setState('shot');
+    const resultLine = document.getElementById('qd-last-result');
+    if (resultLine) resultLine.textContent = `Draw: ${(_drawT/1000).toFixed(2)}s  Shot: ${(_shotT/1000).toFixed(2)}s  ${hit ? 'HIT' : 'MISS'} ${moa ? moa.toFixed(1)+' MOA' : ''}`;
+    // Also push to results table
+    addRepRow(_results.length, _drawT/1000, _shotT/1000, hit, moa);
+    _currentRep++;
+    if (_currentRep >= _totalReps){
+      setTimeout(() => finishSession(), 2000);
+    } else {
+      setTimeout(() => startRep(), 2200);
+    }
+  }
+
+  function addRepRow(n, dt, st, hit, moa){
+    const tbody = document.getElementById('qd-rep-tbody');
+    if (!tbody) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${n}</td><td>${dt.toFixed(3)}</td><td>${st.toFixed(3)}</td><td style="color:${hit?'#9fd3b5':'#FF8A4C'}">${hit?'HIT':'MISS'}</td><td>${moa?moa.toFixed(1):'—'}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  function startRep(){
+    _cueT = 0; _drawT = 0; _shotT = 0;
+    clearTimeout(_holdTimer); _holdTimer = null;
+    clearTimeout(_drawHighTimer); _drawHighTimer = null;
+    stopClock();
+    setState('arming');
+    const clockEl = document.getElementById('qd-clock');
+    const phoneClock = document.getElementById('qd-phone-clock');
+    if (clockEl) clockEl.textContent = '0.000';
+    if (phoneClock) phoneClock.textContent = '0.000';
+    updateRepCounter();
+  }
+
+  function updateRepCounter(){
+    const repEl = document.getElementById('qd-rep-counter');
+    if (repEl) repEl.textContent = `Rep ${_currentRep+1} / ${_totalReps}`;
+    const repPhone = document.getElementById('qd-phone-rep');
+    if (repPhone) repPhone.textContent = `Rep ${_currentRep+1} / ${_totalReps}`;
+  }
+
+  function start(reps){
+    _active = true;
+    _results = [];
+    _currentRep = 0;
+    _totalReps = reps || _reps;
+    try { localStorage.setItem('df_qd_reps', _totalReps); } catch(e){}
+    // Show QD HUD on laptop
+    const hud = document.getElementById('qd-laptop-hud');
+    if (hud){
+      hud.style.display = 'flex';
+      const tbody = document.getElementById('qd-rep-tbody');
+      if (tbody) tbody.innerHTML = '';
+    }
+    // Show phone overlay
+    updatePhoneOverlay();
+    startRep();
+  }
+
+  function stop(){
+    _active = false;
+    setState('idle');
+    clearTimeout(_holdTimer); clearTimeout(_drawHighTimer); stopClock();
+    const ov = document.getElementById('qd-phone-overlay');
+    if (ov) ov.style.display = 'none';
+  }
+
+  function finishSession(){
+    stopClock();
+    setState('results');
+    const tracked = _results;
+    if (!tracked.length) { stop(); return; }
+    const avgDraw = tracked.reduce((a,b)=>a+b.drawT,0)/tracked.length;
+    const avgShot = tracked.reduce((a,b)=>a+b.shotT,0)/tracked.length;
+    const fastest = Math.min(...tracked.map(r=>r.shotT));
+    const slowest = Math.max(...tracked.map(r=>r.shotT));
+    const hits = tracked.filter(r=>r.hit).length;
+    const acc = (hits/tracked.length*100).toFixed(0);
+    // Populate summary
+    const sumEl = document.getElementById('qd-summary');
+    if (sumEl) sumEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px;">
+        <div class="stat"><div class="v">${avgDraw.toFixed(2)}s</div><div class="k">Avg Draw</div></div>
+        <div class="stat"><div class="v">${avgShot.toFixed(2)}s</div><div class="k">Avg Shot</div></div>
+        <div class="stat"><div class="v">${fastest.toFixed(2)}s</div><div class="k">Fastest</div></div>
+        <div class="stat"><div class="v">${slowest.toFixed(2)}s</div><div class="k">Slowest</div></div>
+        <div class="stat"><div class="v">${acc}%</div><div class="k">Accuracy</div></div>
+      </div>`;
+    setTimeout(() => stop(), 3000);
+  }
+
+  // Hook into onWitNotify for pitch detection
+  // We patch the global onWitNotify function
+  const origWitNotify = window.onWitNotify;
+  if (typeof onWitNotify === 'function'){
+    window._qdOrigNotify = onWitNotify;
+    // onWitNotify is defined locally, not on window — patch via event listener hook
+  }
+  // Instead, hook pushPreShotImu which is called from onWitNotify indirectly via the gyro path
+  // We add a BLE event sniffer at the BLE layer when QD is active
+  document.addEventListener('qd-imu', (e) => {
+    const {ax,ay,az} = e.detail;
+    onImuSample(ax,ay,az);
+  });
+
+  // Test hook for Playwright
+  function _forceCue(){ fireCue(); }
+
+  // Laptop onMessage handler for quickDrawCue from phone
+  function onLaptopMsg(msg){
+    if (!msg) return;
+    if (msg.type === 'quickDrawCue') laptopOnCue(msg.t);
+  }
+
+  // Wire start/stop to the existing ctrl-start / ctrl-stop buttons when mode === 'qd'
+  document.addEventListener('DOMContentLoaded', wireQD);
+  setTimeout(wireQD, 500);
+  function wireQD(){
+    // Already wired?
+    if (wireQD._done) return; wireQD._done = true;
+    // The ctrl-start button dispatches sendCmd('start') — we intercept on the phone side
+    // But on the laptop, we start QD directly.
+    // We watch the mode selector:
+    const modeButtons = document.querySelectorAll('#ctrl-mode-seg button');
+    modeButtons.forEach(btn => {
+      if (btn.dataset.mode === 'qd') return; // already has listener from wireControlRail
+      // We add a supplementary listener to ctrl-start for QD mode
+    });
+  }
+
+  return { start, stop, onShot, onLaptopMsg, _forceCue, _active: () => _active, state: () => _state };
+})();
+
+// =====================================================================
+// Quick Draw: patch into onClickDetected for shot detection
+// =====================================================================
+(function(){
+  const orig = window.onClickDetected;
+  window.onClickDetected = function(source, intensity){
+    const r = orig ? orig.call(this, source, intensity) : undefined;
+    if (QuickDraw._active()){
+      // Get last shot from sessionShots
+      const sh = (typeof sessionShots !== 'undefined' && sessionShots.length) ? sessionShots[sessionShots.length-1] : null;
+      QuickDraw.onShot(sh);
+    }
+    return r;
+  };
+})();
+
+// Patch BLE notify to dispatch qd-imu event
+(function(){
+  // We need to hook onWitNotify — but it's a local function.
+  // Intercept at the notifyChar event level by re-adding our listener.
+  // Since notifyChar is set up asynchronously, we poll for it.
+  let _patched = false;
+  setInterval(() => {
+    if (_patched) return;
+    if (typeof notifyChar !== 'undefined' && notifyChar){
+      _patched = true;
+      notifyChar.addEventListener('characteristicvaluechanged', function(ev){
+        const dv = ev.target.value;
+        if (dv.byteLength < 20) return;
+        if (dv.getUint8(0)!==0x55 || dv.getUint8(1)!==0x61) return;
+        const s16=(lo,hi)=>{ let v=(hi<<8)|lo; if (v&0x8000) v-=0x10000; return v; };
+        const ax=s16(dv.getUint8(2),dv.getUint8(3))/32768*16;
+        const ay=s16(dv.getUint8(4),dv.getUint8(5))/32768*16;
+        const az=s16(dv.getUint8(6),dv.getUint8(7))/32768*16;
+        document.dispatchEvent(new CustomEvent('qd-imu', { detail: {ax,ay,az} }));
+      });
+    }
+  }, 500);
+})();
+
+// Patch Dash.onMessage to forward quickDrawCue to QuickDraw
+(function(){
+  const prevOM = Dash.onMessage;
+  Dash.onMessage = function(msg){
+    QuickDraw.onLaptopMsg(msg);
+    return prevOM.call(Dash, msg);
+  };
+})();
+
+log('Control center + clip player + results modal ready', 'ok');
 </script>
+
+<!-- Sound widget (visible only on laptop) -->
+<div id="sound-widget">
+  <button id="sound-toggle" title="Toggle gunshot sound">&#128266;</button>
+  <input id="sound-vol" type="range" min="0" max="1" step="0.05" value="0.6" title="Volume">
+</div>
+
 </body>
 </html>
