@@ -3411,6 +3411,7 @@ const Dash = (function(){
 
     if (!shot || !shot.preShot){
       drawBadge('NO DATA', '#888');
+      window._lastWobbleSource = 'none';
       writeReadout('—','—','—');
       return;
     }
@@ -3478,6 +3479,7 @@ const Dash = (function(){
       ctx.fill();
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
       drawBadge('LASER TRACE · ' + realLasers.length + ' pts', '#fae232');
+      window._lastWobbleSource = 'laser';
     }
     // ===== Tier 2: IMU-only big direction arrow =====
     else if (imus.length >= 2 && jerk && jerk.dir){
@@ -3505,6 +3507,7 @@ const Dash = (function(){
       ctx.closePath(); ctx.fillStyle = '#FF8A4C'; ctx.fill();
       ctx.restore();
       drawBadge('IMU ESTIMATE · ' + imus.length + ' samples', '#FF8A4C');
+      window._lastWobbleSource = 'imu';
     }
     // ===== Tier 3: static frame only (poi dot if known) =====
     else if (ps.frame){
@@ -3524,6 +3527,7 @@ const Dash = (function(){
       ctx.beginPath(); ctx.moveTo(W/2-ch,H/2); ctx.lineTo(W/2+ch,H/2);
       ctx.moveTo(W/2,H/2-ch); ctx.lineTo(W/2,H/2+ch); ctx.stroke();
       drawBadge('STATIC FRAME', '#C661E8');
+      window._lastWobbleSource = 'frame';
     }
     // ===== Final fallback: text =====
     else {
@@ -3532,6 +3536,7 @@ const Dash = (function(){
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('Steady break — no movement captured', W/2, H/2);
       drawBadge('NO DATA', '#888');
+      window._lastWobbleSource = 'none';
     }
 
     // Direction arrow on top of laser trace too (small, secondary)
