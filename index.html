@@ -1338,10 +1338,13 @@ function flashCorners(){
   // Esc closes
   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && wiz.classList.contains('open')) close(); });
 
-  // Show first-time — only on initial load when no flag set
+  // Show first-time — only on initial load when no flag set, and only on the phone.
+  // The laptop dashboard doesn't need camera placement guidance.
   if (!localStorage.getItem('df_wiz_seen')){
-    // Delay a beat so the app paints first
-    setTimeout(open, 350);
+    setTimeout(() => {
+      if (document.body.classList.contains('role-laptop')) return; // skip on laptop
+      open();
+    }, 800);
   }
 })();
 
