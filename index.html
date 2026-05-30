@@ -881,6 +881,80 @@ body.role-laptop .laptop-dash{display:grid}
 .dash-tools button:hover{border-color:var(--yellow)}
 @media (max-width:900px){.laptop-dash{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}}
 
+/* Control rail — lives in the dashboard grid as the top-left panel; expanded to span both top cells */
+body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-columns:1fr 1fr}
+#dash-controls-panel{grid-column:1 / -1; padding:14px 16px}
+.ctrl-body{gap:10px}
+.ctrl-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
+@media (max-width:1200px){ .ctrl-grid{grid-template-columns:repeat(3,1fr)} }
+.ctrl-block{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ctrl-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888}
+.ctrl-input-row{display:flex;align-items:center;gap:6px;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:4px 8px}
+.ctrl-input-row input{flex:1;min-width:0;background:transparent;border:0;color:#fae232;font-family:ui-monospace,monospace;font-size:16px;font-weight:700;outline:none;text-align:right}
+.ctrl-input-row input::-webkit-outer-spin-button,.ctrl-input-row input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ctrl-input-row input[type=number]{-moz-appearance:textfield}
+.ctrl-unit{font-size:11px;color:#888}
+.ctrl-step{background:#1c1c1c;border:1px solid #2a2a2a;color:#fae232;width:24px;height:24px;border-radius:8px;cursor:pointer;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+.ctrl-step:hover{background:#262626}
+.ctrl-seg{display:flex;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:3px;gap:3px}
+.ctrl-seg button{flex:1;background:transparent;border:0;color:#aaa;font-size:11px;padding:6px 8px;border-radius:7px;cursor:pointer;font-weight:600}
+.ctrl-seg button.active{background:#fae232;color:#1a1700}
+.ctrl-aim{display:grid;grid-template-columns:1fr;gap:4px;justify-items:center}
+.ctrl-aim button{background:#1c1c1c;border:1px solid #2a2a2a;color:#fae232;font-size:12px;padding:4px 8px;border-radius:8px;cursor:pointer;font-weight:700;min-width:32px}
+.ctrl-aim button:hover{background:#262626}
+.ctrl-aim-row{display:flex;gap:4px}
+.ctrl-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px solid #1a1a1a}
+.ctrl-btn{background:#1c1c1c;border:1px solid #2a2a2a;color:#eee;padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;letter-spacing:.3px}
+.ctrl-btn:hover{background:#262626;border-color:#fae232}
+.ctrl-btn:disabled{opacity:.4;cursor:not-allowed}
+.ctrl-btn.primary{background:#fae232;color:#1a1700;border-color:#fae232}
+.ctrl-btn.primary:hover{background:#fff04a}
+.ctrl-btn.warn{background:#e8836b;color:#1a0a05;border-color:#e8836b}
+.ctrl-btn.ghost{background:transparent}
+.ctrl-phone-state{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#888;padding-top:6px;border-top:1px solid #1a1a1a}
+.ctrl-phone-state .v{color:#fae232;font-family:ui-monospace,monospace;font-weight:700}
+
+/* Per-shot table row — clickable for clip playback */
+#dash-table tbody tr{cursor:pointer}
+#dash-table tbody tr.has-clip td:first-child::before{content:"▶ ";color:#fae232;font-size:9px;margin-right:2px}
+#dash-table tbody tr.selected td{background:#1f1f1f}
+
+/* Results modal */
+.results-modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+.results-modal.open{display:flex}
+.results-card{background:#141414;border:1px solid #2a2a2a;border-radius:24px;padding:28px;max-width:980px;width:100%;position:relative;box-shadow:0 30px 80px rgba(0,0,0,0.7)}
+.results-card h2{margin:0 0 8px;color:#fae232;font-size:24px;letter-spacing:.4px}
+.results-card h4{margin:0 0 10px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#888}
+.results-close{position:absolute;top:14px;right:14px;background:transparent;border:0;color:#aaa;font-size:28px;line-height:1;cursor:pointer;padding:4px 10px;border-radius:8px}
+.results-close:hover{color:#fff;background:#222}
+.results-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.results-stats .stat{background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:12px 14px}
+.results-stats .stat .v{font-family:ui-monospace,monospace;font-size:24px;font-weight:800;color:#fae232}
+.results-stats .stat .k{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#888;margin-top:4px}
+.results-grid{display:grid;grid-template-columns:auto 1fr;gap:24px;margin-bottom:18px}
+.results-target canvas{display:block;border-radius:12px;background:#f4f1e6}
+.results-shots{max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:6px}
+.results-shot{background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;cursor:pointer}
+.results-shot:hover{border-color:#fae232}
+.results-shot .num{font-family:ui-monospace,monospace;font-size:18px;font-weight:800;color:#fae232;min-width:30px}
+.results-shot .meta{font-size:12px;color:#ccc;line-height:1.4}
+.results-shot .meta .dir{color:#888;font-size:11px}
+.results-shot .moa{font-family:ui-monospace,monospace;font-weight:800;font-size:16px}
+.results-shot .moa.good{color:#9fd3b5}
+.results-shot .moa.bad{color:#e8836b}
+.results-footer{display:flex;gap:10px;justify-content:flex-end}
+@media (max-width:900px){.results-stats{grid-template-columns:repeat(2,1fr)}.results-grid{grid-template-columns:1fr}.results-target canvas{width:100%;height:auto}}
+
+/* Per-shot clip player overlay */
+.clip-player{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.85);background:#111;border:1px solid #2a2a2a;border-radius:18px;padding:14px;z-index:150;box-shadow:0 20px 60px rgba(0,0,0,.7);display:none;opacity:0;transition:opacity .15s, transform .15s}
+.clip-player.open{display:block;opacity:1;transform:translate(-50%,-50%) scale(1)}
+.clip-title{color:#fae232;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.clip-close{position:absolute;top:6px;right:8px;background:transparent;border:0;color:#aaa;font-size:22px;cursor:pointer;padding:4px 10px;border-radius:8px}
+.clip-close:hover{color:#fff;background:#222}
+#clip-canvas{display:block;border-radius:12px;background:#000;width:480px;height:auto;max-width:80vw}
+.clip-meta{margin-top:8px;font-size:12px;color:#aaa;line-height:1.5}
+.clip-meta .lbl{color:#888;font-size:10px;letter-spacing:1.2px;text-transform:uppercase}
+
 </style>
 </head>
 <body>
@@ -933,6 +1007,76 @@ body.role-laptop .laptop-dash{display:grid}
 
 <!-- Laptop dashboard (only visible when body.role-laptop) -->
 <div class="laptop-dash" id="laptop-dash">
+  <!-- Top-row control rail: covers both top panels' header area -->
+  <div class="dash-panel" id="dash-controls-panel">
+    <h3>Control center <span class="tag" id="dash-ctrl-tag">drive the phone from here</span></h3>
+    <div class="body ctrl-body">
+      <div class="ctrl-grid">
+        <div class="ctrl-block">
+          <div class="ctrl-label">Distance to target</div>
+          <div class="ctrl-input-row">
+            <button class="ctrl-step" data-step="dist" data-dir="-1">–</button>
+            <input id="ctrl-dist" type="number" min="3" max="100" step="0.5" value="15"/>
+            <span class="ctrl-unit">ft</span>
+            <button class="ctrl-step" data-step="dist" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="ctrl-block">
+          <div class="ctrl-label">Target width</div>
+          <div class="ctrl-input-row">
+            <input id="ctrl-tw" type="number" min="4" max="30" step="0.25" value="8.5"/>
+            <span class="ctrl-unit">in</span>
+          </div>
+        </div>
+        <div class="ctrl-block">
+          <div class="ctrl-label">Target height</div>
+          <div class="ctrl-input-row">
+            <input id="ctrl-th" type="number" min="4" max="30" step="0.25" value="11"/>
+            <span class="ctrl-unit">in</span>
+          </div>
+        </div>
+        <div class="ctrl-block">
+          <div class="ctrl-label">Shots in this session</div>
+          <div class="ctrl-input-row">
+            <button class="ctrl-step" data-step="count" data-dir="-1">–</button>
+            <input id="ctrl-count" type="number" min="1" max="100" step="1" value="10"/>
+            <button class="ctrl-step" data-step="count" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="ctrl-block">
+          <div class="ctrl-label">Click detection</div>
+          <div class="ctrl-seg" id="ctrl-mic-seg">
+            <button data-mic="laptop" class="active">Laptop mic</button>
+            <button data-mic="phone">Phone mic</button>
+            <button data-mic="both">Both</button>
+          </div>
+        </div>
+        <div class="ctrl-block">
+          <div class="ctrl-label">Aim point (nudge)</div>
+          <div class="ctrl-aim">
+            <button data-aim="u">▲</button>
+            <div class="ctrl-aim-row">
+              <button data-aim="l">◀</button>
+              <button data-aim="c">center</button>
+              <button data-aim="r">▶</button>
+            </div>
+            <button data-aim="d">▼</button>
+          </div>
+        </div>
+      </div>
+      <div class="ctrl-actions">
+        <button id="ctrl-calibrate" class="ctrl-btn">Calibrate target</button>
+        <button id="ctrl-start" class="ctrl-btn primary">Start session</button>
+        <button id="ctrl-stop" class="ctrl-btn warn" disabled>Stop</button>
+        <button id="ctrl-reset" class="ctrl-btn ghost">Reset shots</button>
+      </div>
+      <div class="ctrl-phone-state" id="ctrl-phone-state">
+        <span class="ps"><span class="k">Phone:</span> <span class="v" id="ps-cam">cam —</span></span>
+        <span class="ps"><span class="k"></span> <span class="v" id="ps-target">target —</span></span>
+        <span class="ps"><span class="k"></span> <span class="v" id="ps-armed">idle</span></span>
+      </div>
+    </div>
+  </div>
   <div class="dash-panel">
     <h3>Live camera <span class="tag" id="dash-video-tag">from phone</span></h3>
     <div class="body"><video id="dash-video" autoplay playsinline muted></video></div>
@@ -972,6 +1116,37 @@ body.role-laptop .laptop-dash{display:grid}
       </div>
     </div>
   </div>
+</div>
+
+<!-- Results modal (shown when session auto-completes) -->
+<div class="results-modal" id="results-modal">
+  <div class="results-card">
+    <button class="results-close" id="results-close" aria-label="close">×</button>
+    <h2>Session complete</h2>
+    <div class="results-stats" id="results-stats"></div>
+    <div class="results-grid">
+      <div class="results-target">
+        <h4>Where shots landed</h4>
+        <canvas id="results-canvas" width="480" height="480"></canvas>
+      </div>
+      <div class="results-list">
+        <h4>Per-shot drill-down</h4>
+        <div class="results-shots" id="results-shots"></div>
+      </div>
+    </div>
+    <div class="results-footer">
+      <button id="results-csv" class="ctrl-btn">Export CSV</button>
+      <button id="results-newsession" class="ctrl-btn primary">New session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Per-shot clip player (slide-in over rectified panel) -->
+<div class="clip-player" id="clip-player">
+  <button class="clip-close" id="clip-close" aria-label="close">×</button>
+  <div class="clip-title" id="clip-title">Shot replay</div>
+  <canvas id="clip-canvas" width="480" height="480"></canvas>
+  <div class="clip-meta" id="clip-meta"></div>
 </div>
 
 <header>
@@ -1386,10 +1561,22 @@ const aBuf = document.createElement('canvas'); aBuf.width=ANALY_W; aBuf.height=A
 const actx = aBuf.getContext('2d', { willReadFrequently:true });
 // Higher-resolution canvas used ONLY for ArUco detection — 320×240 is too small for
 // 1" markers at 10+ ft (~12 px/marker, below js-aruco2's reliable threshold).
-// 640×480 gives ~24-30 px/marker which detects cleanly.
-const ARUCO_W = 640, ARUCO_H = 480;
+// Bumped 640×480 → 960×720 to catch smaller / farther markers and gives sub-pixel
+// corner accuracy after refinement.
+const ARUCO_W = 960, ARUCO_H = 720;
 const aBufHi = document.createElement('canvas'); aBufHi.width=ARUCO_W; aBufHi.height=ARUCO_H;
 const actxHi = aBufHi.getContext('2d', { willReadFrequently:true });
+// Clean rectified canvas used for auto-aim, per-shot stills, and the laptop dashboard.
+// We sample bilinearly from the video frame using the inverse homography.
+const RECT_W = 600, RECT_H = 600;
+const rectBuf = document.createElement('canvas'); rectBuf.width=RECT_W; rectBuf.height=RECT_H;
+const rectBufCtx = rectBuf.getContext('2d', { willReadFrequently:true });
+// Rolling stability buffer for ArUco corners — keeps last N detections so we can
+// median-filter the homography. Once 10 stable detections in a row arrive we LOCK
+// and stop recomputing (until the user clears calibration).
+const CORNER_HISTORY_LEN = 10;
+let cornerHistory = []; // array of [{x,y}x4]
+let calibrationLocked = false; // when true, skip homography recompute
 // Track ArUco detection over recent frames so we can show meaningful feedback
 let arucoLastCount = 0;
 let arucoLastIds = [];
@@ -1540,6 +1727,7 @@ $('#btn-aim').addEventListener('click', ()=>{
 });
 $('#btn-clear').addEventListener('click', ()=>{
   manualPts=[]; cornersImg=null; homography=null; homographyInv=null; aimTargetNorm=null; trailing=[];
+  cornerHistory=[]; calibrationLocked=false;
   $('#target-status').textContent='—';
   $('#btn-calib').textContent='Lock target';
   $('#btn-aim').textContent='Set aim point';
@@ -1669,6 +1857,8 @@ function findLaser(img){
 // scaled back to ANALY_W/H space because the homography is computed there.
 function detectAruco(){
   if (!arucoDetector) return;
+  // If we've already locked the calibration, skip work entirely until the user clears it.
+  if (calibrationLocked && homography) return;
   try{
     actxHi.drawImage(video, 0,0, ARUCO_W, ARUCO_H);
     const hiImg = actxHi.getImageData(0,0,ARUCO_W,ARUCO_H);
@@ -1681,6 +1871,20 @@ function detectAruco(){
     // Scale factor from ArUco canvas back to analysis canvas
     const sx = ANALY_W / ARUCO_W;
     const sy = ANALY_H / ARUCO_H;
+
+    // For each marker, return the corner of the marker that points to the OUTSIDE
+    // of the target. This is much more accurate than using the marker center because
+    // the printed marker has a known geometry: ID 0 sits at the TL of the target with
+    // its OWN top-left corner being the TL of the target frame; ID 1's top-right is
+    // the TR; ID 2's bottom-right is the BR; ID 3's bottom-left is the BL.
+    // js-aruco2 returns corners in order [TL, TR, BR, BL] of the printed marker.
+    const cornerIdxForId = { 0: 0, 1: 1, 2: 2, 3: 3 };
+    const outerCorner = (m) => {
+      const idx = cornerIdxForId[m.id];
+      const c = (idx != null) ? m.corners[idx] : { x:(m.corners[0].x+m.corners[2].x)/2, y:(m.corners[0].y+m.corners[2].y)/2 };
+      return { x: c.x*sx, y: c.y*sy };
+    };
+    // Fallback: marker center (used only when outer-corner mapping can't be derived).
     const center = (m) => {
       let cx=0, cy=0;
       m.corners.forEach(c=>{ cx+=c.x; cy+=c.y; });
@@ -1690,37 +1894,62 @@ function detectAruco(){
     const byId = {};
     markers.forEach(m=>{ byId[m.id]=m; });
 
-    // 4 markers — best case, use IDs 0..3 directly
+    let raw = null;
+    // 4 markers — use the outer corners (sub-pixel-accurate from js-aruco2's quad refinement)
     if (byId[0]&&byId[1]&&byId[2]&&byId[3]){
-      cornersImg = [center(byId[0]), center(byId[1]), center(byId[2]), center(byId[3])];
-      computeHomography();
-      return;
+      raw = [outerCorner(byId[0]), outerCorner(byId[1]), outerCorner(byId[2]), outerCorner(byId[3])];
     }
 
     // 3 markers — project the 4th from the parallelogram completion of the other 3.
-    // Works because the printed target rectangle is preserved up to perspective; for
-    // small-to-moderate tilt the parallelogram approximation is well within usable error.
-    const haveIds = [0,1,2,3].filter(i=>byId[i]);
-    if (haveIds.length === 3){
-      const missing = [0,1,2,3].find(i=>!byId[i]);
-      const c = {};
-      haveIds.forEach(i=>{ c[i]=center(byId[i]); });
-      // Opposite corner of `missing` on the rectangle:
-      // pairs: 0↔·2 (TL↔BR) and 1↔·3 (TR↔BL)
-      const opp = (missing===0||missing===2) ? (missing===0?2:0) : (missing===1?3:1);
-      const adjA = [0,1,2,3].find(i=>i!==missing && i!==opp);
-      const adjB = [0,1,2,3].find(i=>i!==missing && i!==opp && i!==adjA);
-      // missing = adjA + adjB - opp (parallelogram completion)
-      c[missing] = {
-        x: c[adjA].x + c[adjB].x - c[opp].x,
-        y: c[adjA].y + c[adjB].y - c[opp].y,
-      };
-      cornersImg = [c[0], c[1], c[2], c[3]];
-      computeHomography();
-      return;
+    if (!raw){
+      const haveIds = [0,1,2,3].filter(i=>byId[i]);
+      if (haveIds.length === 3){
+        const missing = [0,1,2,3].find(i=>!byId[i]);
+        const c = {};
+        haveIds.forEach(i=>{ c[i]=outerCorner(byId[i]); });
+        // Opposite corner of `missing` on the rectangle:
+        // pairs: 0↔·2 (TL↔BR) and 1↔·3 (TR↔BL)
+        const opp = (missing===0||missing===2) ? (missing===0?2:0) : (missing===1?3:1);
+        const adjA = [0,1,2,3].find(i=>i!==missing && i!==opp);
+        const adjB = [0,1,2,3].find(i=>i!==missing && i!==opp && i!==adjA);
+        // missing = adjA + adjB - opp (parallelogram completion)
+        c[missing] = {
+          x: c[adjA].x + c[adjB].x - c[opp].x,
+          y: c[adjA].y + c[adjB].y - c[opp].y,
+        };
+        raw = [c[0], c[1], c[2], c[3]];
+      }
     }
 
-    // <3 known IDs: don't lock — wait for more visibility
+    if (!raw) return; // <3 known IDs: don't lock — wait for more visibility
+
+    // ---- Stability filter: median over last N frames ----
+    cornerHistory.push(raw);
+    if (cornerHistory.length > CORNER_HISTORY_LEN) cornerHistory.shift();
+    // Median per-axis per-corner (more robust to outliers than mean)
+    const filtered = [0,1,2,3].map(i => {
+      const xs = cornerHistory.map(h => h[i].x).sort((a,b)=>a-b);
+      const ys = cornerHistory.map(h => h[i].y).sort((a,b)=>a-b);
+      const mid = Math.floor(xs.length/2);
+      return { x: xs[mid], y: ys[mid] };
+    });
+    cornersImg = filtered;
+    computeHomography();
+
+    // Once N stable frames have accumulated AND latest detection matches the median
+    // closely, lock the calibration so we stop reprocessing every frame.
+    if (cornerHistory.length >= CORNER_HISTORY_LEN){
+      let maxDev = 0;
+      for (let i=0; i<4; i++){
+        const dx = raw[i].x - filtered[i].x, dy = raw[i].y - filtered[i].y;
+        const d = Math.sqrt(dx*dx+dy*dy);
+        if (d > maxDev) maxDev = d;
+      }
+      if (maxDev < 1.5){ // sub-2px deviation across 4 corners = stable
+        calibrationLocked = true;
+        log('Target calibration LOCKED (sub-pixel stable)', 'ok');
+      }
+    }
   } catch(e){
     // ArUco detection failure is non-fatal
   }
@@ -1857,6 +2086,64 @@ function applyH(H, x, y){
   return { x:(H[0][0]*x+H[0][1]*y+H[0][2])/w, y:(H[1][0]*x+H[1][1]*y+H[1][2])/w };
 }
 function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+// ---- Bilinear rectified renderer ----
+// Renders a square, properly-rectified view of the target into rectBuf using the
+// inverse homography (target [0,1]² → image pixels). Uses the analysis-canvas image
+// as the source (sufficient resolution for blob detection / per-shot stills).
+// Returns true on success.
+function renderRectifiedFrame(){
+  if (!homographyInv || !camStream || video.readyState < 2) return false;
+  // Sample the source from the full video (highest fidelity)
+  const vw = video.videoWidth || ANALY_W;
+  const vh = video.videoHeight || ANALY_H;
+  // Use a working canvas at video resolution
+  if (!renderRectifiedFrame._work || renderRectifiedFrame._work.width !== vw){
+    renderRectifiedFrame._work = document.createElement('canvas');
+    renderRectifiedFrame._work.width = vw;
+    renderRectifiedFrame._work.height = vh;
+    renderRectifiedFrame._workCtx = renderRectifiedFrame._work.getContext('2d', { willReadFrequently: true });
+  }
+  const wctx = renderRectifiedFrame._workCtx;
+  wctx.drawImage(video, 0, 0, vw, vh);
+  const src = wctx.getImageData(0,0,vw,vh).data;
+  // homographyInv was built using ANALY_W/ANALY_H corner coordinates — we need to
+  // rescale per-axis when we sample from the larger video.
+  const sx = vw / ANALY_W, sy = vh / ANALY_H;
+  const Hi = homographyInv;
+  const dst = rectBufCtx.createImageData(RECT_W, RECT_H);
+  const dd = dst.data;
+  for (let y=0; y<RECT_H; y++){
+    const ny = y / (RECT_H - 1);
+    for (let x=0; x<RECT_W; x++){
+      const nx = x / (RECT_W - 1);
+      // target normalized → image (analysis) coords → video coords
+      const w = Hi[2][0]*nx + Hi[2][1]*ny + Hi[2][2];
+      const ix = (Hi[0][0]*nx + Hi[0][1]*ny + Hi[0][2]) / w * sx;
+      const iy = (Hi[1][0]*nx + Hi[1][1]*ny + Hi[1][2]) / w * sy;
+      // bilinear sample
+      if (ix < 0 || iy < 0 || ix >= vw-1 || iy >= vh-1){
+        const o = (y*RECT_W + x)*4;
+        dd[o]=10; dd[o+1]=10; dd[o+2]=14; dd[o+3]=255;
+        continue;
+      }
+      const x0 = Math.floor(ix), y0 = Math.floor(iy);
+      const fx = ix - x0, fy = iy - y0;
+      const i00 = (y0*vw + x0)*4;
+      const i10 = i00 + 4;
+      const i01 = i00 + vw*4;
+      const i11 = i01 + 4;
+      const w00 = (1-fx)*(1-fy), w10 = fx*(1-fy), w01 = (1-fx)*fy, w11 = fx*fy;
+      const o = (y*RECT_W + x)*4;
+      dd[o]   = src[i00]*w00 + src[i10]*w10 + src[i01]*w01 + src[i11]*w11;
+      dd[o+1] = src[i00+1]*w00 + src[i10+1]*w10 + src[i01+1]*w01 + src[i11+1]*w11;
+      dd[o+2] = src[i00+2]*w00 + src[i10+2]*w10 + src[i01+2]*w01 + src[i11+2]*w11;
+      dd[o+3] = 255;
+    }
+  }
+  rectBufCtx.putImageData(dst, 0, 0);
+  return true;
+}
 
 // ---- Overlay drawing ----
 function drawOverlay(){
@@ -2560,16 +2847,11 @@ setInterval(pushPreShotLaser, 33); // ~30Hz
 // ---- Auto-aim: scan rectified target for bullseye after homography locks ----
 function autoDetectAim(){
   if (!homography) return false;
-  // Render target into the existing rect-view canvas (already done by frame loop)
-  // Read pixels from the analysis buffer mapped through homography.
-  // Simpler: read from #rect-view if present and non-empty.
-  const rect = document.getElementById('rect-view');
-  if (!rect || !rect.width || !rect.height) return false;
-  let ctx;
-  try { ctx = rect.getContext('2d'); } catch(e){ return false; }
+  // Use the dedicated bilinear-sampled rectified canvas
+  if (!renderRectifiedFrame()) return false;
   let img;
-  try { img = ctx.getImageData(0,0,rect.width, rect.height); } catch(e){ return false; }
-  const d = img.data, W = rect.width, H = rect.height;
+  try { img = rectBufCtx.getImageData(0,0,RECT_W,RECT_H); } catch(e){ return false; }
+  const d = img.data, W = RECT_W, H = RECT_H;
   // Search only middle 60%
   const x0 = Math.floor(W*0.2), x1 = Math.floor(W*0.8);
   const y0 = Math.floor(H*0.2), y1 = Math.floor(H*0.8);
@@ -2682,8 +2964,10 @@ const Role = (function(){
         ensureCamThenPushStream();
         // Auto-dismiss the overlay shortly after pairing
         setTimeout(hideOverlay, 700);
+        // Tell laptop our initial state so it can populate the control rail
+        try { window._dfPhone && window._dfPhone.sendStateSnapshot && window._dfPhone.sendStateSnapshot(); } catch(e){}
       })
-      .on('data', msg => { /* phone doesn't expect inbound right now */ })
+      .on('data', msg => { try { window._dfPhone && window._dfPhone.onLaptopMessage && window._dfPhone.onLaptopMessage(msg); } catch(e){ console.error('Phone inbound handler error', e); } })
       .on('close', kind => { log(`Bridge closed: ${kind}`, 'warn'); setBadge('err','disconnected'); connected=false; })
       .on('error', e => { log('Bridge error: '+(e && e.type || e), 'err'); setBadge('err','error'); });
     bridge.hostAsPhone(code);
@@ -2734,7 +3018,7 @@ const Role = (function(){
         v.play().catch(()=>{});
         log('Receiving camera stream from phone', 'ok');
       })
-      .on('data', msg => Dash.onMessage(msg))
+      .on('data', msg => { try { Dash.onMessage(msg); } catch(e){ console.error('Dash.onMessage error', e); } })
       .on('close', kind => { log(`Bridge closed: ${kind}`, 'warn'); setBadge('err','disconnected'); })
       .on('error', e => {
         const code = e && e.type;
@@ -3059,6 +3343,685 @@ setInterval(() => {
 }, 100); // 10Hz telemetry to keep bandwidth low
 
 log('Phone↔Laptop module ready', 'ok');
+
+// =====================================================================
+// PHONE-SIDE: inbound command channel + video clip ring buffer + auto-stop
+// =====================================================================
+let targetShotCount = parseInt(localStorage.getItem('df_shotcount') || '10', 10);
+let micSource = localStorage.getItem('df_mic_source') || 'phone'; // 'laptop'|'phone'|'both'
+
+window._dfPhone = (function(){
+  // ---- Video clip ring buffer (25fps, ~1.6s window) ----
+  const RING_FPS = 25;
+  const RING_MS  = 1600;
+  const RING_LEN = Math.round(RING_FPS * RING_MS / 1000); // 40 frames
+  const CLIP_W = 320, CLIP_H = 240;
+  const clipBuf = document.createElement('canvas'); clipBuf.width=CLIP_W; clipBuf.height=CLIP_H;
+  const clipBufCtx = clipBuf.getContext('2d');
+  const ring = []; // array of { t, dataUrl }
+
+  function ringTick(){
+    if (!Role.isPhone()) return;
+    try {
+      if (video && video.readyState >= 2){
+        clipBufCtx.drawImage(video, 0, 0, CLIP_W, CLIP_H);
+        // Overlay rectified shot trail markers? Keep raw video for now.
+        const url = clipBuf.toDataURL('image/jpeg', 0.55);
+        ring.push({ t: performance.now(), dataUrl: url });
+        if (ring.length > RING_LEN) ring.shift();
+      }
+    } catch(e){ /* video not ready yet */ }
+  }
+  setInterval(ringTick, 1000/RING_FPS);
+
+  // Send the last ~1.5s of frames to the laptop for a given shot timestamp.
+  // Chunked to keep individual messages small (PeerJS DataChannel limit ~16KB recommended).
+  async function sendClipForShot(shotT, shotId){
+    if (!Role.isConnected() || !Role.isLaptop) return;
+    if (!Role.isPhone()) return; // only phone has the buffer
+    const frames = ring.slice(-Math.round(RING_FPS * 1.5)); // last ~1.5s
+    if (frames.length < 4) return;
+    const total = Math.ceil(frames.length / 4);
+    for (let i=0; i<total; i++){
+      const chunk = frames.slice(i*4, i*4+4);
+      try {
+        Role.send({
+          type: 'shotClip',
+          shotT: shotT,
+          shotId: shotId,
+          chunkIdx: i,
+          totalChunks: total,
+          fps: RING_FPS,
+          frames: chunk.map(f => f.dataUrl),
+          firstT: chunk[0].t,
+          lastT: chunk[chunk.length-1].t
+        });
+      } catch(e){ console.error('clip send err', e); break; }
+      // Yield to the event loop so we don't starve the data channel
+      await new Promise(r => setTimeout(r, 12));
+    }
+  }
+
+  // ---- Inbound command handler ----
+  function onLaptopMessage(msg){
+    if (!msg || !msg.type) return;
+    if (msg.type !== 'cmd') return;
+    const c = msg.cmd;
+    try {
+      if (c === 'setDist'){
+        const el = document.getElementById('in-dist');
+        if (el){ el.value = String(msg.value); el.dispatchEvent(new Event('input', {bubbles:true})); }
+      } else if (c === 'setSize'){
+        const w = document.getElementById('in-width'), h = document.getElementById('in-height');
+        if (w && typeof msg.width === 'number'){ w.value = String(msg.width); w.dispatchEvent(new Event('input', {bubbles:true})); }
+        if (h && typeof msg.height === 'number'){ h.value = String(msg.height); h.dispatchEvent(new Event('input', {bubbles:true})); }
+      } else if (c === 'setAim'){
+        // msg.dx/dy nudge in normalized coords OR msg.x/msg.y absolute
+        if (typeof msg.x === 'number' && typeof msg.y === 'number'){
+          aimTargetNorm = { x: clamp01(msg.x), y: clamp01(msg.y) };
+        } else {
+          if (!aimTargetNorm) aimTargetNorm = { x:0.5, y:0.5 };
+          aimTargetNorm.x = clamp01(aimTargetNorm.x + (msg.dx || 0));
+          aimTargetNorm.y = clamp01(aimTargetNorm.y + (msg.dy || 0));
+        }
+        log(`Aim updated from laptop: (${(aimTargetNorm.x*100).toFixed(0)}%, ${(aimTargetNorm.y*100).toFixed(0)}%)`, 'ok');
+        toast('Aim adjusted', 'info', 800);
+      } else if (c === 'setShotCount'){
+        targetShotCount = Math.max(1, Math.min(100, parseInt(msg.value, 10) || 10));
+        try { localStorage.setItem('df_shotcount', String(targetShotCount)); } catch(e){}
+      } else if (c === 'setMicSource'){
+        const ms = msg.value;
+        if (['laptop','phone','both'].includes(ms)){
+          micSource = ms;
+          try { localStorage.setItem('df_mic_source', ms); } catch(e){}
+          // If laptop is sole source, stop phone mic; otherwise ensure it's on
+          if (ms === 'laptop' && micRunning){ stopMic(); log('Mic muted on phone (laptop is listening)', 'ok'); }
+          if ((ms === 'phone' || ms === 'both') && !micRunning){
+            startMic().catch(()=>{});
+          }
+        }
+      } else if (c === 'calibrate'){
+        // Force re-detect: clear lock + history
+        cornerHistory = []; calibrationLocked = false;
+        log('Re-calibrating target (commanded by laptop)', 'ok');
+        toast('Re-calibrating', 'info', 1200);
+      } else if (c === 'start'){
+        sessionShots = []; trailing = [];
+        $('#ss-shots').textContent='0'; $('#ss-avg').textContent='—'; $('#ss-best').textContent='—';
+        // Ensure cam + mic per source preference
+        (async ()=>{
+          try { if (!camStream) await startCamera(); } catch(e){}
+          if (micSource === 'phone' || micSource === 'both'){
+            try { if (!micRunning) await startMic(); } catch(e){}
+          }
+          if (!aimTargetNorm && homography){ aimTargetNorm = { x:0.5, y:0.5 }; }
+          setArmed(true);
+          $('#btn-start').textContent = 'Stop session';
+          toast('Session started by laptop', 'ok', 1500);
+        })();
+      } else if (c === 'stop'){
+        setArmed(false);
+        $('#btn-start').textContent = 'Start session';
+        toast('Session stopped', 'warn', 1200);
+      } else if (c === 'reset'){
+        sessionShots = []; trailing = [];
+        $('#ss-shots').textContent='0'; $('#ss-avg').textContent='—'; $('#ss-best').textContent='—';
+        ['s-in','s-moa','s-score'].forEach(id=>{
+          const el=document.getElementById(id);
+          if(el){ el.textContent='—'; el.classList.add('empty'); el.classList.remove('bad','warn'); }
+        });
+        toast('Shots cleared', 'warn', 1200);
+      } else if (c === 'extClick'){
+        // Laptop heard a click on its own mic — fire scoring
+        const now = performance.now();
+        if (now - lastClickTs > 350){
+          lastClickTs = now;
+          onClickDetected('mic-laptop', msg.intensity || 0.5);
+        }
+      } else if (c === 'testShot'){
+        try { testShot(); } catch(e){}
+      } else if (c === 'requestState'){
+        sendStateSnapshot();
+      }
+    } catch(err){ console.error('cmd handler error', c, err); }
+  }
+
+  function sendStateSnapshot(){
+    if (!Role.isConnected()) return;
+    Role.send({
+      type: 'state',
+      cam: !!camStream,
+      mic: !!micRunning,
+      ble: !!notifyChar,
+      haveTarget: !!homography,
+      haveAim: !!aimTargetNorm,
+      armed: !!sessionArmed,
+      dist: parseFloat(document.getElementById('in-dist').value) || 15,
+      width: parseFloat(document.getElementById('in-width').value) || 8.5,
+      height: parseFloat(document.getElementById('in-height').value) || 11,
+      shotCount: targetShotCount,
+      micSource: micSource,
+      shotsTaken: sessionShots.length
+    });
+  }
+  // Push state periodically (low-rate) so the laptop UI stays in sync
+  setInterval(() => { if (Role.isPhone() && Role.isConnected()) sendStateSnapshot(); }, 800);
+
+  return { onLaptopMessage, sendStateSnapshot, sendClipForShot };
+})();
+
+// Hook into onClickDetected to:
+//  • send the pre-shot video clip
+//  • check for auto-stop on shot count
+(function(){
+  const orig = window.onClickDetected;
+  window.onClickDetected = function(source, intensity){
+    const beforeCount = sessionShots.length;
+    const r = orig.call(this, source, intensity);
+    const afterCount = sessionShots.length;
+    if (afterCount > beforeCount){
+      const s = sessionShots[afterCount - 1];
+      // Fire-and-forget clip send — only if connected
+      if (Role.isConnected() && Role.isPhone()){
+        try { window._dfPhone.sendClipForShot(s.t, afterCount); } catch(e){}
+      }
+      // Auto-stop on reaching target count (only count TRACKED shots)
+      const trackedCount = sessionShots.filter(x => !x.untracked).length;
+      if (sessionArmed && trackedCount >= targetShotCount){
+        setTimeout(() => {
+          setArmed(false);
+          $('#btn-start').textContent = 'Start session';
+          const tracked = sessionShots.filter(x => typeof x.moa === 'number' && !x.untracked);
+          const summary = {
+            total: sessionShots.length,
+            tracked: tracked.length,
+            avgMoa: tracked.length ? tracked.reduce((a,b)=>a+b.moa,0)/tracked.length : null,
+            bestMoa: tracked.length ? Math.min(...tracked.map(s=>s.moa)) : null,
+            avgScore: tracked.length ? tracked.reduce((a,b)=>a+(b.score||0),0)/tracked.length : null,
+            durationMs: tracked.length ? (sessionShots[sessionShots.length-1].t - sessionShots[0].t) : 0
+          };
+          if (Role.isConnected()){
+            Role.send({
+              type: 'sessionEnd',
+              shots: sessionShots.map(s => ({
+                t:s.t, devIn:s.devIn, moa:s.moa, score:s.score, source:s.source,
+                untracked:!!s.untracked, reason:s.reason, poi:s.poi, jerk:s.jerk
+              })),
+              summary: summary
+            });
+          }
+          toast(`Session complete — ${tracked.length} shots`, 'ok', 2400);
+        }, 200);
+      }
+    }
+    return r;
+  };
+})();
+
+// =====================================================================
+// LAPTOP-SIDE: control rail wiring + laptop mic + clip cache + results modal
+// =====================================================================
+const LaptopCtrl = (function(){
+  // ---- Local state mirrored from phone telemetry ----
+  let phoneState = {};
+  let clipsByShotT = {}; // shotT -> { fps, frames:[Image], totalChunks, gotChunks, complete, firstT, lastT }
+  let allShotsForResults = []; // populated on sessionEnd
+
+  // ---- Laptop mic (only used when micSource === 'laptop' or 'both') ----
+  let lapMicStream = null, lapAudioCtx = null, lapAnalyser = null, lapMicData = null;
+  let lapMicRunning = false, lapBaseline = 0, lapLastClick = 0;
+
+  async function startLaptopMic(){
+    if (lapMicRunning) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false } });
+      lapMicStream = stream;
+      lapAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      const src = lapAudioCtx.createMediaStreamSource(stream);
+      lapAnalyser = lapAudioCtx.createAnalyser(); lapAnalyser.fftSize = 1024;
+      src.connect(lapAnalyser);
+      lapMicData = new Float32Array(lapAnalyser.fftSize);
+      lapMicRunning = true;
+      lapMicLoop();
+      log('Laptop mic listening for clicks', 'ok');
+    } catch(e){ log('Laptop mic blocked: '+e.message, 'err'); }
+  }
+  function stopLaptopMic(){
+    if (!lapMicRunning) return;
+    try { lapMicStream.getTracks().forEach(t=>t.stop()); } catch(e){}
+    try { lapAudioCtx.close(); } catch(e){}
+    lapMicRunning = false;
+  }
+  function lapMicLoop(){
+    if (!lapMicRunning) return;
+    lapAnalyser.getFloatTimeDomainData(lapMicData);
+    let peak = 0;
+    for (let i=0; i<lapMicData.length; i++){ const a = Math.abs(lapMicData[i]); if (a > peak) peak = a; }
+    lapBaseline = lapBaseline*0.97 + peak*0.03;
+    const now = performance.now();
+    if (peak > Math.max(0.07, lapBaseline*5) && now - lapLastClick > 350){
+      lapLastClick = now;
+      // Send to phone as external click
+      if (Role.isConnected() && Role.isLaptop()){
+        Role.send({ type:'cmd', cmd:'extClick', intensity: peak, source:'mic-laptop' });
+        flashLapMic();
+      }
+    }
+    requestAnimationFrame(lapMicLoop);
+  }
+  function flashLapMic(){
+    const btn = document.querySelector('#ctrl-mic-seg button[data-mic="laptop"]');
+    if (!btn) return;
+    btn.style.background = '#fae232'; btn.style.color = '#000';
+    setTimeout(() => { btn.style.background=''; btn.style.color=''; }, 140);
+  }
+
+  // ---- Helpers: send cmd to phone ----
+  function sendCmd(cmd, extra){
+    if (!Role.isConnected() || !Role.isLaptop()) return;
+    Role.send(Object.assign({ type:'cmd', cmd: cmd }, extra || {}));
+  }
+
+  // ---- Wire up control rail ----
+  function wireControlRail(){
+    // Distance / shot count steppers
+    document.querySelectorAll('.ctrl-step').forEach(btn => {
+      if (btn._wired) return; btn._wired = true;
+      btn.addEventListener('click', () => {
+        const which = btn.dataset.step;
+        const dir = parseInt(btn.dataset.dir, 10);
+        if (which === 'dist'){
+          const el = document.getElementById('ctrl-dist');
+          const v = (parseFloat(el.value) || 15) + dir*0.5;
+          el.value = Math.max(3, Math.min(100, v));
+          sendCmd('setDist', { value: parseFloat(el.value) });
+        } else if (which === 'count'){
+          const el = document.getElementById('ctrl-count');
+          const v = (parseInt(el.value, 10) || 10) + dir;
+          el.value = Math.max(1, Math.min(100, v));
+          sendCmd('setShotCount', { value: parseInt(el.value, 10) });
+        }
+      });
+    });
+
+    // Direct-edit inputs
+    const dist = document.getElementById('ctrl-dist');
+    if (dist && !dist._wired){
+      dist._wired = true;
+      dist.addEventListener('change', () => sendCmd('setDist', { value: parseFloat(dist.value) || 15 }));
+    }
+    const tw = document.getElementById('ctrl-tw');
+    const th = document.getElementById('ctrl-th');
+    const pushSize = () => sendCmd('setSize', { width: parseFloat(tw.value) || 8.5, height: parseFloat(th.value) || 11 });
+    if (tw && !tw._wired){ tw._wired = true; tw.addEventListener('change', pushSize); }
+    if (th && !th._wired){ th._wired = true; th.addEventListener('change', pushSize); }
+    const cnt = document.getElementById('ctrl-count');
+    if (cnt && !cnt._wired){ cnt._wired = true; cnt.addEventListener('change', () => sendCmd('setShotCount', { value: parseInt(cnt.value, 10) || 10 })); }
+
+    // Mic source segmented buttons
+    document.querySelectorAll('#ctrl-mic-seg button').forEach(btn => {
+      if (btn._wired) return; btn._wired = true;
+      btn.addEventListener('click', () => {
+        const v = btn.dataset.mic;
+        document.querySelectorAll('#ctrl-mic-seg button').forEach(b => b.classList.toggle('active', b === btn));
+        try { localStorage.setItem('df_mic_source', v); } catch(e){}
+        sendCmd('setMicSource', { value: v });
+        // Laptop side: start/stop its own mic
+        if (v === 'laptop' || v === 'both'){ startLaptopMic(); }
+        else { stopLaptopMic(); }
+      });
+    });
+
+    // Aim nudge buttons (±0.02 per press, c = recenter)
+    document.querySelectorAll('.ctrl-aim button').forEach(btn => {
+      if (btn._wired) return; btn._wired = true;
+      btn.addEventListener('click', () => {
+        const a = btn.dataset.aim;
+        const STEP = 0.02;
+        if (a === 'c'){ sendCmd('setAim', { x:0.5, y:0.5 }); }
+        else if (a === 'u'){ sendCmd('setAim', { dy: -STEP }); }
+        else if (a === 'd'){ sendCmd('setAim', { dy: +STEP }); }
+        else if (a === 'l'){ sendCmd('setAim', { dx: -STEP }); }
+        else if (a === 'r'){ sendCmd('setAim', { dx: +STEP }); }
+      });
+    });
+
+    // Action buttons
+    const calBtn = document.getElementById('ctrl-calibrate');
+    if (calBtn && !calBtn._wired){ calBtn._wired = true; calBtn.addEventListener('click', () => { sendCmd('calibrate'); }); }
+    const startBtn = document.getElementById('ctrl-start');
+    if (startBtn && !startBtn._wired){
+      startBtn._wired = true;
+      startBtn.addEventListener('click', () => {
+        sendCmd('start');
+        startBtn.disabled = true;
+        const stop = document.getElementById('ctrl-stop'); if (stop) stop.disabled = false;
+      });
+    }
+    const stopBtn = document.getElementById('ctrl-stop');
+    if (stopBtn && !stopBtn._wired){
+      stopBtn._wired = true;
+      stopBtn.addEventListener('click', () => {
+        sendCmd('stop');
+        stopBtn.disabled = true;
+        if (startBtn) startBtn.disabled = false;
+      });
+    }
+    const resetBtn = document.getElementById('ctrl-reset');
+    if (resetBtn && !resetBtn._wired){ resetBtn._wired = true; resetBtn.addEventListener('click', () => sendCmd('reset')); }
+
+    // Initial mic source from storage
+    const savedMic = localStorage.getItem('df_mic_source') || 'laptop';
+    document.querySelectorAll('#ctrl-mic-seg button').forEach(b => b.classList.toggle('active', b.dataset.mic === savedMic));
+  }
+
+  // ---- Phone state UI updates ----
+  function updatePhoneStateUI(s){
+    const cam = document.getElementById('ps-cam');
+    const tgt = document.getElementById('ps-target');
+    const arm = document.getElementById('ps-armed');
+    if (cam) cam.textContent = s.cam ? 'cam on' : 'cam off';
+    if (tgt){
+      if (s.haveTarget && s.haveAim) tgt.textContent = 'target + aim ✓';
+      else if (s.haveTarget) tgt.textContent = 'target locked';
+      else tgt.textContent = 'target —';
+    }
+    if (arm){
+      if (s.armed){ arm.textContent = `live · ${s.shotsTaken || 0}/${s.shotCount || targetShotCount}`; arm.style.color = '#fae232'; }
+      else { arm.textContent = 'idle'; arm.style.color = ''; }
+    }
+    // Mirror dist/size/count if user hasn't been typing
+    const distEl = document.getElementById('ctrl-dist');
+    if (distEl && document.activeElement !== distEl && typeof s.dist === 'number') distEl.value = s.dist;
+    const twEl = document.getElementById('ctrl-tw');
+    if (twEl && document.activeElement !== twEl && typeof s.width === 'number') twEl.value = s.width;
+    const thEl = document.getElementById('ctrl-th');
+    if (thEl && document.activeElement !== thEl && typeof s.height === 'number') thEl.value = s.height;
+    const cntEl = document.getElementById('ctrl-count');
+    if (cntEl && document.activeElement !== cntEl && typeof s.shotCount === 'number') cntEl.value = s.shotCount;
+  }
+
+  // ---- Receive video clip chunks ----
+  function onShotClip(msg){
+    const key = msg.shotT;
+    if (!clipsByShotT[key]){
+      clipsByShotT[key] = { fps: msg.fps || 25, frames: new Array(msg.totalChunks*4), totalChunks: msg.totalChunks, gotChunks: 0, complete:false };
+    }
+    const entry = clipsByShotT[key];
+    // Decode frames
+    msg.frames.forEach((dataUrl, i) => {
+      const img = new Image();
+      img.onload = () => { /* ready */ };
+      img.src = dataUrl;
+      entry.frames[msg.chunkIdx*4 + i] = img;
+    });
+    entry.gotChunks += 1;
+    if (entry.gotChunks >= entry.totalChunks){
+      entry.complete = true;
+      // Mark the corresponding row as having a clip
+      markRowHasClip(key);
+    }
+  }
+
+  function markRowHasClip(shotT){
+    // Find the row in dash-tbody whose shot has matching t and add a play indicator
+    const tbody = document.getElementById('dash-tbody');
+    if (!tbody || !Dash.shots) return;
+    // Re-render with a clip marker — easier than mutating one cell
+    // Look up shot index
+    const idx = Dash.shots.findIndex(s => s.t === shotT);
+    if (idx < 0) return;
+    Dash.shots[idx].hasClip = true;
+    // Insert ▶ indicator on the row
+    const rows = tbody.querySelectorAll('tr');
+    // shots are rendered newest-first, so row 0 corresponds to last shot
+    const rowIdx = Dash.shots.length - 1 - idx;
+    const row = rows[rowIdx];
+    if (row && !row.querySelector('.clip-mark')){
+      const td = row.children[1]; // time cell
+      if (td){
+        const mark = document.createElement('span');
+        mark.className = 'clip-mark';
+        mark.textContent = ' ▶';
+        mark.style.cssText = 'color:#fae232;cursor:pointer;font-weight:700';
+        mark.title = 'Play shot replay';
+        td.appendChild(mark);
+      }
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', () => playClip(shotT));
+    }
+  }
+
+  // ---- Play a clip ----
+  let clipPlayTimer = null;
+  function playClip(shotT){
+    const entry = clipsByShotT[shotT];
+    if (!entry || !entry.complete) return;
+    const player = document.getElementById('clip-player');
+    const canvas = document.getElementById('clip-canvas');
+    const title = document.getElementById('clip-title');
+    const meta = document.getElementById('clip-meta');
+    const ctx = canvas.getContext('2d');
+    player.classList.add('open');
+    const shot = Dash.shots.find(s => s.t === shotT);
+    title.textContent = shot ? `Shot replay · ${shot.moa ? shot.moa.toFixed(1) + ' MOA' : 'no track'}` : 'Shot replay';
+    meta.textContent = `${entry.frames.length} frames @ ${entry.fps}fps`;
+    let i = 0;
+    if (clipPlayTimer){ clearInterval(clipPlayTimer); }
+    const draw = () => {
+      const img = entry.frames[i];
+      if (img && img.complete){
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        // Fit into canvas preserving aspect (4:3 of source → 480x360 in 480x480 with letterbox)
+        const srcAr = 320/240;
+        let dw = canvas.width, dh = canvas.width / srcAr;
+        if (dh > canvas.height){ dh = canvas.height; dw = dh * srcAr; }
+        const dx = (canvas.width - dw)/2, dy = (canvas.height - dh)/2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+        // Overlay frame counter
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(8, canvas.height-26, 80, 20);
+        ctx.fillStyle = '#fae232';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(`${i+1}/${entry.frames.length}`, 14, canvas.height-12);
+      }
+      i++;
+      if (i >= entry.frames.length){ i = Math.max(0, entry.frames.length - 1); /* freeze on last */ clearInterval(clipPlayTimer); clipPlayTimer = null; }
+    };
+    clipPlayTimer = setInterval(draw, 1000 / (entry.fps || 25));
+    draw();
+  }
+  function closeClip(){
+    document.getElementById('clip-player').classList.remove('open');
+    if (clipPlayTimer){ clearInterval(clipPlayTimer); clipPlayTimer = null; }
+  }
+
+  // ---- Results modal ----
+  function showResults(msg){
+    allShotsForResults = msg.shots || [];
+    const stats = document.getElementById('results-stats');
+    const sum = msg.summary || {};
+    stats.innerHTML = '';
+    const cards = [
+      { k:'Shots', v: sum.total || 0 },
+      { k:'Tracked', v: sum.tracked || 0 },
+      { k:'Avg MOA', v: sum.avgMoa != null ? sum.avgMoa.toFixed(2) : '—' },
+      { k:'Best MOA', v: sum.bestMoa != null ? sum.bestMoa.toFixed(2) : '—' },
+      { k:'Avg score', v: sum.avgScore != null ? sum.avgScore.toFixed(0) : '—' },
+      { k:'Duration', v: sum.durationMs ? (sum.durationMs/1000).toFixed(1)+'s' : '—' }
+    ];
+    cards.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'stat';
+      div.innerHTML = `<div class="v">${c.v}</div><div class="k">${c.k}</div>`;
+      stats.appendChild(div);
+    });
+
+    // Render target with all shots
+    drawResultsCanvas();
+    // Render per-shot list
+    renderShotList();
+    document.getElementById('results-modal').classList.add('open');
+  }
+
+  function drawResultsCanvas(){
+    const c = document.getElementById('results-canvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    ctx.fillStyle = '#f4f1e6'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle = '#222'; ctx.lineWidth = 1.5;
+    for (let r=1; r<=6; r++){
+      ctx.beginPath(); ctx.arc(W/2, H/2, (r/7)*Math.min(W,H)/2, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(W/2, H/2, (1/7)*Math.min(W,H)/2, 0, Math.PI*2); ctx.fill();
+    // Shots numbered
+    allShotsForResults.forEach((s, i) => {
+      if (s.untracked || !s.poi) return;
+      const x = s.poi.x * W, y = s.poi.y * H;
+      const color = s.score >= 80 ? '#0a8454' : s.score >= 50 ? '#fae232' : '#e8836b';
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#000'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(i+1), x, y);
+    });
+  }
+
+  function renderShotList(){
+    const list = document.getElementById('results-shots');
+    list.innerHTML = '';
+    allShotsForResults.forEach((s, i) => {
+      const row = document.createElement('div');
+      row.className = 'results-shot';
+      const moaText = (s.moa != null) ? s.moa.toFixed(1) : '—';
+      const moaCls = (s.moa != null && s.moa <= 2) ? 'good' : (s.moa != null && s.moa > 5 ? 'bad' : '');
+      const score = s.score != null ? s.score : '—';
+      const dir = (s.jerk && s.jerk.label) || '—';
+      const verdict = (s.jerk && s.jerk.verdict) || '';
+      const hasClip = clipsByShotT[s.t] && clipsByShotT[s.t].complete;
+      row.innerHTML = `
+        <div class="num">${i+1}</div>
+        <div class="meta">
+          <div>score ${score} · source ${s.source || '—'}</div>
+          <div class="dir">${dir}${verdict ? ' · '+verdict : ''}</div>
+        </div>
+        <div class="moa ${moaCls}">${moaText}${s.moa != null ? '<span style="font-size:10px;color:#888"> MOA</span>' : ''}${hasClip ? ' <span style="color:#fae232;font-size:14px;margin-left:6px">▶</span>' : ''}</div>
+      `;
+      if (hasClip){
+        row.addEventListener('click', () => playClip(s.t));
+      } else {
+        row.style.cursor = 'default';
+      }
+      list.appendChild(row);
+    });
+  }
+
+  function exportResultsCsv(){
+    const rows = [['#','time','inches','moa','score','source','direction','magnitude_moa','verdict']];
+    allShotsForResults.forEach((s,i) => {
+      rows.push([
+        i+1,
+        new Date(s.t).toISOString(),
+        (s.devIn||0).toFixed(3),
+        (s.moa||0).toFixed(2),
+        s.score||0,
+        s.source||'',
+        (s.jerk && s.jerk.label) || '',
+        (s.jerk && typeof s.jerk.mag === 'number') ? s.jerk.mag.toFixed(2) : '',
+        (s.jerk && s.jerk.verdict) || ''
+      ]);
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `dryfire-results-${Date.now()}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function closeResults(){
+    document.getElementById('results-modal').classList.remove('open');
+  }
+  function newSession(){
+    closeResults();
+    allShotsForResults = [];
+    clipsByShotT = {};
+    // Tell phone to reset
+    sendCmd('reset');
+    if (typeof Dash.shots !== 'undefined'){ Dash.shots.length = 0; }
+    // Force a re-render of the dash table + rect
+    Dash.onMessage({ type:'state' });
+    try { Dash.renderRect(); } catch(e){}
+    const tbody = document.getElementById('dash-tbody'); if (tbody) tbody.innerHTML = '';
+    document.getElementById('dash-shots').textContent = '0';
+    document.getElementById('dash-avg').textContent = '—';
+    document.getElementById('dash-best').textContent = '—';
+    document.getElementById('ctrl-start').disabled = false;
+    document.getElementById('ctrl-stop').disabled = true;
+  }
+
+  // ---- Patch Dash.onMessage to intercept state/shot/clip/end ----
+  const origOnMessage = Dash.onMessage;
+  Dash.onMessage = function(msg){
+    if (!msg) return;
+    if (msg.type === 'state'){
+      phoneState = Object.assign({}, phoneState, msg);
+      updatePhoneStateUI(phoneState);
+    } else if (msg.type === 'shotClip'){
+      onShotClip(msg);
+      return; // don't pass to default
+    } else if (msg.type === 'sessionEnd'){
+      showResults(msg);
+      return;
+    }
+    return origOnMessage.call(Dash, msg);
+  };
+
+  // ---- Init ----
+  function init(){
+    if (!Role.isLaptop()) return;
+    wireControlRail();
+    // Wire modal close + buttons
+    document.getElementById('results-close').addEventListener('click', closeResults);
+    document.getElementById('results-newsession').addEventListener('click', newSession);
+    document.getElementById('results-csv').addEventListener('click', exportResultsCsv);
+    document.getElementById('clip-close').addEventListener('click', closeClip);
+    // Default mic source = laptop → start laptop mic immediately
+    const savedMic = localStorage.getItem('df_mic_source') || 'laptop';
+    if (savedMic === 'laptop' || savedMic === 'both'){
+      startLaptopMic();
+    }
+    // Tell phone our mic preference
+    setTimeout(() => sendCmd('setMicSource', { value: savedMic }), 600);
+    // Push initial settings to phone
+    setTimeout(() => {
+      const distEl = document.getElementById('ctrl-dist');
+      const twEl = document.getElementById('ctrl-tw');
+      const thEl = document.getElementById('ctrl-th');
+      const cntEl = document.getElementById('ctrl-count');
+      if (distEl) sendCmd('setDist', { value: parseFloat(distEl.value) || 15 });
+      if (twEl && thEl) sendCmd('setSize', { width: parseFloat(twEl.value) || 8.5, height: parseFloat(thEl.value) || 11 });
+      if (cntEl) sendCmd('setShotCount', { value: parseInt(cntEl.value, 10) || 10 });
+    }, 800);
+  }
+
+  // Defer init until pairing is up; check periodically
+  let initOnce = false;
+  setInterval(() => {
+    if (initOnce) return;
+    if (Role.isLaptop()){
+      initOnce = true;
+      init();
+    }
+  }, 400);
+
+  return { init, showResults, playClip };
+})();
+
+log('Control center + clip player + results modal ready', 'ok');
 </script>
 </body>
 </html>
