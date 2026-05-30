@@ -72,18 +72,19 @@
   }
   header .brand-mark svg{width:16px;height:16px;}
   header h1{
-    font-size:14px;margin:0;font-weight:700;letter-spacing:0.02em;
-    text-transform:uppercase;
+    font-size:13px;margin:0;font-weight:700;letter-spacing:0.02em;
+    text-transform:uppercase;line-height:1.15;white-space:nowrap;
   }
-  header h1 .sub{display:block;font-size:10px;font-weight:500;color:var(--muted);letter-spacing:0.12em;margin-top:2px;}
+  header h1 .sub{display:block;font-size:9px;font-weight:500;color:var(--muted);letter-spacing:0.14em;margin-top:3px;white-space:nowrap;}
 
-  .pills{display:flex;gap:6px;}
+  .pills{display:flex;gap:6px;flex-shrink:0;}
   .pill{
-    font-size:10px;padding:5px 9px;border-radius:999px;
+    font-size:9px;padding:5px 8px;border-radius:999px;
     background:var(--surface);color:var(--text-2);
     border:1px solid var(--line);
     font-weight:600;letter-spacing:0.04em;text-transform:uppercase;
-    display:inline-flex;align-items:center;gap:6px;
+    display:inline-flex;align-items:center;gap:5px;
+    white-space:nowrap;
   }
   .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--muted);}
   .pill.ok{color:var(--yellow);}
@@ -317,11 +318,11 @@
     <div class="brand-mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19" stroke="#1a1700" stroke-width="2" stroke-linecap="round"/></svg>
     </div>
-    <h1>Dry-Fire Coach<span class="sub">PERSPECTIVE · BLE · LASER</span></h1>
+    <h1>Dry-Fire Coach<span class="sub">AIM · BLE · LASER</span></h1>
   </div>
   <div class="pills">
     <span class="pill" id="pill-secure">ctx</span>
-    <span class="pill" id="pill-ble">BLE</span>
+    <span class="pill" id="pill-ble">ble</span>
   </div>
 </header>
 
