@@ -1060,6 +1060,24 @@ body.role-laptop .laptop-dash{display:block}
 .ctrl-aim button:hover{background:rgba(35,60,80,0.9);transform:scale(1.05)}
 .ctrl-aim-row{display:flex;gap:4px}
 .ctrl-actions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)}
+.setup-wizard{background:linear-gradient(180deg,rgba(250,226,50,0.05),rgba(250,226,50,0.02));border:1px solid rgba(250,226,50,0.18);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.setup-title{font-family:'Manrope',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(250,226,50,0.75);margin-bottom:10px;font-weight:700}
+.setup-step{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.setup-step:last-child{border-bottom:none}
+.setup-num{flex:0 0 26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:rgba(216,224,232,0.7)}
+.setup-step.done .setup-num{background:rgba(159,211,181,0.18);border-color:#9fd3b5;color:#9fd3b5}
+.setup-step.done .setup-num::before{content:'✓'}
+.setup-step.done .setup-num{font-size:0}
+.setup-step.done .setup-num::before{font-size:14px}
+.setup-text{flex:1;min-width:0}
+.setup-name{font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;color:#e8eef5}
+.setup-opt{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,138,76,0.85);background:rgba(255,138,76,0.1);padding:2px 6px;border-radius:6px;margin-left:6px;font-weight:600}
+.setup-hint{font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(216,224,232,0.55);margin-top:2px}
+.setup-state{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(216,224,232,0.6);min-width:80px;text-align:right}
+.setup-step.done .setup-state{color:#9fd3b5}
+.setup-action{background:rgba(250,226,50,0.12);border:1px solid rgba(250,226,50,0.4);color:#FAE232;padding:6px 14px;border-radius:9px;cursor:pointer;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;transition:all .2s}
+.setup-action:hover{background:rgba(250,226,50,0.2)}
+.setup-step.done .setup-action{background:rgba(159,211,181,0.1);border-color:rgba(159,211,181,0.4);color:#9fd3b5}
 .ctrl-btn{background:rgba(20,40,55,0.8);border:1px solid rgba(255,255,255,0.08);color:#eee;padding:10px 18px;border-radius:12px;cursor:pointer;font-weight:600;font-size:13px;letter-spacing:.3px;font-family:'Manrope', sans-serif;transition:all .2s}
 .ctrl-btn:hover{background:rgba(35,60,80,0.9);border-color:rgba(250,226,50,0.4);transform:translateY(-1px)}
 .ctrl-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
@@ -1215,6 +1233,33 @@ body.role-laptop .laptop-dash{display:block}
       </div>
     </div>
     <div class="panel-body body ctrl-body">
+      <div class="setup-wizard" id="setup-wizard">
+        <div class="setup-title">Setup</div>
+        <div class="setup-step" id="setup-1">
+          <div class="setup-num">1</div>
+          <div class="setup-text">
+            <div class="setup-name">Pair phone</div>
+            <div class="setup-hint" id="setup-1-hint">Scan the QR with your phone</div>
+          </div>
+          <div class="setup-state" id="setup-1-state">—</div>
+        </div>
+        <div class="setup-step" id="setup-2">
+          <div class="setup-num">2</div>
+          <div class="setup-text">
+            <div class="setup-name">Calibrate target</div>
+            <div class="setup-hint" id="setup-2-hint">Point phone at target so the 4 corners are visible</div>
+          </div>
+          <button class="setup-action" id="setup-cal-target">Calibrate</button>
+        </div>
+        <div class="setup-step" id="setup-3">
+          <div class="setup-num">3</div>
+          <div class="setup-text">
+            <div class="setup-name">Calibrate gun pose <span class="setup-opt">recommended</span></div>
+            <div class="setup-hint" id="setup-3-hint">Filters racks &amp; reset clicks from being counted as shots</div>
+          </div>
+          <button class="setup-action" id="setup-cal-gun">Calibrate</button>
+        </div>
+      </div>
       <div class="ctrl-grid">
         <div class="ctrl-block">
           <div class="ctrl-label">Distance to target</div>
@@ -1285,12 +1330,13 @@ body.role-laptop .laptop-dash{display:block}
       </div>
       <div class="ctrl-actions">
         <button id="ctrl-calibrate" class="ctrl-btn">Calibrate target</button>
-        <button id="ctrl-gun-cal" class="ctrl-btn" style="display:none">Calibrate gun pose</button>
+        <button id="ctrl-gun-cal" class="ctrl-btn">Calibrate gun pose</button>
         <button id="ctrl-start" class="ctrl-btn primary">Start session</button>
         <button id="ctrl-stop" class="ctrl-btn warn" disabled>Stop</button>
+        <button id="ctrl-bad-shot" class="ctrl-btn ghost" title="Remove the last shot from the session (use if a rack or false trigger got counted)">Bad shot — undo</button>
         <button id="ctrl-reset" class="ctrl-btn ghost">Reset shots</button>
       </div>
-      <div class="ctrl-gun-cal-status" id="ctrl-gun-cal-status" style="display:none;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9fd3b5;"></div>
+      <div class="ctrl-gun-cal-status" id="ctrl-gun-cal-status" style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#FF8A4C;">Gun pose not calibrated</div>
       <label class="pose-gate-toggle" style="display:flex;align-items:center;gap:8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#cbd5e1;cursor:pointer;">
         <input type="checkbox" id="ctrl-pose-gate" checked style="accent-color:#FAE232;" />
         Only count shots when gun is pointed at target
@@ -3892,7 +3938,14 @@ const Dash = (function(){
     renderRect(); // initial empty render
   }, 100);
 
-  return { onMessage, shots, renderRect, update2PStats };
+  // Expose a re-render hook so external buttons (bad-shot undo) can refresh
+  // the table + rect + stats after mutating Dash.shots directly.
+  function rerender(){
+    renderTable();
+    renderRect();
+    updateStats();
+  }
+  return { onMessage, shots, renderRect, update2PStats, rerender };
 })();
 
 // ---- Hook into onClickDetected to emit shots over bridge with jerk analytics ----
@@ -4136,6 +4189,30 @@ window._dfPhone = (function(){
         window._poseGateOn = !!msg.value;
         try { localStorage.setItem('df_pose_gate', window._poseGateOn ? '1' : '0'); } catch(e){}
         log(`Pose-gate: ${window._poseGateOn ? 'ON (shots require on-target pose)' : 'OFF'}`, 'info');
+      } else if (c === 'undoLastShot'){
+        // Bad-shot undo — pop the last registered shot off the phone's session state
+        if (sessionShots.length > 0){
+          const removed = sessionShots.pop();
+          // Re-render hero stats from remaining shots
+          const tracked = sessionShots.filter(s => !s.untracked && typeof s.moa === 'number');
+          const totalEl = document.getElementById('ss-shots');
+          const avgEl = document.getElementById('ss-avg');
+          const bestEl = document.getElementById('ss-best');
+          if (totalEl) totalEl.textContent = String(sessionShots.length);
+          if (tracked.length){
+            const avg = tracked.reduce((a,s)=>a+s.moa,0) / tracked.length;
+            const best = Math.min(...tracked.map(s=>s.moa));
+            if (avgEl) avgEl.textContent = avg.toFixed(1);
+            if (bestEl) bestEl.textContent = best.toFixed(1);
+          } else {
+            if (avgEl) avgEl.textContent = '—';
+            if (bestEl) bestEl.textContent = '—';
+          }
+          log(`Bad-shot undo — removed last shot (${sessionShots.length} remaining)`, 'warn');
+          toast('Last shot removed', 'warn', 1200);
+        } else {
+          toast('No shots to undo', 'warn', 1200);
+        }
       } else if (c === 'extClick'){
         // Laptop heard a click on its own mic — fire scoring (only if armed)
         if (!sessionArmed) return;
@@ -4173,6 +4250,14 @@ window._dfPhone = (function(){
       shotsA: sessionShots.filter(x => !x.untracked && (x.player||'A') === 'A').length,
       shotsB: sessionShots.filter(x => !x.untracked && (x.player||'A') === 'B').length
     });
+    // Also push current gun-pose calibration if we have one, so the laptop UI
+    // can show it as 'calibrated' even after a refresh.
+    try {
+      const j = JSON.parse(localStorage.getItem('df_gun_cal')||'null');
+      if (j && typeof j.pt === 'number' && typeof j.pd === 'number'){
+        Role.send({ type:'qdCalStored', pitchTarget:j.pt, pitchDown:j.pd });
+      }
+    } catch(e){}
   }
   // Push state periodically (low-rate) so the laptop UI stays in sync
   setInterval(() => { if (Role.isPhone() && Role.isConnected()) sendStateSnapshot(); }, 800);
@@ -4366,11 +4451,8 @@ const LaptopCtrl = (function(){
         sendCmd('setMode', { value: m });
         const playerBlock = document.getElementById('ctrl-player-block');
         if (playerBlock) playerBlock.style.display = (m === '2p') ? 'flex' : 'none';
-        // Show / hide the gun-pose calibration button + status only in QD mode
-        const gcBtn = document.getElementById('ctrl-gun-cal');
-        const gcStatus = document.getElementById('ctrl-gun-cal-status');
-        if (gcBtn) gcBtn.style.display = (m === 'qd') ? '' : 'none';
-        if (gcStatus) gcStatus.style.display = (m === 'qd') ? '' : 'none';
+        // Gun-pose calibration is now available in ALL modes (recommended for filtering racks).
+        // The button + status stay visible regardless of mode.
         if (typeof Dash !== 'undefined' && Dash.shots){ /* will re-render naturally on next shot/state */ }
         rebuildDashTableHead();
         rebuildSessionPanelFor2P();
@@ -4455,6 +4537,62 @@ const LaptopCtrl = (function(){
     }
     const resetBtn = document.getElementById('ctrl-reset');
     if (resetBtn && !resetBtn._wired){ resetBtn._wired = true; resetBtn.addEventListener('click', () => sendCmd('reset')); }
+
+    // Bad-shot / undo last shot — removes the most recent registered shot
+    // from the session on both phone (authoritative scoring state) and
+    // laptop (dashboard). Use this when a rack/false trigger got counted.
+    const badShotBtn = document.getElementById('ctrl-bad-shot');
+    if (badShotBtn && !badShotBtn._wired){
+      badShotBtn._wired = true;
+      badShotBtn.addEventListener('click', () => {
+        // Locally remove from dashboard so the user sees instant feedback
+        try {
+          if (typeof Dash !== 'undefined' && Dash.shots && Dash.shots.length){
+            const removed = Dash.shots.pop();
+            if (typeof Dash.rerender === 'function') Dash.rerender();
+            // Show feedback
+            const tag = document.getElementById('dash-session-tag');
+            if (tag) tag.textContent = `removed shot — ${Dash.shots.length} left`;
+          }
+        } catch(e){ console.warn('bad-shot dash remove failed', e); }
+        // Tell the phone to drop its last shot too so counts/auto-stop stay in sync
+        sendCmd('undoLastShot');
+      });
+    }
+
+    // Setup-wizard step buttons (duplicate of main calibrate buttons for clarity)
+    const sw2 = document.getElementById('setup-cal-target');
+    if (sw2 && !sw2._wired){
+      sw2._wired = true;
+      sw2.addEventListener('click', () => sendCmd('calibrate'));
+    }
+    const sw3 = document.getElementById('setup-cal-gun');
+    if (sw3 && !sw3._wired){
+      sw3._wired = true;
+      sw3.addEventListener('click', () => { if (typeof GunCal !== 'undefined') GunCal.start(); });
+    }
+
+    // Setup-wizard live status updater: re-evaluates whether each step is done
+    function refreshSetupWizard(){
+      const paired = (typeof Role !== 'undefined' && Role.isConnected && Role.isConnected());
+      const s1 = document.getElementById('setup-1');
+      const s1state = document.getElementById('setup-1-state');
+      if (s1){ s1.classList.toggle('done', !!paired); }
+      if (s1state){ s1state.textContent = paired ? 'connected' : 'waiting'; }
+
+      // Target calibrated: rely on the gun-cal status panel having text + phone-state target indicator
+      const ps = document.getElementById('ps-target');
+      const tgtDone = !!(ps && ps.textContent && /ok|calibrated|good/i.test(ps.textContent));
+      const s2 = document.getElementById('setup-2');
+      if (s2){ s2.classList.toggle('done', tgtDone); }
+
+      // Gun pose calibrated: gun-cal-status not red
+      const gcs = document.getElementById('ctrl-gun-cal-status');
+      const gunDone = !!(gcs && /calibrated/i.test(gcs.textContent) && !/not/i.test(gcs.textContent));
+      const s3 = document.getElementById('setup-3');
+      if (s3){ s3.classList.toggle('done', gunDone); }
+    }
+    setInterval(refreshSetupWizard, 800);
 
     // Initial mic source from storage
     const savedMic = localStorage.getItem('df_mic_source') || 'laptop';
