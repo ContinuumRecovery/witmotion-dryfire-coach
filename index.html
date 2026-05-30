@@ -125,14 +125,15 @@
   .pill.warn::before{background:var(--sand);box-shadow:0 0 8px var(--sand);}
 
   main{
-    flex:1;display:flex;flex-direction:column;gap:14px;
-    padding:10px 14px 24px;
+    flex:1;display:flex;flex-direction:column;gap:10px;
+    padding:8px 12px 20px;
     position:relative;z-index:1;
   }
 
   /* ── Stage (camera surface) ─────────────────────────────────────────── */
   .stage{
-    position:relative;width:100%;aspect-ratio:3/4;
+    position:relative;width:100%;aspect-ratio:4/3;
+    max-height:52vh;
     background:radial-gradient(120% 80% at 50% 40%, #0c0d0e 0%, #050506 100%);
     border-radius:var(--radius-lg);
     overflow:hidden;
@@ -249,40 +250,36 @@
   .stage .range-strip.armed .arm::before{background:var(--yellow);box-shadow:0 0 8px var(--yellow);animation:dot-blink 1.2s ease-in-out infinite;}
 
   /* ── Section labels (e.g. SOURCES, ACTIONS) ─────────────────────────── */
-  .section-label{
-    display:flex;align-items:center;gap:10px;
-    font-size:10px;color:var(--muted);letter-spacing:0.22em;
-    text-transform:uppercase;font-weight:700;
-    margin:4px 2px -2px;
-  }
+  /* On mobile we hide the standalone SOURCES label — the chip icons speak for themselves */
+  .section-label{ display:none; }
   .section-label::after{
     content:"";flex:1;height:1px;background:linear-gradient(90deg, var(--line) 0%, transparent 100%);
   }
 
   /* ── Source chips (Cam/Mic/BLE) ─────────────────────────────────────── */
-  .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
   button.btn{
     appearance:none;border:1px solid var(--line);
     background:linear-gradient(180deg, var(--surface) 0%, #15171a 100%);
     color:var(--text);
-    padding:14px 10px 12px;border-radius:var(--radius-md);
-    font-size:11px;font-weight:700;font-family:inherit;
+    padding:9px 6px 8px;border-radius:var(--radius-md);
+    font-size:10px;font-weight:700;font-family:inherit;
     letter-spacing:0.06em;text-transform:uppercase;
-    display:flex;flex-direction:column;align-items:center;gap:7px;
+    display:flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;
     cursor:pointer;position:relative;
     transition:transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .25s ease;
     box-shadow:var(--shadow-1);
   }
   button.btn .icon{
-    width:30px;height:30px;display:grid;place-items:center;
-    color:var(--text-2);border-radius:9px;
+    width:22px;height:22px;display:grid;place-items:center;
+    color:var(--text-2);border-radius:7px;
     background:rgba(255,255,255,0.025);
     transition:color .2s ease, background .2s ease;
   }
-  button.btn .icon svg{width:18px;height:18px;}
+  button.btn .icon svg{width:14px;height:14px;}
+  button.btn .label{display:none;}
   button.btn:active{transform:scale(.97);}
   button.btn[disabled]{opacity:.4;cursor:not-allowed;}
-  button.btn .label{font-size:9px;color:var(--muted);letter-spacing:0.18em;font-weight:700;}
   /* Status dot (top-right corner of card) */
   button.btn::after{
     content:"";position:absolute;top:10px;right:10px;
@@ -300,11 +297,11 @@
   button.btn.active::after{background:var(--yellow);box-shadow:0 0 8px var(--yellow);animation:dot-blink 2s ease-in-out infinite;}
 
   /* ── Action buttons ─────────────────────────────────────────────────── */
-  .row2{display:grid;grid-template-columns:1.5fr 1fr;gap:10px;}
-  .row3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px;}
+  .row2{display:grid;grid-template-columns:1.5fr 1fr;gap:8px;}
+  .row3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:7px;}
   button.action{
-    padding:16px 14px;border-radius:var(--radius-md);
-    font-weight:700;font-size:13px;border:none;cursor:pointer;
+    padding:13px 12px;border-radius:var(--radius-md);
+    font-weight:700;font-size:12px;border:none;cursor:pointer;
     font-family:inherit;letter-spacing:0.08em;text-transform:uppercase;
     transition:transform .08s ease, filter .2s ease, box-shadow .25s ease, background .2s ease;
     position:relative;overflow:hidden;
@@ -347,11 +344,11 @@
     background:linear-gradient(180deg, var(--surface) 0%, #15171a 100%);
     border:1px solid var(--line);
     border-radius:var(--radius-lg);
-    padding:16px 16px 18px;
+    padding:12px 14px 14px;
     box-shadow:var(--shadow-1);
     position:relative;
   }
-  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
   .panel h2{
     margin:0;font-size:10px;color:var(--muted);
     text-transform:uppercase;letter-spacing:0.20em;font-weight:700;
@@ -375,11 +372,11 @@
       linear-gradient(180deg, var(--surface) 0%, #131517 100%);
     border:1px solid var(--line);
     border-radius:var(--radius-lg);
-    padding:18px 18px 20px;
+    padding:13px 14px 14px;
     box-shadow:var(--shadow-1);
     position:relative;overflow:hidden;
   }
-  .hero .panel-head{margin-bottom:14px;}
+  .hero .panel-head{margin-bottom:8px;}
   .hero h2{
     margin:0;font-size:10px;color:var(--muted);
     text-transform:uppercase;letter-spacing:0.20em;font-weight:700;
@@ -401,7 +398,7 @@
   .hero-main{display:flex;flex-direction:column;gap:4px;}
   .hero-main .big{
     font-family:'JetBrains Mono', monospace;
-    font-size:46px;font-weight:700;letter-spacing:-0.035em;line-height:1;
+    font-size:38px;font-weight:700;letter-spacing:-0.035em;line-height:1;
     color:var(--yellow);
     text-shadow:0 0 28px rgba(250,226,50,0.28);
   }
@@ -445,17 +442,17 @@
   .score-bar .markers span{width:1px;height:100%;background:rgba(255,255,255,0.08);}
 
   /* ── Session stats (small panel) ────────────────────────────────────── */
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
   .stat{
     background:linear-gradient(180deg, var(--surface-2) 0%, #1c1e21 100%);
     border-radius:var(--radius-md);
-    padding:14px 8px 12px;
+    padding:10px 6px 9px;
     text-align:center;
     border:1px solid rgba(255,255,255,0.04);
     position:relative;
   }
   .stat .v{
-    font-size:24px;font-weight:700;color:var(--text);
+    font-size:20px;font-weight:700;color:var(--text);
     font-family:'JetBrains Mono', monospace;
     letter-spacing:-0.025em;line-height:1;
   }
@@ -469,13 +466,13 @@
   /* ── Segmented control ──────────────────────────────────────────────── */
   .seg{
     display:flex;background:var(--surface-2);
-    border-radius:14px;padding:4px;gap:4px;
+    border-radius:12px;padding:3px;gap:3px;
     border:1px solid rgba(255,255,255,0.04);
     box-shadow:inset 0 1px 2px rgba(0,0,0,0.32);
   }
   .seg button{
     flex:1;background:transparent;border:none;color:var(--muted);
-    padding:11px 6px;border-radius:10px;
+    padding:9px 6px;border-radius:9px;
     font-size:10px;font-weight:700;cursor:pointer;
     font-family:inherit;letter-spacing:0.12em;text-transform:uppercase;
     transition:background .25s cubic-bezier(.22,1,.36,1), color .25s ease, box-shadow .25s ease;
@@ -487,31 +484,31 @@
   }
 
   /* ── Field grid (3-up inputs) ───────────────────────────────────────── */
-  .field-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;}
+  .field-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px;}
   .field-grid .field{
-    flex-direction:column;align-items:stretch;gap:6px;margin-top:0;
+    flex-direction:column;align-items:stretch;gap:4px;margin-top:0;
     background:var(--surface-2);
     border:1px solid rgba(255,255,255,0.04);
-    border-radius:12px;
-    padding:10px 12px 12px;
+    border-radius:10px;
+    padding:7px 10px 8px;
     position:relative;
   }
   .field-grid .field label{
-    font-size:9px;color:var(--muted);letter-spacing:0.18em;font-weight:700;
+    font-size:8px;color:var(--muted);letter-spacing:0.18em;font-weight:700;
     text-transform:uppercase;flex:none;
   }
   .field-grid .field input{
     background:transparent;border:none;padding:0;
     color:var(--text);
-    font-size:20px;width:100%;text-align:left;
+    font-size:17px;width:100%;text-align:left;
     font-family:'JetBrains Mono', monospace;font-weight:700;
     letter-spacing:-0.02em;
   }
   .field-grid .field input:focus{outline:none;}
   .field-grid .field:focus-within{border-color:rgba(250,226,50,0.45);background:var(--surface-3);}
   .field-grid .field .unit{
-    position:absolute;top:11px;right:12px;
-    font-size:9px;color:var(--muted);letter-spacing:0.16em;font-weight:700;text-transform:uppercase;
+    position:absolute;top:8px;right:10px;
+    font-size:8px;color:var(--muted);letter-spacing:0.16em;font-weight:700;text-transform:uppercase;
   }
   /* Legacy row-style field — kept as no-op fallback */
   .field{display:flex;align-items:center;gap:10px;margin-top:10px;}
@@ -528,8 +525,8 @@
   #log .err{color:var(--bad);} #log .ok{color:var(--yellow);} #log .warn{color:var(--sand);}
 
   .hint{
-    font-size:11px;color:var(--text-2);margin-top:14px;line-height:1.6;
-    padding:13px 13px 11px 15px;
+    font-size:10.5px;color:var(--text-2);margin-top:10px;line-height:1.5;
+    padding:9px 11px 9px 13px;
     background:linear-gradient(180deg, rgba(159,211,181,0.06) 0%, rgba(159,211,181,0.015) 100%);
     border-left:2px solid rgba(159,211,181,0.45);
     border-radius:8px;
@@ -558,10 +555,10 @@
   details[open] summary{margin-bottom:10px;}
 
   a.link{
-    color:var(--yellow);font-size:11px;text-decoration:none;
-    display:inline-flex;align-items:center;gap:8px;margin-top:14px;
+    color:var(--yellow);font-size:10.5px;text-decoration:none;
+    display:inline-flex;align-items:center;gap:8px;margin-top:10px;
     font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
-    padding:9px 13px;border-radius:10px;
+    padding:7px 11px;border-radius:9px;
     background:rgba(250,226,50,0.06);
     border:1px solid rgba(250,226,50,0.20);
     transition:background .2s ease, border-color .2s ease, transform .08s ease;
@@ -1044,32 +1041,81 @@ function markerCenter(m){
 // ---- Auto rectangle detection (largest bright quadrilateral) ----
 function runAutoRectDetect(){
   if (!camStream || video.readyState<2){ log('Camera not ready','warn'); return; }
-  // grayscale + threshold + contours via cv.js
   if (!window.CV){ log('CV lib missing','err'); return; }
-  const cv = new CV();
+
   const img = actx.getImageData(0,0,ANALY_W,ANALY_H);
-  const gray = cv.grayscale(img);
-  const thresh = cv.adaptiveThreshold(gray, 2, 7);
-  const contours = cv.findContours(thresh);
-  // find largest 4-vertex polygon
-  let best=null, bestArea=0;
-  contours.forEach(c=>{
-    if (c.length < 30) return;
-    const poly = cv.approxPolyDP(c, c.length*0.05);
-    if (poly.length===4){
+  const W = img.width, H = img.height, frameArea = W*H;
+  const minArea = frameArea * 0.03;    // ≥3% of frame
+  const maxArea = frameArea * 0.95;
+
+  // Pre-allocate single-channel buffers compatible with CV.* (each needs .data/.width/.height)
+  const gray   = { data: new Uint8ClampedArray(W*H), width: W, height: H };
+  const thresh = { data: new Uint8ClampedArray(W*H), width: W, height: H };
+  const binary = { data: new Uint8ClampedArray(W*H), width: W, height: H };
+
+  try { CV.grayscale(img, gray); }
+  catch(e){ log('grayscale failed: '+e.message,'err'); return; }
+
+  // Multi-pass adaptive threshold (kernelSize from stackBoxBlur table; threshold = local-mean offset)
+  // Larger kernels handle uneven lighting / shadows. Several thresholds catch both bright and dim targets.
+  const passes = [
+    { k: 2, t: 7,  label: 'k2/t7'  },
+    { k: 4, t: 7,  label: 'k4/t7'  },
+    { k: 4, t: 14, label: 'k4/t14' },
+    { k: 6, t: 20, label: 'k6/t20' },
+  ];
+
+  let best = null, bestArea = 0, bestPass = '', candidatesSeen = 0;
+
+  for (const p of passes){
+    try { CV.adaptiveThreshold(gray, thresh, p.k, p.t); } catch(e){ continue; }
+    let contours;
+    try { contours = CV.findContours(thresh, binary); } catch(e){ continue; }
+    for (let ci=0; ci<contours.length; ci++){
+      const c = contours[ci];
+      if (!c || c.length < 40) continue;
+      // Try a few epsilon ratios
+      let poly = null;
+      for (const eps of [0.02, 0.03, 0.045, 0.06, 0.08]){
+        const p2 = CV.approxPolyDP(c, c.length*eps);
+        if (p2.length === 4){ poly = p2; break; }
+      }
+      if (!poly) continue;
+      candidatesSeen++;
       const a = polyArea(poly);
-      if (a > bestArea){ bestArea=a; best=poly; }
+      if (a < minArea || a > maxArea) continue;
+      if (!CV.isContourConvex(poly)) continue;
+      const ar = quadAspect(poly);
+      if (ar < 0.25 || ar > 4.0) continue;
+      if (a > bestArea){ bestArea = a; best = poly; bestPass = p.label; }
     }
-  });
-  if (!best){ log('No rectangle found','warn'); return; }
-  // order corners TL,TR,BR,BL
+  }
+
+  if (!best){
+    log(`No rectangle found (${candidatesSeen} 4-pt candidates rejected). Try: better lighting, tilt camera slightly, increase contrast, or switch to ArUco mode.`,'warn');
+    return;
+  }
+  // order corners TL,TR,BR,BL (sum/diff trick is more robust than y-sort)
   const cs = best.map(p=>({x:p.x,y:p.y}));
-  cs.sort((a,b)=>a.y-b.y);
-  const top = cs.slice(0,2).sort((a,b)=>a.x-b.x);
-  const bot = cs.slice(2,4).sort((a,b)=>a.x-b.x);
-  cornersImg = [top[0], top[1], bot[1], bot[0]];
+  const sum = cs.map(p=>p.x+p.y);
+  const dif = cs.map(p=>p.x-p.y);
+  const tl = cs[sum.indexOf(Math.min(...sum))];
+  const br = cs[sum.indexOf(Math.max(...sum))];
+  const tr = cs[dif.indexOf(Math.max(...dif))];
+  const bl = cs[dif.indexOf(Math.min(...dif))];
+  cornersImg = [tl, tr, br, bl];
   computeHomography();
-  log(`Auto rect locked (area=${bestArea.toFixed(0)}px²)`,'ok');
+  log(`Auto rect locked (${bestPass}, ${(bestArea/frameArea*100).toFixed(0)}% of frame)`, 'ok');
+}
+
+// Aspect ratio of a quad (longer side / shorter side after picking opposing edges)
+function quadAspect(p){
+  const d = (a,b)=> Math.hypot(b.x-a.x, b.y-a.y);
+  const sides = [d(p[0],p[1]), d(p[1],p[2]), d(p[2],p[3]), d(p[3],p[0])];
+  const w = (sides[0]+sides[2]) / 2;
+  const h = (sides[1]+sides[3]) / 2;
+  if (!w || !h) return 0;
+  return w/h;
 }
 function polyArea(pts){
   let a=0;
@@ -1439,52 +1485,62 @@ function openMarkerPrintPage(){
     arucoSVG(2, FRAME_X + FRAME_W - MARKER,    FRAME_Y + FRAME_H - MARKER,    MARKER) +
     arucoSVG(3, FRAME_X,                       FRAME_Y + FRAME_H - MARKER,    MARKER);
 
-  // --- Bullseye (white background, concentric black ring outlines, solid black 10-ring) ---
-  // Convention: ring 1 = outermost band, ring 10 = innermost (X). Band N occupies
-  // radii from (N-1)/10 * RING_OUTER to N/10 * RING_OUTER (inverted: band 1 = outer, band 10 = inner).
-  // We treat band i visually as the annulus between rOuter=RING_OUTER*(11-i)/10 and rInner=RING_OUTER*(10-i)/10.
+  // --- Bullseye (NRA-style: large solid black mass, 5 rings inside black, 5 rings on white) ---
+  // Bands 1–5 are OUTSIDE the black mass (white background, black outlines).
+  // Bands 6–10 are INSIDE the black mass (black background, white outlines).
+  // The boundary between band 5 and band 6 IS the edge of the black mass at r = RING_OUTER * 5/10.
   let rings = '';
-  // White disk + bold outer black ring (the “bullseye boundary”)
-  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER}" fill="#fff" stroke="#000" stroke-width="0.025"/>`;
-  // Concentric ring outlines (rings 2..9 as thin black outlines on white)
-  for (let i=2; i<=9; i++){
-    const r = RING_OUTER * (11-i)/10;
-    rings += `<circle cx="${CX}" cy="${CY}" r="${r}" fill="none" stroke="#000" stroke-width="0.012"/>`;
+  // 1) White paper field is already the page background.
+  // 2) Big solid black mass = inner half of the bullseye.
+  const BLACK_R = RING_OUTER * 0.5;            // edge of solid black
+  rings += `<circle cx="${CX}" cy="${CY}" r="${BLACK_R}" fill="#000"/>`;
+  // 3) Outer rings 1..5 on white (heavy black strokes so they read across a room)
+  //    Band i (i=1..5) outer radius = RING_OUTER * (11-i)/10
+  for (let i=1; i<=5; i++){
+    const r = RING_OUTER * (11 - i) / 10;
+    const sw = (i === 1) ? 0.035 : 0.025;       // outermost ring extra bold (target boundary)
+    rings += `<circle cx="${CX}" cy="${CY}" r="${r}" fill="none" stroke="#000" stroke-width="${sw}"/>`;
   }
-  // Solid black 10-ring (center)
-  const tenR = RING_OUTER * (1/10);
-  rings += `<circle cx="${CX}" cy="${CY}" r="${tenR}" fill="#000"/>`;
-  // Tiny white aim dot dead center
-  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER*0.015}" fill="#fff"/>`;
+  // 4) Inner rings 6..9 on black (white outlines on the black mass)
+  //    Band i outer radius = RING_OUTER * (11-i)/10
+  for (let i=6; i<=9; i++){
+    const r = RING_OUTER * (11 - i) / 10;
+    rings += `<circle cx="${CX}" cy="${CY}" r="${r}" fill="none" stroke="#fff" stroke-width="0.022"/>`;
+  }
+  // 5) The X-ring (10) — small white outline circle dead-center
+  const xR = RING_OUTER * (1/10);
+  rings += `<circle cx="${CX}" cy="${CY}" r="${xR}" fill="none" stroke="#fff" stroke-width="0.022"/>`;
+  // 6) Aim dot dead center (small bright spot to help eye lock on)
+  rings += `<circle cx="${CX}" cy="${CY}" r="${RING_OUTER*0.022}" fill="#fff"/>`;
 
-  // Ring numbers (1–10) along horizontal axis on the LEFT half, placed mid-band.
-  // Band i lies between r=(10-i)/10 (inner) and r=(11-i)/10 (outer). Midpoint r = (21-2i)/20 * RING_OUTER.
+  // Ring numbers (1–9) placed along horizontal axis on the LEFT half, mid-band.
+  // Skip 10 — the small X-ring already reads as the center.
+  // 1–5 sit on WHITE background → black bold text
+  // 6–9 sit on BLACK background → white bold text
   let numbers = '';
-  for (let i=1; i<=RINGS; i++){
+  for (let i=1; i<=9; i++){
     const rMid = RING_OUTER * (21 - 2*i) / 20;
     const tx = CX - rMid;
-    // 10 sits on solid black center -> white text. 1-9 sit on white bg -> black text.
-    const fontColor = (i === 10) ? '#fff' : '#000';
-    const fontSize = 0.13;
-    numbers += `<text x="${tx}" y="${CY + fontSize*0.35}" font-size="${fontSize}" font-family="Arial, sans-serif" font-weight="700" text-anchor="middle" fill="${fontColor}">${i}</text>`;
+    const onBlack = (i >= 6);
+    const fontColor = onBlack ? '#fff' : '#000';
+    const fontSize = 0.17;                       // larger, bolder
+    numbers += `<text x="${tx}" y="${CY + fontSize*0.35}" font-size="${fontSize}" font-family="Arial, sans-serif" font-weight="800" text-anchor="middle" fill="${fontColor}">${i}</text>`;
+  }
+  // Mirror copy of 1–9 on the RIGHT half so you can read them with the target on either side
+  for (let i=1; i<=9; i++){
+    const rMid = RING_OUTER * (21 - 2*i) / 20;
+    const tx = CX + rMid;
+    const onBlack = (i >= 6);
+    const fontColor = onBlack ? '#fff' : '#000';
+    const fontSize = 0.17;
+    numbers += `<text x="${tx}" y="${CY + fontSize*0.35}" font-size="${fontSize}" font-family="Arial, sans-serif" font-weight="800" text-anchor="middle" fill="${fontColor}">${i}</text>`;
   }
 
-  // --- Light 0.5" reference grid (very faint, won't visually compete) ---
+  // --- No interior grid (kept visually clean to maximize bullseye contrast) ---
   let grid = '';
-  for (let gx = FRAME_X; gx <= FRAME_X + FRAME_W + 0.001; gx += 0.5){
-    grid += `<line x1="${gx}" y1="${FRAME_Y}" x2="${gx}" y2="${FRAME_Y+FRAME_H}" stroke="#000" stroke-opacity="0.06" stroke-width="0.005"/>`;
-  }
-  for (let gy = FRAME_Y; gy <= FRAME_Y + FRAME_H + 0.001; gy += 0.5){
-    grid += `<line x1="${FRAME_X}" y1="${gy}" x2="${FRAME_X+FRAME_W}" y2="${gy}" stroke="#000" stroke-opacity="0.06" stroke-width="0.005"/>`;
-  }
-  // Center crosshairs through the bullseye for visual alignment
-  grid += `<line x1="${CX-0.6}" y1="${CY}" x2="${CX-RING_OUTER*1.05}" y2="${CY}" stroke="#000" stroke-opacity="0.5" stroke-width="0.012"/>`;
-  grid += `<line x1="${CX+0.6}" y1="${CY}" x2="${CX+RING_OUTER*1.05}" y2="${CY}" stroke="#000" stroke-opacity="0.5" stroke-width="0.012"/>`;
-  grid += `<line x1="${CX}" y1="${CY-0.6}" x2="${CX}" y2="${CY-RING_OUTER*1.05}" stroke="#000" stroke-opacity="0.5" stroke-width="0.012"/>`;
-  grid += `<line x1="${CX}" y1="${CY+0.6}" x2="${CX}" y2="${CY+RING_OUTER*1.05}" stroke="#000" stroke-opacity="0.5" stroke-width="0.012"/>`;
 
-  // --- Frame outline (helps confirm print scale) ---
-  const frame = `<rect x="${FRAME_X}" y="${FRAME_Y}" width="${FRAME_W}" height="${FRAME_H}" fill="none" stroke="#000" stroke-width="0.008" stroke-dasharray="0.05 0.05"/>`;
+  // --- Frame outline (subtle dashed border tying the ArUco markers together) ---
+  const frame = `<rect x="${FRAME_X}" y="${FRAME_Y}" width="${FRAME_W}" height="${FRAME_H}" fill="none" stroke="#000" stroke-opacity="0.35" stroke-width="0.012" stroke-dasharray="0.08 0.08"/>`;
 
   // --- Footer labels ---
   // Top: title sits in the safe band BETWEEN the two top markers (x: MARKER+0.1 to FRAME_W-MARKER-0.1)
