@@ -44,6 +44,53 @@
     --shadow-glow: 0 0 0 1px rgba(250,226,50,0.35), 0 0 24px rgba(250,226,50,0.18);
   }
 
+  /* ── Light theme overrides (paper-cream paint) ──────────────────────── */
+  :root[data-theme="light"] {
+    --bg:        #f3efe5;
+    --bg-2:      #e9e3d4;
+    --surface:   #faf6ec;
+    --surface-2: #ece5d3;
+    --surface-3: #ddd3bb;
+    --line:      rgba(0,0,0,0.08);
+    --line-2:    rgba(0,0,0,0.14);
+    --text:      #1a1c1f;
+    --text-2:    #3a3d40;
+    --muted:     #7a7466;
+    --yellow-dim:#9a8a26;
+    --paint-bg-1:#cfdde1;
+    --paint-bg-2:#dcd2bf;
+    --paint-bg-3:#ede5d2;
+    --paint-mist: rgba(0,0,0,0.04);
+    --shadow-1:  0 1px 0 rgba(255,255,255,0.6) inset, 0 6px 18px rgba(40,30,10,0.10);
+    --shadow-2:  0 1px 0 rgba(255,255,255,0.6) inset, 0 10px 26px rgba(40,30,10,0.12);
+    --shadow-glow: 0 0 0 1px rgba(180,140,20,0.45), 0 0 18px rgba(250,226,50,0.25);
+  }
+  :root[data-theme="light"] body{
+    background:
+      radial-gradient(1100px 500px at 50% -10%, rgba(255,138,76,0.10), transparent 60%),
+      radial-gradient(900px 600px at 100% 100%, rgba(159,180,200,0.10), transparent 65%),
+      radial-gradient(700px 700px at 0% 30%, rgba(120,90,40,0.04), transparent 60%),
+      var(--bg);
+  }
+  :root[data-theme="light"] body::before{ opacity:0.05; mix-blend-mode:multiply; }
+  :root[data-theme="light"] .dash-panel{ background:linear-gradient(180deg, rgba(255,255,255,0.92), rgba(250,246,236,0.88)); border-color:rgba(0,0,0,0.10); box-shadow:0 1px 0 rgba(255,255,255,0.8) inset, 0 6px 22px rgba(40,30,10,0.12);}
+  :root[data-theme="light"] .dash-panel .win-header{ background:linear-gradient(180deg, rgba(255,255,255,0.96), rgba(240,232,216,0.9)); border-bottom-color:rgba(0,0,0,0.10);}
+  :root[data-theme="light"] .dash-panel .win-header h3{ color:#7a5a10; text-shadow:none;}
+  :root[data-theme="light"] #win-taskbar{ background:rgba(250,246,236,0.94); border-top-color:rgba(0,0,0,0.10);}
+  :root[data-theme="light"] #win-taskbar .tb-btn{ background:rgba(255,255,255,0.7); color:#7a5a10; border-color:rgba(0,0,0,0.10);}
+  :root[data-theme="light"] #win-taskbar .tb-btn:hover{ background:rgba(255,235,180,0.9); border-color:rgba(180,140,20,0.45);}
+  :root[data-theme="light"] #dash-video{ background:#e9e3d4;}
+
+  /* ── Focus mode: hide everything except target + live camera ────────── */
+  body.focus-mode .dash-panel{ display:none!important; }
+  body.focus-mode .dash-panel[data-window-id="target"],
+  body.focus-mode .dash-panel[data-window-id="camera"]{ display:flex!important; }
+  body.focus-mode #win-taskbar .tb-btn:not(#tb-focus):not(#tb-theme):not(#tb-reset-layout){ display:none; }
+  body.focus-mode #win-taskbar{ opacity:0.45; transition:opacity .25s; }
+  body.focus-mode #win-taskbar:hover{ opacity:1; }
+  #tb-focus.active, #tb-theme.active{ background:rgba(250,226,50,0.20); border-color:rgba(250,226,50,0.55); color:#fae232; }
+  :root[data-theme="light"] #tb-focus.active, :root[data-theme="light"] #tb-theme.active{ background:rgba(255,205,40,0.30); border-color:rgba(180,140,20,0.6); color:#5a3f08; }
+
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{
     margin:0;padding:0;
@@ -1371,10 +1418,22 @@ body.role-laptop .laptop-dash{display:block}
     <div class="panel-body body" style="position:relative;">
       <div class="rect-controls" style="position:absolute;top:4px;right:6px;z-index:20;display:flex;flex-direction:column;gap:4px;background:rgba(5,10,18,0.82);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:6px 8px;">
         <select id="rect-style" style="background:rgba(14,34,50,0.9);color:#fae232;border:1px solid rgba(255,255,255,0.1);border-radius:6px;font-size:10px;padding:3px 5px;font-family:'Manrope',sans-serif;font-weight:600;letter-spacing:0.4px;">
-          <option value="bullseye">Bullseye</option>
-          <option value="ipsc">IPSC</option>
-          <option value="b8">B-8 (NRA)</option>
-          <option value="dot">Dot Drill</option>
+          <optgroup label="Standard targets">
+            <option value="bullseye">Bullseye</option>
+            <option value="ipsc">IPSC</option>
+            <option value="b8">B-8 (NRA)</option>
+            <option value="dot">Dot Drill</option>
+          </optgroup>
+          <optgroup label="Realistic">
+            <option value="silhouette">Silhouette (full)</option>
+            <option value="paper-photo">Paper (photo-real)</option>
+          </optgroup>
+          <optgroup label="Live">
+            <option value="live">Flattened live view</option>
+          </optgroup>
+          <optgroup label="Precision">
+            <option value="grid">MOA grid</option>
+          </optgroup>
         </select>
         <label style="display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(216,224,232,0.7);font-family:'Manrope',sans-serif;cursor:pointer;">
           <input type="checkbox" id="rect-trail" style="accent-color:#fae232;"> Trail
@@ -1439,6 +1498,8 @@ body.role-laptop .laptop-dash{display:block}
 <div id="win-taskbar">
   <span style="font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(216,224,232,0.4);font-family:'Manrope',sans-serif;font-weight:600;">DRYFIRE COACH</span>
   <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-focus" title="Hide everything except the target + live view">Focus mode</button>
+  <button class="tb-btn" id="tb-theme" title="Toggle light/dark/auto theme">☽ Dark</button>
   <button class="tb-btn tb-reset" id="tb-reset-layout">Reset Layout</button>
 </div>
 
@@ -5794,6 +5855,71 @@ try {
   if (saved) rectOpts = Object.assign(rectOpts, JSON.parse(saved));
 } catch(e){}
 
+// Theme + focus-mode taskbar wiring
+(function wireThemeAndFocus(){
+  function applyTheme(mode){
+    // mode: 'dark' | 'light' | 'auto'
+    const root = document.documentElement;
+    if (mode === 'auto'){
+      const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+      root.dataset.theme = prefersLight ? 'light' : 'dark';
+    } else {
+      root.dataset.theme = mode;
+    }
+    // Refresh target so colours pick up new theme (none of the target styles depend on theme,
+    // but the live view reticle is fine either way)
+    try { if (typeof Dash !== 'undefined' && Dash.renderRect) Dash.renderRect(); } catch(e){}
+  }
+  function updateThemeBtn(btn, mode){
+    if (!btn) return;
+    const labels = { dark: '☽ Dark', light: '☀ Light', auto: '◑ Auto' };
+    btn.textContent = labels[mode] || labels.dark;
+    btn.classList.toggle('active', mode !== 'dark');
+  }
+  function wire(){
+    const themeBtn = document.getElementById('tb-theme');
+    const focusBtn = document.getElementById('tb-focus');
+    if (!themeBtn && !focusBtn) return;
+    // Initial theme
+    let themeMode = (function(){
+      try { return localStorage.getItem('df_theme') || 'dark'; } catch(e){ return 'dark'; }
+    })();
+    applyTheme(themeMode); updateThemeBtn(themeBtn, themeMode);
+    if (themeBtn){
+      themeBtn.addEventListener('click', () => {
+        const cycle = { dark: 'light', light: 'auto', auto: 'dark' };
+        themeMode = cycle[themeMode] || 'dark';
+        try { localStorage.setItem('df_theme', themeMode); } catch(e){}
+        applyTheme(themeMode); updateThemeBtn(themeBtn, themeMode);
+      });
+    }
+    // Re-apply auto when system preference changes
+    try {
+      const mq = window.matchMedia('(prefers-color-scheme: light)');
+      const handler = () => { if (themeMode === 'auto') applyTheme('auto'); };
+      if (mq.addEventListener) mq.addEventListener('change', handler);
+      else if (mq.addListener) mq.addListener(handler);
+    } catch(e){}
+
+    // Initial focus
+    let focusOn = false;
+    try { focusOn = localStorage.getItem('df_focus_mode') === '1'; } catch(e){}
+    document.body.classList.toggle('focus-mode', focusOn);
+    if (focusBtn){
+      focusBtn.classList.toggle('active', focusOn);
+      focusBtn.addEventListener('click', () => {
+        focusOn = !focusOn;
+        document.body.classList.toggle('focus-mode', focusOn);
+        focusBtn.classList.toggle('active', focusOn);
+        try { localStorage.setItem('df_focus_mode', focusOn ? '1' : '0'); } catch(e){}
+      });
+    }
+  }
+  if (document.readyState !== 'loading') wire();
+  else document.addEventListener('DOMContentLoaded', wire);
+  setTimeout(wire, 200);
+})();
+
 (function wireRectControls(){
   function wire(){
     const styleEl = document.getElementById('rect-style');
@@ -5875,6 +6001,169 @@ try {
       const dotR = (dotFrac/2) * Math.min(W,H);
       ctx.fillStyle = '#111';
       ctx.beginPath(); ctx.arc(W/2,H/2,dotR,0,Math.PI*2); ctx.fill();
+    } else if (style === 'silhouette'){
+      // Full-body tactical silhouette with scoring zones
+      const grad = ctx.createLinearGradient(0,0,0,H);
+      grad.addColorStop(0,'#2a2f33'); grad.addColorStop(1,'#1a1d20');
+      ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+      const cx=W/2, cy=H/2, S=Math.min(W,H);
+      // Body fill
+      ctx.fillStyle = '#c8b894';
+      // Head
+      ctx.beginPath(); ctx.ellipse(cx, cy-S*0.34, S*0.10, S*0.12, 0, 0, Math.PI*2); ctx.fill();
+      // Neck
+      ctx.fillRect(cx-S*0.04, cy-S*0.24, S*0.08, S*0.04);
+      // Torso (tapered)
+      ctx.beginPath();
+      ctx.moveTo(cx-S*0.20, cy-S*0.20);
+      ctx.quadraticCurveTo(cx-S*0.26, cy-S*0.05, cx-S*0.18, cy+S*0.18);
+      ctx.lineTo(cx+S*0.18, cy+S*0.18);
+      ctx.quadraticCurveTo(cx+S*0.26, cy-S*0.05, cx+S*0.20, cy-S*0.20);
+      ctx.closePath(); ctx.fill();
+      // Arms (truncated)
+      ctx.fillRect(cx-S*0.28, cy-S*0.18, S*0.08, S*0.24);
+      ctx.fillRect(cx+S*0.20, cy-S*0.18, S*0.08, S*0.24);
+      // Hips/legs hint
+      ctx.fillRect(cx-S*0.16, cy+S*0.18, S*0.32, S*0.10);
+      // High-value center zone (heart/T-box style)
+      ctx.fillStyle='rgba(230,70,70,0.22)';
+      ctx.strokeStyle='rgba(230,70,70,0.7)'; ctx.lineWidth=2;
+      const aw=S*0.18, ah=S*0.18;
+      ctx.beginPath(); ctx.roundRect(cx-aw/2, cy-S*0.04, aw, ah, 4); ctx.fill(); ctx.stroke();
+      // Head T-box
+      ctx.beginPath(); ctx.roundRect(cx-S*0.06, cy-S*0.40, S*0.12, S*0.06, 3); ctx.fill(); ctx.stroke();
+      // Zone labels
+      ctx.font='bold 10px Manrope,sans-serif'; ctx.fillStyle='rgba(230,70,70,0.85)'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('A', cx, cy+S*0.05);
+      ctx.fillText('T', cx, cy-S*0.37);
+      // Edge vignette
+      const vig = ctx.createRadialGradient(cx,cy,S*0.35, cx,cy,S*0.65);
+      vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.35)');
+      ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+    } else if (style === 'paper-photo'){
+      // Photo-real paper texture with subtle fibers and shadow ring
+      const base = ctx.createLinearGradient(0,0,W,H);
+      base.addColorStop(0,'#fbf5e3'); base.addColorStop(0.5,'#f3ead2'); base.addColorStop(1,'#e8dcb8');
+      ctx.fillStyle = base; ctx.fillRect(0,0,W,H);
+      // Paper fiber noise (deterministic so it doesn't shimmer)
+      const seed = ((W*7919 + H) | 0);
+      let s = seed >>> 0;
+      function rand(){ s = (s*1664525 + 1013904223) >>> 0; return s/4294967296; }
+      ctx.save();
+      for (let i=0;i<600;i++){
+        const x = rand()*W, y = rand()*H;
+        const a = 0.04 + rand()*0.06;
+        ctx.fillStyle = `rgba(120,95,55,${a.toFixed(3)})`;
+        ctx.fillRect(x, y, 1+rand()*1.4, 1);
+      }
+      // Soft creases
+      ctx.strokeStyle='rgba(120,95,55,0.07)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(W*0.18,0); ctx.lineTo(W*0.22,H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W*0.78,0); ctx.lineTo(W*0.74,H); ctx.stroke();
+      ctx.restore();
+      // Outer ring shadow + rings
+      const cx=W/2, cy=H/2, maxR=Math.min(W,H)/2*0.86;
+      const ringShade = ctx.createRadialGradient(cx,cy,maxR*0.05, cx,cy,maxR);
+      ringShade.addColorStop(0,'rgba(0,0,0,0.06)'); ringShade.addColorStop(1,'rgba(0,0,0,0.0)');
+      ctx.fillStyle=ringShade; ctx.beginPath(); ctx.arc(cx,cy,maxR,0,Math.PI*2); ctx.fill();
+      const ringFills = ['#161616','#2c2c2c','#4a4a4a','#6e6e6e','#8a8a8a','#a8a8a8','#c5c5c5','#dcdcdc','#ececec'];
+      for (let r=ringFills.length; r>=1; r--){
+        const rad = (r/ringFills.length)*maxR;
+        ctx.fillStyle = ringFills[r-1];
+        ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2); ctx.fill();
+      }
+      // Vignette
+      const vig = ctx.createRadialGradient(cx,cy,maxR*0.9, cx,cy,Math.max(W,H)*0.75);
+      vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(40,25,10,0.32)');
+      ctx.fillStyle=vig; ctx.fillRect(0,0,W,H);
+      // Realistic ragged bullet holes for any shots will overlay on top of this style (in the shots pass)
+      c.dataset.realisticHoles = '1';
+    } else if (style === 'live'){
+      // Flattened live view from phone camera (rectified frame if available)
+      const vid = document.getElementById('dash-video');
+      ctx.fillStyle='#02060c'; ctx.fillRect(0,0,W,H);
+      let drew = false;
+      try {
+        // Prefer rectified work canvas if maintained, else just stretch the live video
+        const rect = (typeof renderRectifiedFrame === 'function') ? renderRectifiedFrame() : null;
+        const work = (typeof renderRectifiedFrame !== 'undefined') && renderRectifiedFrame._work;
+        if (rect && work && work.width){
+          ctx.drawImage(work, 0, 0, W, H);
+          drew = true;
+        }
+      } catch(e){}
+      if (!drew && vid && vid.readyState >= 2 && vid.videoWidth > 0){
+        // Aspect-preserving cover fill
+        const vAR = vid.videoWidth / vid.videoHeight;
+        const cAR = W/H;
+        let sx=0, sy=0, sw=vid.videoWidth, sh=vid.videoHeight;
+        if (vAR > cAR){ // video wider — crop sides
+          sw = vid.videoHeight * cAR; sx = (vid.videoWidth - sw)/2;
+        } else { // video taller — crop top/bottom
+          sh = vid.videoWidth / cAR; sy = (vid.videoHeight - sh)/2;
+        }
+        try { ctx.drawImage(vid, sx, sy, sw, sh, 0, 0, W, H); drew = true; } catch(e){}
+      }
+      if (!drew){
+        ctx.fillStyle = 'rgba(216,224,232,0.45)';
+        ctx.font = 'italic 13px "Spectral",Georgia,serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('Waiting for live feed from phone…', W/2, H/2);
+      } else {
+        // Subtle scope reticle overlay
+        ctx.strokeStyle='rgba(250,226,50,0.35)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+        ctx.strokeStyle='rgba(250,226,50,0.55)'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.arc(W/2,H/2,Math.min(W,H)*0.06,0,Math.PI*2); ctx.stroke();
+      }
+      // Auto-tick to keep the live view fresh
+      try {
+        if (!Dash.renderRect._liveTick){
+          Dash.renderRect._liveTick = setInterval(() => {
+            if (rectOpts.style === 'live'){ try { Dash.renderRect(); } catch(e){} }
+          }, 100);
+        }
+      } catch(e){}
+    } else if (style === 'grid'){
+      // Precision MOA grid — neutral surface with major/minor divisions
+      ctx.fillStyle = '#0d1218'; ctx.fillRect(0,0,W,H);
+      const cx=W/2, cy=H/2;
+      const distFt = parseFloat((document.getElementById('ctrl-dist')||document.getElementById('in-dist')||{value:'15'}).value) || 15;
+      const tWIn   = parseFloat((document.getElementById('ctrl-tw')||document.getElementById('in-width')||{value:'8.5'}).value) || 8.5;
+      const inPerPx = tWIn / W;
+      const moaPerIn = 100 / distFt; // 1in @ 100ft ≈ 1 MOA proxy
+      const pxPerMOA = (1 / moaPerIn) / inPerPx; // px per 1 MOA
+      // Minor grid (1 MOA)
+      ctx.strokeStyle='rgba(159,211,181,0.10)'; ctx.lineWidth=1;
+      ctx.beginPath();
+      for (let x = cx % pxPerMOA; x < W; x += pxPerMOA){ ctx.moveTo(x,0); ctx.lineTo(x,H); }
+      for (let y = cy % pxPerMOA; y < H; y += pxPerMOA){ ctx.moveTo(0,y); ctx.lineTo(W,y); }
+      ctx.stroke();
+      // Major grid (5 MOA)
+      ctx.strokeStyle='rgba(159,211,181,0.28)'; ctx.lineWidth=1;
+      ctx.beginPath();
+      for (let i=-30; i<=30; i++){ const x=cx+i*5*pxPerMOA; if (x>=0 && x<=W){ ctx.moveTo(x,0); ctx.lineTo(x,H);} }
+      for (let i=-30; i<=30; i++){ const y=cy+i*5*pxPerMOA; if (y>=0 && y<=H){ ctx.moveTo(0,y); ctx.lineTo(W,y);} }
+      ctx.stroke();
+      // Concentric MOA rings
+      ctx.strokeStyle='rgba(250,226,50,0.35)'; ctx.lineWidth=1;
+      for (const r of [1,2,5,10,20]){
+        ctx.beginPath(); ctx.arc(cx,cy, r*pxPerMOA, 0, Math.PI*2); ctx.stroke();
+      }
+      // Crosshair
+      ctx.strokeStyle='rgba(250,226,50,0.7)'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(cx-12,cy); ctx.lineTo(cx+12,cy); ctx.moveTo(cx,cy-12); ctx.lineTo(cx,cy+12); ctx.stroke();
+      // Labels
+      ctx.font='bold 9px "JetBrains Mono",monospace'; ctx.fillStyle='rgba(250,226,50,0.55)'; ctx.textAlign='left'; ctx.textBaseline='top';
+      ctx.fillText('1 MOA grid · 5 MOA major · rings @ 1·2·5·10·20', 6, 6);
+      ctx.textAlign='right'; ctx.textBaseline='bottom';
+      ctx.fillText(`${tWIn.toFixed(1)}" wide @ ${distFt}ft`, W-6, H-6);
+    }
+    // Clear realistic-holes flag when not on paper-photo
+    if (style !== 'paper-photo') c.dataset.realisticHoles = '';
+    // Stop live tick when switching away from live
+    if (style !== 'live' && Dash.renderRect._liveTick){
+      clearInterval(Dash.renderRect._liveTick); Dash.renderRect._liveTick = null;
     }
 
     // --- Heatmap layer ---
@@ -5907,12 +6196,37 @@ try {
     }
 
     // --- Shots ---
+    const realisticHoles = c.dataset.realisticHoles === '1';
     for (const s of shots){
       if (s.untracked || !s.poi) continue;
       const x = s.poi.x*W, y = s.poi.y*H;
-      ctx.fillStyle = s.score >= 80 ? '#0a8454' : s.score >= 50 ? '#fae232' : '#e8836b';
-      ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fill();
-      ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.stroke();
+      if (realisticHoles){
+        // Ragged ink-tear hole, deterministic per shot timestamp
+        let hs = (((s.t || s.timestamp || 0) | 0) ^ ((x*131)|0) ^ ((y*977)|0)) >>> 0;
+        function hr(){ hs = (hs*1664525 + 1013904223) >>> 0; return hs/4294967296; }
+        // Powder ring
+        const ring = ctx.createRadialGradient(x,y,4, x,y,14);
+        ring.addColorStop(0,'rgba(20,15,10,0.55)'); ring.addColorStop(1,'rgba(20,15,10,0)');
+        ctx.fillStyle=ring; ctx.beginPath(); ctx.arc(x,y,14,0,Math.PI*2); ctx.fill();
+        // Ragged hole
+        ctx.fillStyle='#0a0806';
+        ctx.beginPath();
+        const N=14;
+        for (let i=0;i<N;i++){
+          const a = (i/N)*Math.PI*2;
+          const r = 4.5 + hr()*2.5;
+          const px = x + Math.cos(a)*r, py = y + Math.sin(a)*r;
+          if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+        }
+        ctx.closePath(); ctx.fill();
+        // Score tint
+        ctx.strokeStyle = s.score >= 80 ? 'rgba(10,132,84,0.85)' : s.score >= 50 ? 'rgba(250,226,50,0.85)' : 'rgba(232,131,107,0.85)';
+        ctx.lineWidth=1.2; ctx.stroke();
+      } else {
+        ctx.fillStyle = s.score >= 80 ? '#0a8454' : s.score >= 50 ? '#fae232' : '#e8836b';
+        ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#000'; ctx.lineWidth=1.5; ctx.stroke();
+      }
     }
 
     // --- Group ring ---
