@@ -3,160 +3,323 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#0a0a0a" />
+<meta name="theme-color" content="#0d0e0f" />
 <title>Dry-Fire Aim Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
+  /* ── Rivian-inspired palette ───────────────────────────────────────── */
   :root {
-    --bg: #0a0a0a;
-    --panel: #14161a;
-    --panel-2: #1c1f25;
-    --text: #f1f3f5;
-    --muted: #9aa0a6;
-    --accent: #4ade80;
-    --accent-2: #38bdf8;
-    --warn: #f59e0b;
-    --bad: #ef4444;
-    --border: #262a31;
+    --bg:        #0d0e0f;        /* warm-cool deep charcoal, never pure black */
+    --bg-2:      #131517;        /* page chrome */
+    --surface:   #1a1c1f;        /* cards / panels */
+    --surface-2: #232629;        /* nested / wells */
+    --surface-3: #2c3034;        /* hover / active wells */
+    --line:      rgba(255,255,255,0.06);
+    --text:      #f3f4ee;        /* warm off-white */
+    --text-2:    #c8c9c2;        /* secondary */
+    --muted:     #7d8079;        /* tertiary, sage-gray */
+    --yellow:    #FAE232;        /* signature Rivian yellow */
+    --yellow-2:  #FFE600;        /* hi-vis variant */
+    --yellow-dim:#8a7c1a;        /* for inactive yellow text */
+    --mint:      #9FD3B5;        /* muted gear-mint */
+    --sand:      #D9C7A0;        /* warm sand */
+    --rust:      #E8836B;        /* warning */
+    --bad:       #E5604E;        /* alert */
+    --radius-lg: 22px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+    --shadow-1:  0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 24px rgba(0,0,0,0.45);
+    --shadow-glow: 0 0 0 1px rgba(250,226,50,0.35), 0 0 24px rgba(250,226,50,0.18);
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    margin: 0; padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
-    overscroll-behavior: none;
-    -webkit-user-select: none; user-select: none;
-  }
-  body {
-    min-height: 100dvh;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    display: flex; flex-direction: column;
-  }
-  header {
-    padding: 12px 14px 8px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 8px;
-  }
-  header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: 0.2px; }
-  .pill {
-    font-size: 11px; padding: 3px 8px; border-radius: 999px;
-    background: var(--panel-2); color: var(--muted); border: 1px solid var(--border);
-  }
-  .pill.ok { color: var(--accent); border-color: #1f3a2a; }
-  .pill.bad { color: var(--bad); border-color: #3a1f1f; }
-  .pill.warn { color: var(--warn); border-color: #3a2e1f; }
 
-  main { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0;padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    font-feature-settings: 'ss01','cv11';
+    letter-spacing:-0.005em;
+    overscroll-behavior:none;
+    -webkit-user-select:none;user-select:none;
+  }
+  body{
+    min-height:100dvh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    display:flex;flex-direction:column;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, rgba(250,226,50,0.04), transparent 60%),
+      radial-gradient(800px 400px at 100% 100%, rgba(159,211,181,0.025), transparent 60%),
+      var(--bg);
+  }
 
-  .stage {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 3 / 4;
-    background: #000;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
+  /* ── Header ─────────────────────────────────────────────────────────── */
+  header{
+    padding:14px 18px;
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    position:sticky;top:0;z-index:5;
+    background:linear-gradient(180deg, rgba(13,14,15,0.92) 0%, rgba(13,14,15,0.78) 100%);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   }
-  .stage video, .stage canvas {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
+  header .brand{display:flex;align-items:center;gap:10px;}
+  header .brand-mark{
+    width:28px;height:28px;border-radius:9px;
+    background:linear-gradient(145deg, var(--yellow) 0%, #c9b821 100%);
+    display:grid;place-items:center;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.4) inset, 0 4px 10px rgba(250,226,50,0.25);
   }
-  .stage .overlay { pointer-events: none; }
+  header .brand-mark svg{width:16px;height:16px;}
+  header h1{
+    font-size:14px;margin:0;font-weight:700;letter-spacing:0.02em;
+    text-transform:uppercase;
+  }
+  header h1 .sub{display:block;font-size:10px;font-weight:500;color:var(--muted);letter-spacing:0.12em;margin-top:2px;}
 
-  .crosshair {
-    position: absolute; left: 50%; top: 50%;
-    width: 18px; height: 18px;
-    transform: translate(-50%, -50%);
-    border: 2px solid rgba(74, 222, 128, 0.85);
-    border-radius: 50%;
-    pointer-events: none;
+  .pills{display:flex;gap:6px;}
+  .pill{
+    font-size:10px;padding:5px 9px;border-radius:999px;
+    background:var(--surface);color:var(--text-2);
+    border:1px solid var(--line);
+    font-weight:600;letter-spacing:0.04em;text-transform:uppercase;
+    display:inline-flex;align-items:center;gap:6px;
   }
-  .crosshair::before, .crosshair::after {
-    content: ""; position: absolute; background: rgba(74,222,128,0.85);
-  }
-  .crosshair::before { left: 50%; top: -8px; width: 2px; height: 34px; transform: translateX(-50%); }
-  .crosshair::after { top: 50%; left: -8px; height: 2px; width: 34px; transform: translateY(-50%); }
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--muted);}
+  .pill.ok{color:var(--yellow);}
+  .pill.ok::before{background:var(--yellow);box-shadow:0 0 8px var(--yellow);}
+  .pill.bad{color:var(--bad);}
+  .pill.bad::before{background:var(--bad);box-shadow:0 0 8px var(--bad);}
+  .pill.warn{color:var(--sand);}
+  .pill.warn::before{background:var(--sand);box-shadow:0 0 8px var(--sand);}
 
-  .badge {
-    position: absolute; top: 8px; left: 8px;
-    background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
-    padding: 6px 10px; border-radius: 8px;
-    font-size: 12px; color: #e5e7eb; line-height: 1.3;
-  }
-  .badge .row { display: flex; gap: 6px; align-items: center; }
+  main{flex:1;display:flex;flex-direction:column;gap:14px;padding:6px 14px 16px;}
 
-  .controls {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+  /* ── Stage (camera surface) ─────────────────────────────────────────── */
+  .stage{
+    position:relative;width:100%;aspect-ratio:3/4;
+    background:#000;
+    border-radius:var(--radius-lg);
+    overflow:hidden;
+    box-shadow:var(--shadow-1);
+    border:1px solid var(--line);
   }
-  button.btn {
-    appearance: none; border: 1px solid var(--border);
-    background: var(--panel); color: var(--text);
-    padding: 12px 8px; border-radius: 10px; font-size: 13px;
-    font-weight: 500;
-    display: flex; flex-direction: column; align-items: center; gap: 4px;
-    cursor: pointer;
-    transition: transform 0.05s ease, background 0.15s ease;
-  }
-  button.btn:active { transform: scale(0.97); background: var(--panel-2); }
-  button.btn[disabled] { opacity: 0.4; cursor: not-allowed; }
-  button.btn.active { border-color: var(--accent); color: var(--accent); }
-  button.btn .label { font-size: 11px; color: var(--muted); }
-  button.btn.active .label { color: var(--accent); }
+  .stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .stage .overlay{pointer-events:none;}
+  .stage .rect-view{display:none;background:#0a0e14;}
+  .stage.rectified .rect-view{display:block;}
+  .stage.rectified video,.stage.rectified #overlay{display:none;}
 
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  button.action {
-    padding: 14px; border-radius: 10px; font-weight: 600; font-size: 14px;
-    border: none; cursor: pointer;
-  }
-  button.action.primary { background: var(--accent); color: #052e15; }
-  button.action.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+  .crosshair{position:absolute;left:50%;top:50%;width:20px;height:20px;transform:translate(-50%,-50%);border:1.5px solid rgba(250,226,50,0.85);border-radius:50%;pointer-events:none;box-shadow:0 0 12px rgba(250,226,50,0.25);}
+  .crosshair::before,.crosshair::after{content:"";position:absolute;background:rgba(250,226,50,0.85);box-shadow:0 0 8px rgba(250,226,50,0.4);}
+  .crosshair::before{left:50%;top:-10px;width:1.5px;height:40px;transform:translateX(-50%);}
+  .crosshair::after{top:50%;left:-10px;height:1.5px;width:40px;transform:translateY(-50%);}
 
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
+  .badge{
+    position:absolute;top:12px;left:12px;
+    background:rgba(13,14,15,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    padding:10px 12px;border-radius:14px;
+    font-size:10px;color:var(--text-2);line-height:1.4;
+    border:1px solid rgba(255,255,255,0.06);
+    font-family:'JetBrains Mono', ui-monospace, Menlo, monospace;
+    letter-spacing:0.02em;
   }
-  .panel h2 {
-    margin: 0 0 8px; font-size: 13px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600;
+  .badge .row{display:flex;gap:14px;align-items:center;justify-content:space-between;min-width:148px;padding:2px 0;}
+  .badge .row span:first-child{color:var(--muted);text-transform:uppercase;font-size:9px;letter-spacing:0.12em;}
+  .badge .v{color:var(--text);font-weight:600;}
+  .badge .v.live{color:var(--yellow);}
+
+  .view-toggle{
+    position:absolute;top:12px;right:12px;
+    background:rgba(13,14,15,0.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,0.08);color:var(--text);
+    padding:8px 12px;border-radius:14px;
+    font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
+    cursor:pointer;font-family:inherit;
   }
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .stat { background: var(--panel-2); border-radius: 8px; padding: 8px; text-align: center; }
-  .stat .v { font-size: 18px; font-weight: 700; }
-  .stat .l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-  #log {
-    background: #0e1014; border-radius: 8px; padding: 8px;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 11px; color: #cdd3da;
-    max-height: 130px; overflow-y: auto;
-    white-space: pre-wrap; word-break: break-word;
-    border: 1px solid var(--border);
+  /* ── Connection chips (Cam/Mic/BLE) ─────────────────────────────────── */
+  .controls{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  button.btn{
+    appearance:none;border:1px solid var(--line);
+    background:linear-gradient(180deg, var(--surface) 0%, #16181a 100%);
+    color:var(--text);
+    padding:14px 8px;border-radius:var(--radius-md);
+    font-size:11px;font-weight:600;font-family:inherit;
+    letter-spacing:0.04em;text-transform:uppercase;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    cursor:pointer;transition:transform .08s ease, background .2s ease, border-color .2s ease, box-shadow .25s ease;
+    box-shadow:var(--shadow-1);
   }
-  #log .err { color: var(--bad); }
-  #log .ok { color: var(--accent); }
-  #log .warn { color: var(--warn); }
-
-  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
-
-  details { background: var(--panel-2); border-radius: 8px; padding: 8px 12px; border: 1px solid var(--border); }
-  details summary { cursor: pointer; font-size: 12px; color: var(--muted); }
-  details[open] summary { margin-bottom: 6px; }
-
-  @media (min-width: 720px) {
-    main { max-width: 480px; margin: 0 auto; width: 100%; }
+  button.btn .icon{
+    width:22px;height:22px;display:grid;place-items:center;
+    color:var(--text-2);
   }
+  button.btn .icon svg{width:22px;height:22px;}
+  button.btn:active{transform:scale(.97);}
+  button.btn[disabled]{opacity:.4;cursor:not-allowed;}
+  button.btn.active{
+    border-color:rgba(250,226,50,0.6);
+    color:var(--yellow);
+    background:linear-gradient(180deg, rgba(250,226,50,0.10) 0%, rgba(250,226,50,0.04) 100%);
+    box-shadow:var(--shadow-glow);
+  }
+  button.btn.active .icon{color:var(--yellow);}
+  button.btn .label{font-size:10px;color:var(--muted);letter-spacing:0.08em;}
+  button.btn.active .label{color:var(--yellow);}
+
+  /* ── Action buttons ─────────────────────────────────────────────────── */
+  .row2{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  button.action{
+    padding:16px 14px;border-radius:var(--radius-md);
+    font-weight:700;font-size:13px;border:none;cursor:pointer;
+    font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;
+    transition:transform .08s ease, filter .2s ease;
+  }
+  button.action:active{transform:scale(.985);}
+  button.action.primary{
+    background:linear-gradient(180deg, var(--yellow) 0%, #e6cc1c 100%);
+    color:#1a1700;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.3) inset, 0 8px 22px rgba(250,226,50,0.22);
+  }
+  button.action.primary:hover{filter:brightness(1.05);}
+  button.action.secondary{
+    background:var(--surface);color:var(--text);
+    border:1px solid var(--line);
+  }
+  button.action.tertiary{
+    background:var(--surface-2);color:var(--text);
+    border:1px solid var(--line);
+  }
+
+  /* ── Panel cards ────────────────────────────────────────────────────── */
+  .panel{
+    background:linear-gradient(180deg, var(--surface) 0%, #161819 100%);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    padding:16px 16px 18px;
+    box-shadow:var(--shadow-1);
+  }
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .panel h2{
+    margin:0;font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.16em;font-weight:700;
+  }
+  .panel .panel-tag{
+    font-size:9px;color:var(--yellow-dim);letter-spacing:0.14em;font-weight:600;
+    text-transform:uppercase;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .stat{
+    background:var(--surface-2);
+    border-radius:var(--radius-md);
+    padding:14px 8px 12px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+  .stat .v{
+    font-size:22px;font-weight:700;color:var(--text);
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:-0.02em;
+    line-height:1;
+  }
+  .stat .v.accent{color:var(--yellow);}
+  .stat .l{
+    font-size:9px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.14em;
+    margin-top:8px;font-weight:600;
+  }
+
+  /* ── Segmented control ──────────────────────────────────────────────── */
+  .seg{
+    display:flex;background:var(--surface-2);
+    border-radius:14px;padding:4px;gap:4px;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+  .seg button{
+    flex:1;background:transparent;border:none;color:var(--muted);
+    padding:10px 6px;border-radius:10px;
+    font-size:10px;font-weight:700;cursor:pointer;
+    font-family:inherit;letter-spacing:0.06em;text-transform:uppercase;
+    transition:background .2s ease, color .2s ease;
+  }
+  .seg button.on{
+    background:linear-gradient(180deg, #1f2225 0%, #181b1d 100%);
+    color:var(--yellow);
+    box-shadow:0 0 0 1px rgba(250,226,50,0.25), 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* ── Form fields ────────────────────────────────────────────────────── */
+  .field{display:flex;align-items:center;gap:10px;margin-top:10px;}
+  .field label{
+    font-size:11px;color:var(--muted);flex:1;
+    text-transform:uppercase;letter-spacing:0.08em;font-weight:600;
+  }
+  .field .unit{font-size:11px;color:var(--muted);min-width:24px;text-align:left;}
+  .field input{
+    background:var(--surface-2);
+    border:1px solid rgba(255,255,255,0.04);
+    color:var(--text);
+    padding:10px 12px;border-radius:12px;
+    font-size:13px;width:96px;text-align:right;
+    font-family:'JetBrains Mono', monospace;font-weight:600;
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .field input:focus{outline:none;border-color:rgba(250,226,50,0.5);background:var(--surface-3);}
+
+  /* ── Diagnostics / log ──────────────────────────────────────────────── */
+  #log{
+    background:#0c0d0e;border-radius:12px;padding:10px 12px;
+    font-family:'JetBrains Mono', ui-monospace, Menlo, monospace;
+    font-size:10px;color:var(--text-2);
+    max-height:140px;overflow-y:auto;
+    white-space:pre-wrap;word-break:break-word;
+    border:1px solid var(--line);line-height:1.55;
+  }
+  #log .err{color:var(--bad);} #log .ok{color:var(--yellow);} #log .warn{color:var(--sand);}
+
+  .hint{
+    font-size:11px;color:var(--muted);margin-top:10px;line-height:1.55;
+    padding:10px 12px;
+    background:rgba(159,211,181,0.04);
+    border-left:2px solid rgba(159,211,181,0.4);
+    border-radius:8px;
+  }
+  details{
+    background:var(--surface);
+    border-radius:var(--radius-md);padding:12px 14px;
+    border:1px solid var(--line);
+  }
+  details summary{
+    cursor:pointer;font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.14em;font-weight:700;
+  }
+  details[open] summary{margin-bottom:10px;}
+
+  a.link{
+    color:var(--yellow);font-size:11px;text-decoration:none;
+    display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+    font-weight:600;letter-spacing:0.04em;
+  }
+  a.link::after{content:"→";transition:transform .2s ease;}
+  a.link:hover::after{transform:translateX(3px);}
+
+  @media (min-width:720px){main{max-width:480px;margin:0 auto;width:100%;}}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Dry-Fire Aim Coach</h1>
-  <div class="row" style="display:flex;gap:6px;">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 L12 22 M2 12 L22 12 M5 5 L19 19 M19 5 L5 19" stroke="#1a1700" stroke-width="2" stroke-linecap="round"/></svg>
+    </div>
+    <h1>Dry-Fire Coach<span class="sub">PERSPECTIVE · BLE · LASER</span></h1>
+  </div>
+  <div class="pills">
     <span class="pill" id="pill-secure">ctx</span>
     <span class="pill" id="pill-ble">BLE</span>
   </div>
@@ -166,18 +329,49 @@
   <div class="stage" id="stage">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="overlay" class="overlay"></canvas>
-    <div class="crosshair"></div>
+    <canvas id="rect-view" class="rect-view"></canvas>
+    <div class="crosshair" id="crosshair"></div>
     <div class="badge" id="badge">
-      <div class="row">Laser: <span id="laser-status">—</span></div>
-      <div class="row">Audio: <span id="audio-status">—</span></div>
-      <div class="row">IMU: <span id="imu-status">—</span></div>
+      <div class="row"><span>Laser</span><span class="v" id="laser-status">—</span></div>
+      <div class="row"><span>Target</span><span class="v" id="target-status">—</span></div>
+      <div class="row"><span>Mic</span><span class="v" id="audio-status">—</span></div>
+      <div class="row"><span>IMU</span><span class="v" id="imu-status">—</span></div>
     </div>
+    <button class="view-toggle" id="view-toggle">Rectified</button>
   </div>
 
   <div class="controls">
-    <button class="btn" id="btn-cam">📷<span class="label">Camera</span></button>
-    <button class="btn" id="btn-mic">🎙<span class="label">Mic</span></button>
-    <button class="btn" id="btn-ble">📡<span class="label">BLE IMU</span></button>
+    <button class="btn" id="btn-cam">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5a2 2 0 0 1 2-2h2.4l1.2-2h6.8l1.2 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9z"/><circle cx="12" cy="13" r="3.6"/></svg></span>
+      Camera<span class="label">Lens</span>
+    </button>
+    <button class="btn" id="btn-mic">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg></span>
+      Mic<span class="label">Audio</span>
+    </button>
+    <button class="btn" id="btn-ble">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10-5 4V3l5 4L7 17"/></svg></span>
+      BLE IMU<span class="label">Sensor</span>
+    </button>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Target Calibration</h2><span class="panel-tag">MODE · 01</span></div>
+    <div class="seg" id="mode-seg">
+      <button data-mode="aruco" class="on">ArUco</button>
+      <button data-mode="manual">Manual</button>
+      <button data-mode="auto">Auto</button>
+    </div>
+    <div class="field"><label>Target width</label><input id="in-width" type="number" step="0.1" value="8.5" /><span class="unit">in</span></div>
+    <div class="field"><label>Target height</label><input id="in-height" type="number" step="0.1" value="11" /><span class="unit">in</span></div>
+    <div class="field"><label>Distance</label><input id="in-dist" type="number" step="0.5" value="15" /><span class="unit">ft</span></div>
+    <div class="row3" style="margin-top:14px;">
+      <button class="action secondary" id="btn-calib">Calibrate</button>
+      <button class="action tertiary" id="btn-aim">Set Aim</button>
+      <button class="action secondary" id="btn-clear">Clear</button>
+    </div>
+    <div class="hint" id="calib-hint">ArUco: print the 4 markers (link below) and tape one at each corner of your target. Manual: tap TL → TR → BR → BL. Auto: keep the target as the largest bright rectangle in view.</div>
+    <a class="link" id="btn-print" href="#">Print ArUco corner markers</a>
   </div>
 
   <div class="row2">
@@ -186,21 +380,20 @@
   </div>
 
   <div class="panel">
-    <h2>Last Shot</h2>
+    <div class="panel-head"><h2>Last Shot</h2><span class="panel-tag">REAL-TIME</span></div>
     <div class="stats">
-      <div class="stat"><div class="v" id="s-dev">—</div><div class="l">Deviation px</div></div>
-      <div class="stat"><div class="v" id="s-jerk">—</div><div class="l">Jerk (g)</div></div>
+      <div class="stat"><div class="v" id="s-in">—</div><div class="l">Inches</div></div>
+      <div class="stat"><div class="v accent" id="s-moa">—</div><div class="l">MOA</div></div>
       <div class="stat"><div class="v" id="s-score">—</div><div class="l">Score</div></div>
     </div>
-    <div class="hint">Tap the video to set a new target point. Pull trigger — click is detected by mic spike and/or IMU shock.</div>
   </div>
 
   <div class="panel">
-    <h2>Session</h2>
+    <div class="panel-head"><h2>Session</h2><span class="panel-tag">RUN · Σ</span></div>
     <div class="stats">
       <div class="stat"><div class="v" id="ss-shots">0</div><div class="l">Shots</div></div>
-      <div class="stat"><div class="v" id="ss-avg">—</div><div class="l">Avg score</div></div>
-      <div class="stat"><div class="v" id="ss-best">—</div><div class="l">Best</div></div>
+      <div class="stat"><div class="v" id="ss-avg">—</div><div class="l">Avg MOA</div></div>
+      <div class="stat"><div class="v accent" id="ss-best">—</div><div class="l">Best MOA</div></div>
     </div>
   </div>
 
@@ -210,383 +403,671 @@
   </details>
 </main>
 
+<!-- js-aruco2 (pure JS, no WASM) -->
+<script src="vendor/cv.js"></script>
+<script src="vendor/svd.js"></script>
+<script src="vendor/posit1.js"></script>
+<script src="vendor/dictionaries/aruco_mip_36h12.js"></script>
+<script src="vendor/aruco.js"></script>
+
 <script>
 /* =========================================================
-   Dry-Fire Aim Coach
-   - Camera: getUserMedia, laser blob tracking (HSV-ish red)
-   - Mic: WebAudio analyser, transient spike = click
-   - BLE: Web Bluetooth, WitMotion BWT901BLE5.0 protocol
+   Dry-Fire Aim Coach v2
+   - Camera + laser tracking with perspective rectification
+   - 3 target modes: ArUco, manual tap (4 corners), auto rect
+   - Inches + MOA reporting
+   - Rectified top-down view toggle
+   - Mic + WitMotion BLE IMU click fusion
    ========================================================= */
 
 const $ = (s) => document.querySelector(s);
 const logEl = $('#log');
-
-function log(msg, kind='') {
+function log(msg, kind=''){
   const t = new Date().toLocaleTimeString();
-  const div = document.createElement('div');
-  if (kind) div.className = kind;
-  div.textContent = `[${t}] ${msg}`;
-  logEl.appendChild(div);
+  const d = document.createElement('div');
+  if (kind) d.className = kind;
+  d.textContent = `[${t}] ${msg}`;
+  logEl.appendChild(d);
   logEl.scrollTop = logEl.scrollHeight;
 }
 
-// ---- Secure context / feature pills ----
-(function initPills(){
+// ---- Feature pills ----
+(function(){
   const sec = $('#pill-secure');
-  if (window.isSecureContext) { sec.textContent = 'HTTPS'; sec.classList.add('ok'); }
-  else { sec.textContent = 'INSECURE'; sec.classList.add('bad'); }
-
+  if (window.isSecureContext) { sec.textContent='HTTPS'; sec.classList.add('ok'); }
+  else { sec.textContent='INSECURE'; sec.classList.add('bad'); }
   const ble = $('#pill-ble');
-  if (navigator.bluetooth) { ble.textContent = 'Web BT ok'; ble.classList.add('ok'); }
-  else { ble.textContent = 'No Web BT'; ble.classList.add('bad'); }
+  if (navigator.bluetooth) { ble.textContent='Web BT ok'; ble.classList.add('ok'); }
+  else { ble.textContent='No Web BT'; ble.classList.add('bad'); }
 })();
 
-// ---- Camera + laser tracking ----
+// ---- DOM refs ----
 const video = $('#video');
 const overlay = $('#overlay');
-const octx = overlay.getContext('2d', { willReadFrequently: false });
+const octx = overlay.getContext('2d');
+const rectView = $('#rect-view');
+const rctx = rectView.getContext('2d');
+const stage = $('#stage');
+
+// ---- State ----
 let camStream = null;
-let trackBuf = document.createElement('canvas');
-let trackCtx = trackBuf.getContext('2d', { willReadFrequently: true });
-const TRACK_W = 160, TRACK_H = 213; // small downscaled frame for analysis
-trackBuf.width = TRACK_W; trackBuf.height = TRACK_H;
+let mode = 'aruco';
+let calibrating = false;
+let aimSetting = false;
+let manualPts = []; // collected during manual calibration (image-pixel coords)
+let cornersImg = null; // [{x,y}] in image pixels: TL,TR,BR,BL of target
+let homography = null; // 3x3 maps image→target normalized [0,1]
+let homographyInv = null; // target→image
+let aimTargetNorm = null; // {x,y} in target [0,1]
+let laserNorm = null;     // {x,y} in target [0,1] (or null if outside)
+let laserImg = null;      // {x,y} in image pixels
+let trailing = [];        // recent laser positions in target space
 
-let targetPoint = null; // {x, y} in overlay (full) coords
-let laserPos = null;    // {x, y} in overlay coords
-let lastLaser = null;
-let trailing = [];      // recent laser positions
+// analysis canvas
+const ANALY_W = 320, ANALY_H = 240;
+const aBuf = document.createElement('canvas'); aBuf.width=ANALY_W; aBuf.height=ANALY_H;
+const actx = aBuf.getContext('2d', { willReadFrequently:true });
 
-async function startCamera() {
-  try {
-    if (camStream) { stopCamera(); return; }
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-      audio: false
-    });
-    camStream = stream;
-    video.srcObject = stream;
-    await video.play();
-    $('#btn-cam').classList.add('active');
-    log('Camera started', 'ok');
-    resizeOverlay();
-    requestAnimationFrame(trackLoop);
-  } catch (e) {
-    log('Camera error: ' + e.message, 'err');
+// ArUco detector
+let arucoDetector = null;
+try {
+  if (window.AR && window.AR.Detector) {
+    arucoDetector = new AR.Detector({ dictionaryName: 'ARUCO_MIP_36h12' });
+    log('ArUco detector ready (ARUCO_MIP_36h12)', 'ok');
+  } else {
+    log('ArUco lib not loaded', 'warn');
   }
+} catch(e) { log('ArUco init err: '+e.message,'err'); }
+
+// ---- Camera ----
+async function startCamera(){
+  try{
+    if (camStream){ stopCamera(); return; }
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 }, height:{ ideal:720 } },
+      audio:false
+    });
+    camStream = stream; video.srcObject = stream; await video.play();
+    $('#btn-cam').classList.add('active');
+    log('Camera started','ok');
+    resizeOverlay();
+    requestAnimationFrame(frameLoop);
+  } catch(e){ log('Camera error: '+e.message,'err'); }
 }
-function stopCamera() {
+function stopCamera(){
   if (!camStream) return;
-  camStream.getTracks().forEach(t => t.stop());
-  camStream = null;
-  video.srcObject = null;
+  camStream.getTracks().forEach(t=>t.stop());
+  camStream=null; video.srcObject=null;
   $('#btn-cam').classList.remove('active');
   log('Camera stopped');
 }
-
-function resizeOverlay() {
+function resizeOverlay(){
   const r = video.getBoundingClientRect();
-  overlay.width = r.width * devicePixelRatio;
-  overlay.height = r.height * devicePixelRatio;
-  overlay.style.width = r.width + 'px';
-  overlay.style.height = r.height + 'px';
+  const dpr = devicePixelRatio || 1;
+  overlay.width = r.width*dpr; overlay.height = r.height*dpr;
+  overlay.style.width=r.width+'px'; overlay.style.height=r.height+'px';
+  rectView.width = r.width*dpr; rectView.height = r.height*dpr;
+  rectView.style.width=r.width+'px'; rectView.style.height=r.height+'px';
 }
 window.addEventListener('resize', resizeOverlay);
+new ResizeObserver(resizeOverlay).observe(video);
 
-// Tap to set target
-$('#stage').addEventListener('click', (ev) => {
+// ---- Mode segmented control ----
+$('#mode-seg').addEventListener('click', (e)=>{
+  const b = e.target.closest('button'); if (!b) return;
+  $$('#mode-seg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  mode = b.dataset.mode;
+  manualPts = [];
+  cornersImg = null; homography = null; homographyInv = null;
+  $('#target-status').textContent='—';
+  log('Mode → '+mode);
+  if (mode==='aruco') $('#calib-hint').textContent = 'ArUco: print the 4 markers (link below), tape one to each corner (IDs 0=TL, 1=TR, 2=BR, 3=BL). Detection is automatic — just point the camera.';
+  if (mode==='manual') $('#calib-hint').textContent = 'Manual: tap Calibrate, then tap the four corners on the video in order: top-left → top-right → bottom-right → bottom-left.';
+  if (mode==='auto') $('#calib-hint').textContent = 'Auto: tap Calibrate. The largest bright quadrilateral in view will be locked as the target. Re-calibrate if the camera moves.';
+});
+function $$(s){ return document.querySelectorAll(s); }
+
+// ---- Stage tap handler ----
+stage.addEventListener('click', (ev)=>{
+  if (!camStream) return;
   const r = overlay.getBoundingClientRect();
-  const x = (ev.clientX - r.left) / r.width;
-  const y = (ev.clientY - r.top) / r.height;
-  targetPoint = { x, y }; // normalized
-  log(`Target set (${x.toFixed(2)}, ${y.toFixed(2)})`);
+  // convert tap → image pixel coords (video native resolution)
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw) return;
+  const sx = (ev.clientX - r.left)/r.width;
+  const sy = (ev.clientY - r.top)/r.height;
+  // video is rendered with object-fit:cover — find the source rect being shown
+  const dispAR = r.width/r.height, srcAR = vw/vh;
+  let cropX=0, cropY=0, cropW=vw, cropH=vh;
+  if (srcAR > dispAR){ // source wider — crop sides
+    cropW = vh*dispAR; cropX = (vw-cropW)/2;
+  } else {
+    cropH = vw/dispAR; cropY = (vh-cropH)/2;
+  }
+  const ix = cropX + sx*cropW;
+  const iy = cropY + sy*cropH;
+
+  if (aimSetting){
+    if (!homography){ log('Calibrate the target first','warn'); aimSetting=false; $('#btn-aim').textContent='Set Aim'; return; }
+    const n = applyH(homography, ix, iy);
+    aimTargetNorm = { x:clamp01(n.x), y:clamp01(n.y) };
+    aimSetting = false; $('#btn-aim').textContent='Set Aim';
+    log(`Aim point set @ target (${(aimTargetNorm.x*100).toFixed(0)}%, ${(aimTargetNorm.y*100).toFixed(0)}%)`,'ok');
+    return;
+  }
+  if (calibrating && mode==='manual'){
+    manualPts.push({x:ix, y:iy});
+    log(`Corner ${manualPts.length}/4 set`);
+    if (manualPts.length===4){
+      cornersImg = manualPts.slice();
+      computeHomography();
+      calibrating=false; $('#btn-calib').textContent='Calibrate';
+      log('Manual calibration complete','ok');
+      $('#target-status').textContent='locked';
+    }
+  }
 });
 
-function trackLoop() {
+// ---- Calibrate / Set Aim / Clear buttons ----
+$('#btn-calib').addEventListener('click', ()=>{
+  if (mode==='manual'){
+    calibrating = !calibrating;
+    if (calibrating){ manualPts=[]; cornersImg=null; homography=null; $('#btn-calib').textContent='Cancel ('+manualPts.length+'/4)'; log('Tap 4 corners: TL → TR → BR → BL'); }
+    else { $('#btn-calib').textContent='Calibrate'; }
+  } else if (mode==='auto'){
+    runAutoRectDetect();
+  } else if (mode==='aruco'){
+    log('ArUco runs continuously — point the camera at the markers');
+  }
+});
+$('#btn-aim').addEventListener('click', ()=>{
+  if (!homography){ log('Calibrate target first','warn'); return; }
+  aimSetting = !aimSetting;
+  $('#btn-aim').textContent = aimSetting ? 'Tap target…' : 'Set Aim';
+});
+$('#btn-clear').addEventListener('click', ()=>{
+  manualPts=[]; cornersImg=null; homography=null; homographyInv=null; aimTargetNorm=null; trailing=[];
+  $('#target-status').textContent='—'; log('Calibration cleared');
+});
+
+// ---- View toggle ----
+$('#view-toggle').addEventListener('click', ()=>{
+  stage.classList.toggle('rectified');
+  $('#view-toggle').textContent = stage.classList.contains('rectified') ? 'Camera' : 'Rectified';
+});
+
+// ---- Print ArUco markers ----
+$('#btn-print').addEventListener('click', (e)=>{
+  e.preventDefault();
+  openMarkerPrintPage();
+});
+
+// ---- Frame loop ----
+let frameCount = 0;
+function frameLoop(){
   if (!camStream) return;
-  if (video.readyState >= 2) {
-    // draw downscaled
-    trackCtx.drawImage(video, 0, 0, TRACK_W, TRACK_H);
-    const img = trackCtx.getImageData(0, 0, TRACK_W, TRACK_H);
-    const d = img.data;
-    // find brightest reddish pixel
-    let best = -1, bx = -1, by = -1;
-    let sumX = 0, sumY = 0, sumW = 0;
-    for (let y = 0; y < TRACK_H; y++) {
-      for (let x = 0; x < TRACK_W; x++) {
-        const i = (y * TRACK_W + x) * 4;
-        const r = d[i], g = d[i+1], b = d[i+2];
-        // crude "red dominance + bright"
-        const redness = r - Math.max(g, b);
-        if (r > 180 && redness > 60) {
-          const score = r + redness;
-          if (score > best) { best = score; bx = x; by = y; }
-          // centroid weighting
-          sumX += x * score; sumY += y * score; sumW += score;
-        }
-      }
+  if (video.readyState>=2){
+    actx.drawImage(video, 0,0, ANALY_W, ANALY_H);
+    const img = actx.getImageData(0,0,ANALY_W,ANALY_H);
+
+    // 1) Find laser dot (red blob centroid) — in analysis pixels
+    laserImg = findLaser(img); // {x,y} in image-pixel space, or null
+
+    // 2) Target detection per mode (every few frames for perf)
+    if (mode==='aruco' && (frameCount % 3 === 0) && arucoDetector){
+      detectAruco(img);
     }
-    if (sumW > 0) {
-      const cx = sumX / sumW / TRACK_W;
-      const cy = sumY / sumW / TRACK_H;
-      laserPos = { x: cx, y: cy }; // normalized
-      $('#laser-status').textContent = 'tracking';
-      trailing.push({ ...laserPos, t: performance.now() });
-      if (trailing.length > 30) trailing.shift();
-    } else {
-      laserPos = null;
-      $('#laser-status').textContent = 'no dot';
-    }
+
+    // 3) Project laser to target space
+    if (laserImg && homography){
+      const n = applyH(homography, laserImg.x, laserImg.y);
+      if (n.x>=-0.02 && n.x<=1.02 && n.y>=-0.02 && n.y<=1.02){
+        laserNorm = n;
+        trailing.push({x:n.x, y:n.y, t:performance.now()});
+        if (trailing.length>40) trailing.shift();
+      } else { laserNorm = null; }
+    } else { laserNorm = null; }
 
     drawOverlay();
+    if (stage.classList.contains('rectified')) drawRectified();
+
+    // status badges
+    $('#laser-status').textContent = laserImg ? 'tracking' : 'no dot';
+    $('#target-status').textContent = homography ? (mode==='aruco' ? 'ArUco lock' : 'locked') : '—';
   }
-  requestAnimationFrame(trackLoop);
+  frameCount++;
+  requestAnimationFrame(frameLoop);
 }
 
-function drawOverlay() {
-  octx.clearRect(0, 0, overlay.width, overlay.height);
-  const W = overlay.width, H = overlay.height;
-  // trail
-  octx.lineWidth = 2 * devicePixelRatio;
-  octx.strokeStyle = 'rgba(56,189,248,0.7)';
-  octx.beginPath();
-  trailing.forEach((p, i) => {
-    const x = p.x * W, y = p.y * H;
-    if (i === 0) octx.moveTo(x, y); else octx.lineTo(x, y);
-  });
-  octx.stroke();
+// ---- Laser detection (red blob centroid on small frame) ----
+function findLaser(img){
+  const d = img.data, w = img.width, h = img.height;
+  let sumX=0, sumY=0, sumW=0;
+  for (let y=0; y<h; y++){
+    for (let x=0; x<w; x++){
+      const i = (y*w + x)*4;
+      const r=d[i], g=d[i+1], b=d[i+2];
+      const redness = r - Math.max(g,b);
+      if (r>180 && redness>55){
+        const s = r + redness;
+        sumX += x*s; sumY += y*s; sumW += s;
+      }
+    }
+  }
+  if (sumW<400) return null;
+  // upscale to image coords — but downstream homography is computed in the same ANALY_W/H space
+  return { x: sumX/sumW, y: sumY/sumW };
+}
 
-  // target
-  if (targetPoint) {
-    const tx = targetPoint.x * W, ty = targetPoint.y * H;
-    octx.strokeStyle = 'rgba(245,158,11,0.9)';
-    octx.lineWidth = 2 * devicePixelRatio;
-    octx.beginPath(); octx.arc(tx, ty, 14 * devicePixelRatio, 0, Math.PI * 2); octx.stroke();
-    octx.beginPath(); octx.moveTo(tx - 22*devicePixelRatio, ty); octx.lineTo(tx + 22*devicePixelRatio, ty); octx.stroke();
-    octx.beginPath(); octx.moveTo(tx, ty - 22*devicePixelRatio); octx.lineTo(tx, ty + 22*devicePixelRatio); octx.stroke();
+// ---- ArUco detection ----
+function detectAruco(img){
+  try{
+    const markers = arucoDetector.detect(img);
+    if (markers.length < 4) return;
+    // Use marker IDs 0..3 if present; otherwise use any 4 by spatial sort.
+    const byId = {};
+    markers.forEach(m=>{ byId[m.id]=m; });
+    let tl,tr,br,bl;
+    if (byId[0]&&byId[1]&&byId[2]&&byId[3]){
+      tl = markerCenter(byId[0]); tr = markerCenter(byId[1]);
+      br = markerCenter(byId[2]); bl = markerCenter(byId[3]);
+    } else {
+      // sort spatially
+      const cs = markers.slice(0,4).map(markerCenter);
+      cs.sort((a,b)=>a.y-b.y);
+      const top = cs.slice(0,2).sort((a,b)=>a.x-b.x);
+      const bot = cs.slice(2,4).sort((a,b)=>a.x-b.x);
+      tl=top[0]; tr=top[1]; bl=bot[0]; br=bot[1];
+    }
+    cornersImg = [tl,tr,br,bl];
+    computeHomography();
+  } catch(e){
+    // ArUco detection failure is non-fatal
+  }
+}
+function markerCenter(m){
+  let cx=0, cy=0;
+  m.corners.forEach(c=>{ cx+=c.x; cy+=c.y; });
+  return { x:cx/4, y:cy/4 };
+}
+
+// ---- Auto rectangle detection (largest bright quadrilateral) ----
+function runAutoRectDetect(){
+  if (!camStream || video.readyState<2){ log('Camera not ready','warn'); return; }
+  // grayscale + threshold + contours via cv.js
+  if (!window.CV){ log('CV lib missing','err'); return; }
+  const cv = new CV();
+  const img = actx.getImageData(0,0,ANALY_W,ANALY_H);
+  const gray = cv.grayscale(img);
+  const thresh = cv.adaptiveThreshold(gray, 2, 7);
+  const contours = cv.findContours(thresh);
+  // find largest 4-vertex polygon
+  let best=null, bestArea=0;
+  contours.forEach(c=>{
+    if (c.length < 30) return;
+    const poly = cv.approxPolyDP(c, c.length*0.05);
+    if (poly.length===4){
+      const a = polyArea(poly);
+      if (a > bestArea){ bestArea=a; best=poly; }
+    }
+  });
+  if (!best){ log('No rectangle found','warn'); return; }
+  // order corners TL,TR,BR,BL
+  const cs = best.map(p=>({x:p.x,y:p.y}));
+  cs.sort((a,b)=>a.y-b.y);
+  const top = cs.slice(0,2).sort((a,b)=>a.x-b.x);
+  const bot = cs.slice(2,4).sort((a,b)=>a.x-b.x);
+  cornersImg = [top[0], top[1], bot[1], bot[0]];
+  computeHomography();
+  log(`Auto rect locked (area=${bestArea.toFixed(0)}px²)`,'ok');
+}
+function polyArea(pts){
+  let a=0;
+  for(let i=0;i<pts.length;i++){
+    const j=(i+1)%pts.length;
+    a += pts[i].x*pts[j].y - pts[j].x*pts[i].y;
+  }
+  return Math.abs(a/2);
+}
+
+// ---- Homography (DLT, 4 point) ----
+function computeHomography(){
+  if (!cornersImg || cornersImg.length!==4) return;
+  const dst = [{x:0,y:0},{x:1,y:0},{x:1,y:1},{x:0,y:1}];
+  homography = dlt(cornersImg, dst);
+  homographyInv = dlt(dst, cornersImg);
+}
+function dlt(src, dst){
+  // build 8x8 system, solve for h11..h32 (h33=1)
+  const A = [], b = [];
+  for (let i=0;i<4;i++){
+    const x=src[i].x, y=src[i].y, X=dst[i].x, Y=dst[i].y;
+    A.push([x,y,1, 0,0,0, -X*x, -X*y]); b.push(X);
+    A.push([0,0,0, x,y,1, -Y*x, -Y*y]); b.push(Y);
+  }
+  const h = solve8(A,b);
+  return [[h[0],h[1],h[2]],[h[3],h[4],h[5]],[h[6],h[7],1]];
+}
+function solve8(A,b){
+  // Gaussian elimination, 8x8
+  const n=8, M=A.map((r,i)=>r.concat([b[i]]));
+  for (let i=0;i<n;i++){
+    let p=i;
+    for (let k=i+1;k<n;k++) if (Math.abs(M[k][i])>Math.abs(M[p][i])) p=k;
+    [M[i],M[p]] = [M[p],M[i]];
+    const piv = M[i][i] || 1e-9;
+    for (let j=i;j<=n;j++) M[i][j] /= piv;
+    for (let k=0;k<n;k++) if (k!==i){
+      const f = M[k][i];
+      for (let j=i;j<=n;j++) M[k][j] -= f*M[i][j];
+    }
+  }
+  return M.map(r=>r[n]);
+}
+function applyH(H, x, y){
+  const w = H[2][0]*x + H[2][1]*y + H[2][2];
+  return { x:(H[0][0]*x+H[0][1]*y+H[0][2])/w, y:(H[1][0]*x+H[1][1]*y+H[1][2])/w };
+}
+function clamp01(v){ return Math.max(0, Math.min(1, v)); }
+
+// ---- Overlay drawing ----
+function drawOverlay(){
+  octx.clearRect(0,0,overlay.width,overlay.height);
+  // we drew analysis at ANALY_W×ANALY_H; map to overlay using same object-fit:cover transform
+  const map = (p)=> imgToOverlay(p.x, p.y);
+
+  // calibrated corners + outline
+  if (cornersImg){
+    octx.strokeStyle = 'rgba(159,211,181,0.85)';
+    octx.lineWidth = 2*devicePixelRatio;
+    octx.beginPath();
+    cornersImg.forEach((c,i)=>{
+      const m = map(c);
+      if (i===0) octx.moveTo(m.x,m.y); else octx.lineTo(m.x,m.y);
+    });
+    octx.closePath(); octx.stroke();
+    cornersImg.forEach(c=>{
+      const m = map(c);
+      octx.fillStyle = 'rgba(159,211,181,0.95)';
+      octx.beginPath(); octx.arc(m.x,m.y,5*devicePixelRatio,0,Math.PI*2); octx.fill();
+    });
+  }
+  // manual partial points
+  if (mode==='manual' && calibrating){
+    manualPts.forEach((p,i)=>{
+      const m = map(p);
+      octx.fillStyle = 'rgba(250,226,50,0.95)';
+      octx.beginPath(); octx.arc(m.x,m.y,7*devicePixelRatio,0,Math.PI*2); octx.fill();
+      octx.fillStyle = '#1a1700'; octx.font = `${10*devicePixelRatio}px 'JetBrains Mono', monospace`;
+      octx.fillText(String(i+1), m.x-3*devicePixelRatio, m.y+3*devicePixelRatio);
+    });
+  }
+
+  // aim target (project back to image)
+  if (aimTargetNorm && homographyInv){
+    const im = applyH(homographyInv, aimTargetNorm.x, aimTargetNorm.y);
+    const o = imgToOverlay(im.x, im.y);
+    octx.strokeStyle = 'rgba(250,226,50,0.95)';
+    octx.lineWidth = 2*devicePixelRatio;
+    octx.beginPath(); octx.arc(o.x,o.y,14*devicePixelRatio,0,Math.PI*2); octx.stroke();
+    octx.beginPath(); octx.moveTo(o.x-22*devicePixelRatio,o.y); octx.lineTo(o.x+22*devicePixelRatio,o.y); octx.stroke();
+    octx.beginPath(); octx.moveTo(o.x,o.y-22*devicePixelRatio); octx.lineTo(o.x,o.y+22*devicePixelRatio); octx.stroke();
+  }
+
+  // laser trail (project target→image)
+  if (trailing.length>1 && homographyInv){
+    octx.strokeStyle = 'rgba(159,211,181,0.7)';
+    octx.lineWidth = 2*devicePixelRatio;
+    octx.beginPath();
+    trailing.forEach((p,i)=>{
+      const im = applyH(homographyInv, p.x, p.y);
+      const o = imgToOverlay(im.x, im.y);
+      if (i===0) octx.moveTo(o.x,o.y); else octx.lineTo(o.x,o.y);
+    });
+    octx.stroke();
   }
 
   // current laser
-  if (laserPos) {
-    const lx = laserPos.x * W, ly = laserPos.y * H;
+  if (laserImg){
+    const o = imgToOverlay(laserImg.x, laserImg.y);
     octx.fillStyle = 'rgba(239,68,68,0.95)';
-    octx.beginPath(); octx.arc(lx, ly, 6 * devicePixelRatio, 0, Math.PI * 2); octx.fill();
+    octx.beginPath(); octx.arc(o.x,o.y,6*devicePixelRatio,0,Math.PI*2); octx.fill();
   }
 }
 
-// ---- Microphone click detection ----
-let audioCtx, analyser, micStream, micData;
-let micRunning = false;
-let audioBaseline = 0;
-let lastClickTs = 0;
+function imgToOverlay(x, y){
+  // x,y are in ANALY_W/H space. Overlay is full video display area.
+  return { x: (x/ANALY_W)*overlay.width, y: (y/ANALY_H)*overlay.height };
+}
 
-async function startMic() {
-  try {
-    if (micRunning) { stopMic(); return; }
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false, noiseSuppression: false, autoGainControl: false
-      }
+// ---- Rectified view ----
+function drawRectified(){
+  const W = rectView.width, H = rectView.height;
+  rctx.fillStyle = '#0a0e14'; rctx.fillRect(0,0,W,H);
+  // outline
+  rctx.strokeStyle = 'rgba(159,211,181,0.85)'; rctx.lineWidth = 2*devicePixelRatio;
+  rctx.strokeRect(20,20,W-40,H-40);
+  // grid
+  rctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  for (let i=1;i<10;i++){
+    const x = 20 + (W-40)*i/10, y = 20 + (H-40)*i/10;
+    rctx.beginPath(); rctx.moveTo(x,20); rctx.lineTo(x,H-20); rctx.stroke();
+    rctx.beginPath(); rctx.moveTo(20,y); rctx.lineTo(W-20,y); rctx.stroke();
+  }
+  const NX = (nx)=> 20 + nx*(W-40), NY = (ny)=> 20 + ny*(H-40);
+  // aim
+  if (aimTargetNorm){
+    const ax = NX(aimTargetNorm.x), ay = NY(aimTargetNorm.y);
+    rctx.strokeStyle = 'rgba(250,226,50,0.95)'; rctx.lineWidth=2*devicePixelRatio;
+    rctx.beginPath(); rctx.arc(ax,ay,16*devicePixelRatio,0,Math.PI*2); rctx.stroke();
+    rctx.beginPath(); rctx.moveTo(ax-24*devicePixelRatio,ay); rctx.lineTo(ax+24*devicePixelRatio,ay); rctx.stroke();
+    rctx.beginPath(); rctx.moveTo(ax,ay-24*devicePixelRatio); rctx.lineTo(ax,ay+24*devicePixelRatio); rctx.stroke();
+  }
+  // trail
+  if (trailing.length>1){
+    rctx.strokeStyle = 'rgba(159,211,181,0.7)'; rctx.lineWidth=2*devicePixelRatio;
+    rctx.beginPath();
+    trailing.forEach((p,i)=>{
+      const x=NX(p.x), y=NY(p.y);
+      if(i===0) rctx.moveTo(x,y); else rctx.lineTo(x,y);
     });
+    rctx.stroke();
+  }
+  // current laser
+  if (laserNorm){
+    rctx.fillStyle = 'rgba(239,68,68,0.95)';
+    rctx.beginPath(); rctx.arc(NX(laserNorm.x), NY(laserNorm.y), 7*devicePixelRatio, 0, Math.PI*2); rctx.fill();
+  }
+}
+
+// ---- Microphone ----
+let audioCtx, analyser, micStream, micData, micRunning=false, audioBaseline=0, lastClickTs=0;
+
+async function startMic(){
+  try{
+    if (micRunning){ stopMic(); return; }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false } });
     micStream = stream;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
     const src = audioCtx.createMediaStreamSource(stream);
-    analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 1024;
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 1024;
     src.connect(analyser);
     micData = new Float32Array(analyser.fftSize);
     micRunning = true;
     $('#btn-mic').classList.add('active');
     $('#audio-status').textContent = 'listening';
-    log('Mic started', 'ok');
-    micLoop();
-  } catch (e) {
-    log('Mic error: ' + e.message, 'err');
-  }
+    log('Mic started','ok'); micLoop();
+  } catch(e){ log('Mic error: '+e.message,'err'); }
 }
-function stopMic() {
+function stopMic(){
   if (!micRunning) return;
-  micStream.getTracks().forEach(t => t.stop());
+  micStream.getTracks().forEach(t=>t.stop());
   if (audioCtx) audioCtx.close();
-  micRunning = false;
-  $('#btn-mic').classList.remove('active');
-  $('#audio-status').textContent = '—';
-  log('Mic stopped');
+  micRunning=false;
+  $('#btn-mic').classList.remove('active'); $('#audio-status').textContent='—';
 }
-
-function micLoop() {
+function micLoop(){
   if (!micRunning) return;
   analyser.getFloatTimeDomainData(micData);
-  // peak amplitude
-  let peak = 0;
-  for (let i = 0; i < micData.length; i++) {
-    const a = Math.abs(micData[i]);
-    if (a > peak) peak = a;
-  }
-  // rolling baseline
-  audioBaseline = audioBaseline * 0.97 + peak * 0.03;
+  let peak=0;
+  for (let i=0;i<micData.length;i++){ const a=Math.abs(micData[i]); if (a>peak) peak=a; }
+  audioBaseline = audioBaseline*0.97 + peak*0.03;
   const now = performance.now();
-  // click = sharp transient well above baseline
-  if (peak > Math.max(0.18, audioBaseline * 6) && now - lastClickTs > 350) {
-    lastClickTs = now;
-    onClickDetected('mic', peak);
+  if (peak > Math.max(0.18, audioBaseline*6) && now-lastClickTs>350){
+    lastClickTs = now; onClickDetected('mic', peak);
   }
   requestAnimationFrame(micLoop);
 }
 
 // ---- BLE WitMotion ----
-const WT_SERVICE = '0000ffe5-0000-1000-8000-00805f9a34fb';
-const WT_NOTIFY  = '0000ffe4-0000-1000-8000-00805f9a34fb';
-const WT_WRITE   = '0000ffe9-0000-1000-8000-00805f9a34fb';
+const WT_SERVICE='0000ffe5-0000-1000-8000-00805f9a34fb';
+const WT_NOTIFY ='0000ffe4-0000-1000-8000-00805f9a34fb';
+let bleDevice=null, bleServer=null, notifyChar=null;
+let recentGyro=[];
 
-let bleDevice = null, bleServer = null, notifyChar = null;
-let lastAccel = { x: 0, y: 0, z: 0, t: 0 };
-let recentAccelMag = []; // for shock detection
-let recentGyro = [];
-
-async function connectBLE() {
-  if (!navigator.bluetooth) {
-    log('Web Bluetooth not supported in this browser. On Android, use Chrome (not Firefox/Samsung Internet). On iOS, no browser supports Web Bluetooth.', 'err');
+async function connectBLE(){
+  if (!navigator.bluetooth){
+    log('Web Bluetooth not supported. Use Chrome on Android — iOS does not support Web Bluetooth.','err');
     return;
   }
-  try {
-    log('Requesting BLE device...');
+  try{
+    log('Requesting BLE device…');
     bleDevice = await navigator.bluetooth.requestDevice({
-      filters: [
-        { namePrefix: 'WT' },
-        { namePrefix: 'BWT' },
-        { services: [WT_SERVICE] }
-      ],
+      filters: [ { namePrefix:'WT' }, { namePrefix:'BWT' }, { services:[WT_SERVICE] } ],
       optionalServices: [WT_SERVICE]
     });
-    bleDevice.addEventListener('gattserverdisconnected', () => {
-      log('BLE disconnected', 'warn');
+    bleDevice.addEventListener('gattserverdisconnected', ()=>{
+      log('BLE disconnected','warn');
       $('#btn-ble').classList.remove('active');
-      $('#imu-status').textContent = '—';
+      $('#imu-status').textContent='—';
     });
-    log('Connecting to GATT...');
     bleServer = await bleDevice.gatt.connect();
     const svc = await bleServer.getPrimaryService(WT_SERVICE);
     notifyChar = await svc.getCharacteristic(WT_NOTIFY);
     await notifyChar.startNotifications();
     notifyChar.addEventListener('characteristicvaluechanged', onWitNotify);
     $('#btn-ble').classList.add('active');
-    $('#imu-status').textContent = 'connected';
-    log('BLE connected: ' + bleDevice.name, 'ok');
-  } catch (e) {
-    log('BLE error: ' + e.message, 'err');
-  }
+    $('#imu-status').textContent='connected';
+    log('BLE connected: '+bleDevice.name,'ok');
+  } catch(e){ log('BLE error: '+e.message,'err'); }
 }
 
-function onWitNotify(ev) {
+function onWitNotify(ev){
   const dv = ev.target.value;
-  // WitMotion default packet: 0x55 0x61 + 18 bytes (Ax,Ay,Az,Gx,Gy,Gz,RollPitchYaw)
-  if (dv.byteLength < 20) return;
-  if (dv.getUint8(0) !== 0x55 || dv.getUint8(1) !== 0x61) return;
-
-  const s16 = (lo, hi) => {
-    let v = (hi << 8) | lo;
-    if (v & 0x8000) v -= 0x10000;
-    return v;
-  };
-  const ax = s16(dv.getUint8(2),  dv.getUint8(3))  / 32768 * 16;
-  const ay = s16(dv.getUint8(4),  dv.getUint8(5))  / 32768 * 16;
-  const az = s16(dv.getUint8(6),  dv.getUint8(7))  / 32768 * 16;
-  const gx = s16(dv.getUint8(8),  dv.getUint8(9))  / 32768 * 2000;
-  const gy = s16(dv.getUint8(10), dv.getUint8(11)) / 32768 * 2000;
-  const gz = s16(dv.getUint8(12), dv.getUint8(13)) / 32768 * 2000;
-
-  const mag = Math.sqrt(ax*ax + ay*ay + az*az);
+  if (dv.byteLength<20) return;
+  if (dv.getUint8(0)!==0x55 || dv.getUint8(1)!==0x61) return;
+  const s16=(lo,hi)=>{ let v=(hi<<8)|lo; if (v&0x8000) v-=0x10000; return v; };
+  const ax=s16(dv.getUint8(2),dv.getUint8(3))/32768*16;
+  const ay=s16(dv.getUint8(4),dv.getUint8(5))/32768*16;
+  const az=s16(dv.getUint8(6),dv.getUint8(7))/32768*16;
+  const gx=s16(dv.getUint8(8),dv.getUint8(9))/32768*2000;
+  const gy=s16(dv.getUint8(10),dv.getUint8(11))/32768*2000;
+  const gz=s16(dv.getUint8(12),dv.getUint8(13))/32768*2000;
+  const mag = Math.sqrt(ax*ax+ay*ay+az*az);
   const now = performance.now();
-  lastAccel = { x: ax, y: ay, z: az, t: now };
-  recentAccelMag.push({ m: mag, t: now });
-  if (recentAccelMag.length > 60) recentAccelMag.shift();
-  recentGyro.push({ x: gx, y: gy, z: gz, t: now });
-  if (recentGyro.length > 60) recentGyro.shift();
-
-  // shock detection: |a - 1g| spike
-  const dev = Math.abs(mag - 1.0);
-  if (dev > 1.2 && now - lastClickTs > 350) {
-    lastClickTs = now;
-    onClickDetected('imu', dev);
+  recentGyro.push({x:gx,y:gy,z:gz,t:now});
+  if (recentGyro.length>60) recentGyro.shift();
+  const dev = Math.abs(mag-1.0);
+  if (dev>1.2 && now-lastClickTs>350){
+    lastClickTs=now; onClickDetected('imu', dev);
   }
   $('#imu-status').textContent = `a=${mag.toFixed(2)}g`;
 }
 
 // ---- Shot scoring ----
 let sessionShots = [];
-
-function onClickDetected(source, intensity) {
-  // measure deviation from target at moment of click
-  if (!targetPoint || !laserPos) {
-    log(`Click (${source}, ${intensity.toFixed(2)}) — no target/laser`, 'warn');
-    return;
-  }
-  const dx = (laserPos.x - targetPoint.x);
-  const dy = (laserPos.y - targetPoint.y);
-  const rect = overlay.getBoundingClientRect();
-  const pxDev = Math.sqrt((dx*rect.width)**2 + (dy*rect.height)**2);
-  // estimate jerk: recent gyro magnitude burst
-  let jerk = 0;
-  if (recentGyro.length > 5) {
+function onClickDetected(source, intensity){
+  if (!homography || !aimTargetNorm){ log(`Click (${source}) — no target/aim`,'warn'); return; }
+  const lp = laserNorm;
+  if (!lp){ log(`Click (${source}) — no laser in target plane`,'warn'); return; }
+  const dxN = lp.x - aimTargetNorm.x; // 0..1 of target width
+  const dyN = lp.y - aimTargetNorm.y;
+  const tWin = parseFloat($('#in-width').value) || 8.5;
+  const tHin = parseFloat($('#in-height').value) || 11;
+  const distFt = parseFloat($('#in-dist').value) || 15;
+  const dxIn = dxN * tWin, dyIn = dyN * tHin;
+  const devIn = Math.sqrt(dxIn*dxIn + dyIn*dyIn);
+  // MOA: 1 MOA ≈ 1.047" at 100 yards = 0.01047 in/yd. distance in yards = ft/3.
+  const distYd = distFt/3;
+  const moa = distYd>0 ? devIn / (1.047 * distYd / 100) : 0;
+  // jerk from gyro
+  let jerk=0;
+  if (recentGyro.length>5){
     const tail = recentGyro.slice(-10);
-    const peak = Math.max(...tail.map(g => Math.sqrt(g.x*g.x + g.y*g.y + g.z*g.z)));
-    jerk = peak / 100; // rough scaled value
+    const peak = Math.max(...tail.map(g=>Math.sqrt(g.x*g.x+g.y*g.y+g.z*g.z)));
+    jerk = peak/100;
   }
-  const score = Math.max(0, Math.round(100 - pxDev * 0.6 - jerk * 4));
+  const score = Math.max(0, Math.round(100 - moa*8 - jerk*4));
 
-  $('#s-dev').textContent = pxDev.toFixed(0);
-  $('#s-jerk').textContent = jerk.toFixed(2);
+  $('#s-in').textContent  = devIn.toFixed(2);
+  $('#s-moa').textContent = moa.toFixed(1);
   $('#s-score').textContent = score;
-  sessionShots.push({ score, dev: pxDev, jerk, source, t: Date.now() });
+  sessionShots.push({devIn, moa, score, source, t:Date.now()});
   $('#ss-shots').textContent = sessionShots.length;
-  const avg = sessionShots.reduce((a,b)=>a+b.score,0) / sessionShots.length;
-  const best = Math.max(...sessionShots.map(s=>s.score));
-  $('#ss-avg').textContent = avg.toFixed(0);
-  $('#ss-best').textContent = best;
-  log(`SHOT [${source}] dev=${pxDev.toFixed(0)}px jerk=${jerk.toFixed(2)} → ${score}`, 'ok');
-  // flash
-  flash();
+  const avg = sessionShots.reduce((a,b)=>a+b.moa,0)/sessionShots.length;
+  const best = Math.min(...sessionShots.map(s=>s.moa));
+  $('#ss-avg').textContent = avg.toFixed(1);
+  $('#ss-best').textContent = best.toFixed(1);
+  log(`SHOT [${source}] ${devIn.toFixed(2)}in / ${moa.toFixed(1)}MOA → ${score}`,'ok');
+  stage.style.boxShadow='0 0 0 3px rgba(250,226,50,0.7), 0 0 32px rgba(250,226,50,0.35)';
+  setTimeout(()=>stage.style.boxShadow='',250);
 }
 
-function flash() {
-  const s = $('#stage');
-  s.style.boxShadow = '0 0 0 3px rgba(74,222,128,0.7)';
-  setTimeout(() => s.style.boxShadow = '', 200);
-}
-
-// ---- Buttons ----
+// ---- Start / Reset ----
 $('#btn-cam').addEventListener('click', startCamera);
 $('#btn-mic').addEventListener('click', startMic);
 $('#btn-ble').addEventListener('click', connectBLE);
-$('#btn-start').addEventListener('click', async () => {
+$('#btn-start').addEventListener('click', async ()=>{
   if (!camStream) await startCamera();
   if (!micRunning) await startMic();
-  if (!bleServer && navigator.bluetooth) {
-    log('Tap "BLE IMU" to connect your accelerometer when ready.', 'warn');
-  }
-  if (!targetPoint) {
-    targetPoint = { x: 0.5, y: 0.5 };
-    log('Default target set to center. Tap video to change.');
-  }
+  if (!aimTargetNorm && homography){ aimTargetNorm = {x:0.5, y:0.5}; log('Default aim set to target center'); }
 });
-$('#btn-reset').addEventListener('click', () => {
-  sessionShots = [];
-  $('#ss-shots').textContent = '0';
-  $('#ss-avg').textContent = '—';
-  $('#ss-best').textContent = '—';
-  $('#s-dev').textContent = '—';
-  $('#s-jerk').textContent = '—';
-  $('#s-score').textContent = '—';
-  trailing = [];
+$('#btn-reset').addEventListener('click', ()=>{
+  sessionShots = []; trailing=[];
+  $('#ss-shots').textContent='0'; $('#ss-avg').textContent='—'; $('#ss-best').textContent='—';
+  $('#s-in').textContent='—'; $('#s-moa').textContent='—'; $('#s-score').textContent='—';
   log('Session reset');
 });
 
-// initial diag
-log('Build: dry-fire coach v1');
-log('UA: ' + navigator.userAgent);
-if (!navigator.mediaDevices) log('mediaDevices unavailable — needs HTTPS', 'err');
-if (!navigator.bluetooth) log('Web Bluetooth unavailable in this browser', 'warn');
+// ---- ArUco marker print page ----
+function openMarkerPrintPage(){
+  if (!window.AR || !window.AR.Dictionary){ log('ArUco lib not loaded — cannot generate markers','err'); return; }
+  const dict = new AR.Dictionary('ARUCO_MIP_36h12');
+  const ids = [0,1,2,3];
+  const labels = ['TL (ID 0)','TR (ID 1)','BR (ID 2)','BL (ID 3)'];
+  let svgs = '';
+  ids.forEach((id,i)=>{
+    const svg = dict.generateSVG(id);
+    svgs += `<div class="m"><div class="lbl">${labels[i]}</div>${svg}</div>`;
+  });
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>ArUco markers</title>
+  <style>
+    body{font-family:system-ui;background:#fff;color:#000;margin:24px;}
+    h1{font-size:18px;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px;}
+    .m{border:1px dashed #999;padding:12px;text-align:center;}
+    .m svg{width:2in;height:2in;display:block;margin:0 auto;}
+    .lbl{font-weight:600;margin-bottom:8px;}
+    @media print { body{margin:0.5in;} .m{break-inside:avoid;} }
+  </style></head>
+  <body>
+    <h1>Dry-Fire Coach — ArUco corner markers</h1>
+    <p>Print at actual size (no scaling). Cut out and tape one to each corner of your target in the labeled position. The marker outline matters — leave the white border intact.</p>
+    <div class="grid">${svgs}</div>
+    <p style="margin-top:24px;font-size:11px;color:#666;">Dictionary: ARUCO_MIP_36h12 · IDs 0–3</p>
+    <script>window.onload = ()=> setTimeout(()=>window.print(), 400);<\/script>
+  </body></html>`;
+  const w = window.open('', '_blank');
+  if (!w){ log('Popup blocked — allow popups to print markers','warn'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
 
+// ---- Init ----
+log('Build: dry-fire coach v2 (perspective tracking)');
+log('UA: ' + navigator.userAgent);
+if (!navigator.mediaDevices) log('mediaDevices unavailable — needs HTTPS','err');
+if (!navigator.bluetooth) log('Web Bluetooth unavailable in this browser','warn');
 </script>
 </body>
 </html>
