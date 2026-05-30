@@ -1291,6 +1291,10 @@ body.role-laptop .laptop-dash{display:block}
         <button id="ctrl-reset" class="ctrl-btn ghost">Reset shots</button>
       </div>
       <div class="ctrl-gun-cal-status" id="ctrl-gun-cal-status" style="display:none;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9fd3b5;"></div>
+      <label class="pose-gate-toggle" style="display:flex;align-items:center;gap:8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#cbd5e1;cursor:pointer;">
+        <input type="checkbox" id="ctrl-pose-gate" checked style="accent-color:#FAE232;" />
+        Only count shots when gun is pointed at target
+      </label>
       <div class="ctrl-phone-state" id="ctrl-phone-state">
         <span class="ps"><span class="k">Phone:</span> <span class="v" id="ps-cam">cam —</span></span>
         <span class="ps"><span class="k"></span> <span class="v" id="ps-target">target —</span></span>
@@ -2751,6 +2755,31 @@ function onClickDetected(source, intensity){
     log(`Click (${source}) suppressed by ${SHOT_COOLDOWN_MS}ms cooldown (slide-rack filter)`, 'warn');
     return;
   }
+
+  // ----- Pose gate -----
+  // If the user has calibrated the gun pose AND has the pose-gate toggle on,
+  // require the muzzle to be pointed in the on-target zone before counting a
+  // shot. Filters racking the slide / dry-fire reset clicks while gun is
+  // pointed down or off to the side. Manual button always bypasses.
+  if (source !== 'manual' && source !== 'test'){
+    try {
+      const gateOn = (window._poseGateOn !== false); // default true
+      if (gateOn && typeof QuickDraw !== 'undefined' && QuickDraw.isCalibrated && QuickDraw.isCalibrated()){
+        const p = (typeof window._lastPhonePitch === 'number') ? window._lastPhonePitch : null;
+        if (p !== null){
+          const onTarget = QuickDraw.isOnTarget(p);
+          const muzzleDown = QuickDraw.isMuzzleDown(p);
+          if (!onTarget){
+            const reason = muzzleDown ? 'muzzle down' : 'off-target';
+            log(`Click (${source}) rejected by pose-gate — ${reason} (pitch ${p.toFixed(1)}°)`, 'warn');
+            if (typeof toast === 'function') toast(`Ignored — gun was ${reason}`, 'warn', 1400);
+            return;
+          }
+        }
+      }
+    } catch(e){ console.warn('pose-gate check failed', e); }
+  }
+
   _lastShotAt = _now;
 
   // Visual flash + screen shake on EVERY detected click so the user knows the
@@ -3948,6 +3977,12 @@ let sessionMode = localStorage.getItem('df_session_mode') || '1p'; // '1p' | '2p
 let activePlayer = localStorage.getItem('df_active_player') || 'A'; // 'A' | 'B' — only meaningful when 2p
 
 window._dfPhone = (function(){
+  // Restore pose-gate preference from prior session (default ON)
+  try {
+    const v = localStorage.getItem('df_pose_gate');
+    window._poseGateOn = (v === null) ? true : (v === '1');
+  } catch(e){ window._poseGateOn = true; }
+
   // ---- Video clip ring buffer (25fps, ~1.6s window) ----
   const RING_FPS = 25;
   const RING_MS  = 1600;
@@ -4096,6 +4131,11 @@ window._dfPhone = (function(){
           QuickDraw.captureCalibration(msg.which, msg.pitch);
           toast(`Captured ${msg.which} pose: ${msg.pitch.toFixed(1)}°`, 'ok', 1500);
         }
+      } else if (c === 'setPoseGate'){
+        // Laptop toggles whether shots must be fired with gun pointed at target.
+        window._poseGateOn = !!msg.value;
+        try { localStorage.setItem('df_pose_gate', window._poseGateOn ? '1' : '0'); } catch(e){}
+        log(`Pose-gate: ${window._poseGateOn ? 'ON (shots require on-target pose)' : 'OFF'}`, 'info');
       } else if (c === 'extClick'){
         // Laptop heard a click on its own mic — fire scoring (only if armed)
         if (!sessionArmed) return;
@@ -4380,6 +4420,20 @@ const LaptopCtrl = (function(){
     if (gunCalBtn && !gunCalBtn._wired){
       gunCalBtn._wired = true;
       gunCalBtn.addEventListener('click', () => GunCal.start());
+    }
+    // Pose-gate toggle — syncs to phone so its onClickDetected check honors it.
+    const poseGate = document.getElementById('ctrl-pose-gate');
+    if (poseGate && !poseGate._wired){
+      poseGate._wired = true;
+      // Restore saved value
+      try { const v = localStorage.getItem('df_pose_gate_laptop'); if (v !== null) poseGate.checked = (v === '1'); } catch(e){}
+      // Send initial value to phone after a short delay (give pairing time)
+      const pushPoseGate = () => { try { sendCmd('setPoseGate', { value: !!poseGate.checked }); } catch(e){} };
+      setTimeout(pushPoseGate, 1500);
+      poseGate.addEventListener('change', () => {
+        try { localStorage.setItem('df_pose_gate_laptop', poseGate.checked ? '1' : '0'); } catch(e){}
+        pushPoseGate();
+      });
     }
     const startBtn = document.getElementById('ctrl-start');
     if (startBtn && !startBtn._wired){
@@ -5097,6 +5151,33 @@ const WindowManager = (function(){
   let _topZ = 20;
   const _windows = {}; // id -> { el, state: 'normal'|'minimized'|'maximized', savedRect }
 
+  // ----- Snap hint overlay (aero-style edge fill preview) -----
+  let _snapHint = null;
+  function getHint(){
+    if (_snapHint) return _snapHint;
+    const d = document.createElement('div');
+    d.className = 'snap-hint';
+    d.style.cssText = 'position:fixed;pointer-events:none;background:rgba(250,226,50,0.18);border:2px dashed #FAE232;border-radius:10px;z-index:9999;display:none;transition:all 120ms ease-out;';
+    document.body.appendChild(d);
+    _snapHint = d;
+    return d;
+  }
+  function showSnapHint(side, vw, vh){
+    const d = getHint();
+    let r;
+    if (side === 'left')       r = { x:0,      y:0, w:vw/2, h:vh };
+    else if (side === 'right') r = { x:vw/2,   y:0, w:vw/2, h:vh };
+    else if (side === 'top')   r = { x:0,      y:0, w:vw,   h:vh };
+    if (!r) return;
+    d._rect = r;
+    d.style.left = r.x+'px'; d.style.top = r.y+'px';
+    d.style.width = r.w+'px'; d.style.height = r.h+'px';
+    d.style.display = 'block';
+  }
+  function hideSnapHint(){
+    if (_snapHint){ _snapHint.style.display = 'none'; _snapHint._rect = null; }
+  }
+
   function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
 
   function saveGeom(id){
@@ -5216,14 +5297,52 @@ const WindowManager = (function(){
         const startX = e.clientX, startY = e.clientY;
         const ox = parseInt(el.style.left,10), oy = parseInt(el.style.top,10);
         const vw = window.innerWidth, vh = window.innerHeight - TASKBAR_H;
-        function onMove(me){
-          const nx = clamp(ox + me.clientX - startX, 0, vw - 40);
-          const ny = clamp(oy + me.clientY - startY, 0, vh - 36);
-          el.style.left = nx + 'px'; el.style.top = ny + 'px';
+        const SNAP = 10; // px threshold
+        const myW = el.offsetWidth, myH = el.offsetHeight;
+        // Pre-compute snap targets from other windows + viewport
+        const targetsX = [0, vw/2 - myW/2, vw - myW]; // left, hcenter, right
+        const targetsY = [0, vh/2 - myH/2, vh - myH]; // top, vcenter, bottom
+        Object.keys(_windows).forEach(oid => {
+          if (oid === id) return;
+          const ow = _windows[oid]; if (!ow || ow.state !== 'normal') return;
+          const oe = ow.el;
+          const ox2 = parseInt(oe.style.left,10), oy2 = parseInt(oe.style.top,10);
+          const ow2 = oe.offsetWidth, oh2 = oe.offsetHeight;
+          // left-edge align, right-edge to my-left, my-right to other-left
+          targetsX.push(ox2, ox2 + ow2 - myW, ox2 + ow2, ox2 - myW);
+          targetsY.push(oy2, oy2 + oh2 - myH, oy2 + oh2, oy2 - myH);
+        });
+        function nearest(val, arr){
+          let best = null, bestD = SNAP + 1;
+          for (const t of arr){ const d = Math.abs(t - val); if (d < bestD){ bestD = d; best = t; } }
+          return best;
         }
-        function onUp(){
+        function onMove(me){
+          let nx = clamp(ox + me.clientX - startX, 0, vw - 40);
+          let ny = clamp(oy + me.clientY - startY, 0, vh - 36);
+          const sx = nearest(nx, targetsX); if (sx !== null) nx = sx;
+          const sy = nearest(ny, targetsY); if (sy !== null) ny = sy;
+          el.style.left = nx + 'px'; el.style.top = ny + 'px';
+          // Edge-snap to max via aero-style halves
+          if (me.clientX <= 2) showSnapHint('left', vw, vh);
+          else if (me.clientX >= vw - 2) showSnapHint('right', vw, vh);
+          else if (me.clientY <= 2) showSnapHint('top', vw, vh);
+          else hideSnapHint();
+        }
+        function onUp(me){
           header.releasePointerCapture(e.pointerId);
           el.classList.remove('dragging');
+          // Aero-style edge fill
+          const hint = _snapHint;
+          if (hint){
+            const r = hint._rect;
+            if (r){
+              saveGeom(id); // save pre-snap normal rect so restore works via maximize? we keep saving normal as it is.
+              el.style.left = r.x+'px'; el.style.top = r.y+'px';
+              el.style.width = r.w+'px'; el.style.height = r.h+'px';
+            }
+            hideSnapHint();
+          }
           schedSave(id);
           header.removeEventListener('pointermove', onMove);
           header.removeEventListener('pointerup', onUp);
@@ -6225,6 +6344,10 @@ const QuickDraw = (function(){
       return onImu._lastPitch || null;
     },
     isCalibrated,
+    isOnTarget,
+    isMuzzleDown,
+    thresholdHold,
+    thresholdOnTarget,
     state: () => _state,
     // Compatibility shims (old code paths)
     _active: () => _active,
