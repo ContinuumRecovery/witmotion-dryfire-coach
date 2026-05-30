@@ -235,7 +235,7 @@
   }
   .stage .range-strip .seg-l{display:flex;gap:18px;align-items:center;}
   .stage .range-strip .seg-l > div{display:flex;flex-direction:column;gap:2px;}
-  .stage .range-strip .lbl{font-size:8px;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;}
+  .stage .range-strip .lbl{font-size:9px;color:var(--muted);letter-spacing:0.05em;font-weight:600;}
   .stage .range-strip .num{font-size:13px;color:var(--text);font-weight:700;letter-spacing:-0.02em;}
   .stage .range-strip .num .u{font-size:9px;color:var(--muted);margin-left:2px;font-weight:600;}
   .stage .range-strip .arm{
@@ -324,8 +324,8 @@
   .row3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:7px;}
   button.action{
     padding:13px 12px;border-radius:var(--radius-md);
-    font-weight:700;font-size:12px;border:none;cursor:pointer;
-    font-family:inherit;letter-spacing:0.08em;text-transform:uppercase;
+    font-weight:600;font-size:13px;border:none;cursor:pointer;
+    font-family:inherit;letter-spacing:-0.005em;
     transition:transform .08s ease, filter .2s ease, box-shadow .25s ease, background .2s ease;
     position:relative;overflow:hidden;
   }
@@ -373,19 +373,19 @@
   }
   .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
   .panel h2{
-    margin:0;font-size:10px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:0.20em;font-weight:700;
-    display:inline-flex;align-items:center;gap:10px;
+    margin:0;font-size:13px;color:var(--text-1);
+    letter-spacing:-0.005em;font-weight:700;
+    display:inline-flex;align-items:center;gap:9px;
   }
   .panel h2::before{
-    content:"";width:14px;height:1px;background:var(--yellow-dim);
+    content:"";width:6px;height:6px;border-radius:50%;
+    background:var(--yellow);
+    box-shadow:0 0 0 3px rgba(250,226,50,0.12);
   }
   .panel .panel-tag{
-    font-size:9px;color:var(--yellow-dim);letter-spacing:0.18em;font-weight:700;
-    text-transform:uppercase;
-    font-family:'JetBrains Mono', monospace;
-    padding:3px 8px;border:1px solid rgba(250,226,50,0.20);border-radius:6px;
-    background:rgba(250,226,50,0.04);
+    font-size:10px;color:var(--text-2);letter-spacing:0.02em;font-weight:500;
+    padding:3px 9px;border:1px solid var(--line);border-radius:999px;
+    background:rgba(255,255,255,0.025);
   }
 
   /* ── Hero metric (Last Shot) ────────────────────────────────────────── */
@@ -401,19 +401,20 @@
   }
   .hero .panel-head{margin-bottom:8px;}
   .hero h2{
-    margin:0;font-size:10px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:0.20em;font-weight:700;
-    display:inline-flex;align-items:center;gap:10px;
+    margin:0;font-size:13px;color:var(--text-1);
+    letter-spacing:-0.005em;font-weight:700;
+    display:inline-flex;align-items:center;gap:9px;
   }
   .hero h2::before{
-    content:"";width:14px;height:1px;background:var(--yellow-dim);
+    content:"";width:6px;height:6px;border-radius:50%;
+    background:var(--yellow);
+    box-shadow:0 0 0 3px rgba(250,226,50,0.18);
+    animation:dot-blink 2.4s ease-in-out infinite;
   }
   .hero .panel-tag{
-    font-size:9px;color:var(--yellow-dim);letter-spacing:0.18em;font-weight:700;
-    text-transform:uppercase;
-    font-family:'JetBrains Mono', monospace;
-    padding:3px 8px;border:1px solid rgba(250,226,50,0.20);border-radius:6px;
-    background:rgba(250,226,50,0.04);
+    font-size:10px;color:var(--mint);letter-spacing:0.02em;font-weight:500;
+    padding:3px 9px;border:1px solid rgba(159,211,181,0.25);border-radius:999px;
+    background:rgba(159,211,181,0.06);
   }
   .hero-grid{
     display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:end;
@@ -429,7 +430,7 @@
   .hero-main .big.bad{color:var(--rust);text-shadow:0 0 24px rgba(232,131,107,0.25);}
   .hero-main .big.warn{color:var(--sand);text-shadow:0 0 24px rgba(217,199,160,0.18);}
   .hero-main .big-u{font-size:14px;color:var(--muted);margin-left:6px;letter-spacing:0;text-shadow:none;font-weight:600;}
-  .hero-main .sub{font-size:10px;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;font-weight:700;margin-top:3px;}
+  .hero-main .sub{font-size:11px;color:var(--muted);letter-spacing:-0.005em;font-weight:500;margin-top:3px;}
   .hero-side{display:flex;flex-direction:column;gap:8px;}
   .hero-side .chip{
     background:var(--surface-2);
@@ -438,7 +439,7 @@
     padding:9px 12px;
     display:flex;align-items:baseline;justify-content:space-between;gap:8px;
   }
-  .hero-side .chip .l{font-size:9px;color:var(--muted);letter-spacing:0.16em;text-transform:uppercase;font-weight:700;}
+  .hero-side .chip .l{font-size:10px;color:var(--muted);letter-spacing:-0.005em;font-weight:500;}
   .hero-side .chip .v{font-size:18px;color:var(--text);font-family:'JetBrains Mono', monospace;font-weight:700;letter-spacing:-0.02em;}
   .hero-side .chip .v.empty{color:var(--surface-3);}
   .hero-side .chip .v.accent{color:var(--yellow);}
@@ -481,9 +482,9 @@
   }
   .stat .v.accent{color:var(--yellow);}
   .stat .l{
-    font-size:9px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:0.18em;
-    margin-top:8px;font-weight:700;
+    font-size:11px;color:var(--muted);
+    letter-spacing:-0.005em;
+    margin-top:8px;font-weight:500;
   }
 
   /* ── Segmented control ──────────────────────────────────────────────── */
@@ -494,10 +495,10 @@
     box-shadow:inset 0 1px 2px rgba(0,0,0,0.32);
   }
   .seg button{
-    flex:1;background:transparent;border:none;color:var(--muted);
+    flex:1;background:transparent;border:none;color:var(--text-2);
     padding:9px 6px;border-radius:9px;
-    font-size:10px;font-weight:700;cursor:pointer;
-    font-family:inherit;letter-spacing:0.12em;text-transform:uppercase;
+    font-size:12px;font-weight:600;cursor:pointer;
+    font-family:inherit;letter-spacing:-0.005em;
     transition:background .25s cubic-bezier(.22,1,.36,1), color .25s ease, box-shadow .25s ease;
   }
   .seg button.on{
@@ -517,8 +518,8 @@
     position:relative;
   }
   .field-grid .field label{
-    font-size:8px;color:var(--muted);letter-spacing:0.18em;font-weight:700;
-    text-transform:uppercase;flex:none;
+    font-size:10px;color:var(--muted);letter-spacing:-0.005em;font-weight:500;
+    flex:none;
   }
   .field-grid .field input{
     background:transparent;border:none;padding:0;
@@ -531,7 +532,7 @@
   .field-grid .field:focus-within{border-color:rgba(250,226,50,0.45);background:var(--surface-3);}
   .field-grid .field .unit{
     position:absolute;top:8px;right:10px;
-    font-size:8px;color:var(--muted);letter-spacing:0.16em;font-weight:700;text-transform:uppercase;
+    font-size:10px;color:var(--muted);letter-spacing:-0.005em;font-weight:500;
   }
   /* Legacy row-style field — kept as no-op fallback */
   .field{display:flex;align-items:center;gap:10px;margin-top:10px;}
@@ -548,19 +549,47 @@
   #log .err{color:var(--bad);} #log .ok{color:var(--yellow);} #log .warn{color:var(--sand);}
 
   .hint{
-    font-size:10.5px;color:var(--text-2);margin-top:10px;line-height:1.5;
-    padding:9px 11px 9px 13px;
-    background:linear-gradient(180deg, rgba(159,211,181,0.06) 0%, rgba(159,211,181,0.015) 100%);
-    border-left:2px solid rgba(159,211,181,0.45);
-    border-radius:8px;
+    font-size:11.5px;color:var(--text-2);margin-top:12px;line-height:1.55;
+    padding:10px 12px 10px 36px;
+    background:linear-gradient(180deg, rgba(159,211,181,0.07) 0%, rgba(159,211,181,0.02) 100%);
+    border:1px solid rgba(159,211,181,0.18);
+    border-radius:12px;
     position:relative;
   }
   .hint::before{
-    content:"INFO";position:absolute;top:-7px;left:11px;
-    font-size:8px;color:rgba(159,211,181,0.85);letter-spacing:0.24em;font-weight:700;
-    background:var(--surface);padding:0 6px;border-radius:3px;
-    font-family:'JetBrains Mono', monospace;
+    content:"💡";position:absolute;top:9px;left:11px;
+    font-size:14px;line-height:1;
+    filter:saturate(0.85);
   }
+
+  /* Calibration step indicator: 3 dots showing progress */
+  .steps{
+    display:flex;align-items:center;gap:8px;margin:4px 0 12px;
+    font-size:11px;color:var(--text-2);
+  }
+  .steps .dot{
+    width:22px;height:22px;border-radius:50%;
+    background:var(--surface-2);border:1px solid var(--line);
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono', monospace;font-size:10px;font-weight:600;
+    color:var(--text-2);transition:all 250ms ease;
+  }
+  .steps .dot.done{
+    background:rgba(159,211,181,0.18);border-color:rgba(159,211,181,0.55);
+    color:var(--mint);
+  }
+  .steps .dot.active{
+    background:rgba(250,226,50,0.18);border-color:var(--yellow);
+    color:var(--yellow);
+    box-shadow:0 0 0 3px rgba(250,226,50,0.12);
+    animation:pulse-soft 1.8s ease-in-out infinite;
+  }
+  .steps .bar{
+    flex:1;height:2px;border-radius:2px;background:var(--line);
+    position:relative;overflow:hidden;
+  }
+  .steps .bar.done{background:rgba(159,211,181,0.55);}
+  .steps .label{margin-left:6px;color:var(--text-1);font-weight:600;letter-spacing:-0.005em;}
 
   details{
     background:var(--surface);
@@ -568,8 +597,8 @@
     border:1px solid var(--line);
   }
   details summary{
-    cursor:pointer;font-size:10px;color:var(--muted);
-    text-transform:uppercase;letter-spacing:0.18em;font-weight:700;
+    cursor:pointer;font-size:12px;color:var(--text-2);
+    letter-spacing:-0.005em;font-weight:600;
     list-style:none;
   }
   details summary::-webkit-details-marker{display:none;}
@@ -693,7 +722,15 @@
   </div>
 
   <div class="panel calib-panel">
-    <div class="panel-head"><h2>Target Calibration</h2><span class="panel-tag">MODE · 01</span></div>
+    <div class="panel-head"><h2>Set up your target</h2><span class="panel-tag" id="calib-tag">Step 1 of 3</span></div>
+    <div class="steps" id="calib-steps" aria-label="Calibration progress">
+      <span class="dot active" data-step="1">1</span>
+      <span class="bar" data-bar="1"></span>
+      <span class="dot" data-step="2">2</span>
+      <span class="bar" data-bar="2"></span>
+      <span class="dot" data-step="3">3</span>
+      <span class="label" id="steps-label">Lock the target</span>
+    </div>
     <div class="seg" id="mode-seg">
       <button data-mode="aruco" class="on">ArUco</button>
       <button data-mode="manual">Manual</button>
@@ -705,23 +742,23 @@
       <div class="field"><label>Distance</label><input id="in-dist" type="number" step="0.5" value="15" /><span class="unit">ft</span></div>
     </div>
     <div class="row3" style="margin-top:14px;">
-      <button class="action secondary glow" id="btn-calib">Calibrate</button>
-      <button class="action secondary" id="btn-aim">Set Aim</button>
+      <button class="action secondary glow" id="btn-calib">Lock target</button>
+      <button class="action secondary" id="btn-aim">Set aim point</button>
       <button class="action tertiary" id="btn-clear">Clear</button>
     </div>
-    <div class="hint" id="calib-hint">ArUco: print the 4 markers (link below) and tape one at each corner of your target. Manual: tap TL → TR → BR → BL. Auto: keep the target as the largest bright rectangle in view.</div>
+    <div class="hint" id="calib-hint">Print the 4 corner markers, tape one to each corner of your target, then point the camera at it. Detection is automatic.</div>
     <a class="link" id="btn-print" href="#">Print one-page target sheet</a>
   </div>
 
   <div class="row3 actions">
-    <button class="action primary" id="btn-start">Start Session</button>
-    <button class="action secondary glow" id="btn-test" title="Fire a synthetic shot to verify scoring works">Test Shot</button>
+    <button class="action primary" id="btn-start">Start session</button>
+    <button class="action secondary glow" id="btn-test" title="Fire a synthetic shot to verify scoring works">Test shot</button>
     <button class="action tertiary" id="btn-reset">Reset</button>
   </div>
 
   <!-- Hero metric: Last Shot -->
   <div class="hero">
-    <div class="panel-head"><h2>Last Shot</h2><span class="panel-tag">REAL-TIME</span></div>
+    <div class="panel-head"><h2>Last shot</h2><span class="panel-tag" id="hero-tag">Ready</span></div>
     <div class="hero-grid">
       <div class="hero-main">
         <div class="big empty" id="s-moa">—</div>
@@ -738,7 +775,7 @@
   </div>
 
   <div class="panel session-panel">
-    <div class="panel-head"><h2>Session</h2><span class="panel-tag">RUN · Σ</span></div>
+    <div class="panel-head"><h2>This session</h2><span class="panel-tag">Live totals</span></div>
     <div class="stats">
       <div class="stat"><div class="v" id="ss-shots">0</div><div class="l">Shots</div></div>
       <div class="stat"><div class="v" id="ss-avg">—</div><div class="l">Avg MOA</div></div>
@@ -747,7 +784,7 @@
   </div>
 
   <details>
-    <summary>Diagnostics</summary>
+    <summary>Show diagnostics</summary>
     <div id="log"></div>
   </details>
 </main>
@@ -793,6 +830,34 @@ function toast(msg, kind='info', ms=2200){
   t.className = 'stage-toast show ' + kind;
   clearTimeout(t._hideTimer);
   t._hideTimer = setTimeout(()=>{ t.className = 'stage-toast ' + kind; }, ms);
+}
+
+// Calibration step indicator (1=lock target, 2=set aim, 3=start session)
+function setStep(n){
+  const labels = ['', 'Lock the target', 'Pick an aim point', 'Take your shots'];
+  const tag = document.getElementById('calib-tag');
+  const lbl = document.getElementById('steps-label');
+  if (tag) tag.textContent = 'Step ' + Math.min(n,3) + ' of 3';
+  if (lbl) lbl.textContent = labels[Math.min(n,3)] || '';
+  document.querySelectorAll('#calib-steps .dot').forEach(d=>{
+    const s = parseInt(d.dataset.step,10);
+    d.classList.toggle('done', s < n);
+    d.classList.toggle('active', s === n);
+  });
+  document.querySelectorAll('#calib-steps .bar').forEach(b=>{
+    const s = parseInt(b.dataset.bar,10);
+    b.classList.toggle('done', s < n);
+  });
+}
+// Briefly flash the stage outline so user sees Clear/lock action visually
+function flashCorners(){
+  const s = document.getElementById('stage');
+  if (!s) return;
+  s.classList.remove('flash');
+  // force reflow so consecutive flashes restart the animation
+  void s.offsetWidth;
+  s.classList.add('flash');
+  setTimeout(()=>s.classList.remove('flash'), 600);
 }
 
 // ---- Feature pills ----
@@ -886,9 +951,10 @@ $('#mode-seg').addEventListener('click', (e)=>{
   cornersImg = null; homography = null; homographyInv = null;
   $('#target-status').textContent='—';
   log('Mode → '+mode);
-  if (mode==='aruco') $('#calib-hint').textContent = 'ArUco: print the 4 markers (link below), tape one to each corner (IDs 0=TL, 1=TR, 2=BR, 3=BL). Detection is automatic — just point the camera.';
-  if (mode==='manual') $('#calib-hint').textContent = 'Manual: tap Calibrate, then tap the four corners on the video in order: top-left → top-right → bottom-right → bottom-left.';
-  if (mode==='auto') $('#calib-hint').textContent = 'Auto: tap Calibrate. The largest bright quadrilateral in view will be locked as the target. Re-calibrate if the camera moves.';
+  if (mode==='aruco') $('#calib-hint').textContent = 'Print the 4 corner markers, tape one to each corner of your target (IDs 0=TL, 1=TR, 2=BR, 3=BL), then point the camera at it. Detection happens automatically.';
+  if (mode==='manual') $('#calib-hint').textContent = 'Tap Lock target, then tap each corner on the video in order: top-left → top-right → bottom-right → bottom-left.';
+  if (mode==='auto') $('#calib-hint').textContent = 'Tap Lock target. The largest bright rectangle in view becomes your target. Re-lock if the camera moves.';
+  setStep(1);
 });
 function $$(s){ return document.querySelectorAll(s); }
 
@@ -913,22 +979,31 @@ stage.addEventListener('click', (ev)=>{
   const iy = cropY + sy*cropH;
 
   if (aimSetting){
-    if (!homography){ log('Calibrate the target first','warn'); aimSetting=false; $('#btn-aim').textContent='Set Aim'; return; }
+    if (!homography){ log('Calibrate the target first','warn'); aimSetting=false; $('#btn-aim').textContent='Set aim point'; return; }
     const n = applyH(homography, ix, iy);
     aimTargetNorm = { x:clamp01(n.x), y:clamp01(n.y) };
-    aimSetting = false; $('#btn-aim').textContent='Set Aim';
+    aimSetting = false; $('#btn-aim').textContent='Set aim point';
     log(`Aim point set @ target (${(aimTargetNorm.x*100).toFixed(0)}%, ${(aimTargetNorm.y*100).toFixed(0)}%)`,'ok');
+    toast('Aim point locked — ready to shoot', 'ok');
+    setStep(3);
+    flashCorners();
     return;
   }
   if (calibrating && mode==='manual'){
     manualPts.push({x:ix, y:iy});
     log(`Corner ${manualPts.length}/4 set`);
+    $('#btn-calib').textContent = 'Cancel (' + manualPts.length + '/4)';
     if (manualPts.length===4){
       cornersImg = manualPts.slice();
       computeHomography();
-      calibrating=false; $('#btn-calib').textContent='Calibrate';
+      calibrating=false; $('#btn-calib').textContent='Lock target';
       log('Manual calibration complete','ok');
       $('#target-status').textContent='locked';
+      toast('Target locked — now pick your aim point', 'ok', 2400);
+      setStep(2);
+      flashCorners();
+    } else {
+      toast(`Corner ${manualPts.length} of 4`, 'info', 1200);
     }
   }
 });
@@ -937,22 +1012,44 @@ stage.addEventListener('click', (ev)=>{
 $('#btn-calib').addEventListener('click', ()=>{
   if (mode==='manual'){
     calibrating = !calibrating;
-    if (calibrating){ manualPts=[]; cornersImg=null; homography=null; $('#btn-calib').textContent='Cancel ('+manualPts.length+'/4)'; log('Tap 4 corners: TL → TR → BR → BL'); }
-    else { $('#btn-calib').textContent='Calibrate'; }
+    if (calibrating){
+      manualPts=[]; cornersImg=null; homography=null;
+      $('#btn-calib').textContent='Cancel (0/4)';
+      log('Tap 4 corners: TL → TR → BR → BL');
+      toast('Tap each corner of your target', 'info');
+    }
+    else { $('#btn-calib').textContent='Lock target'; }
   } else if (mode==='auto'){
+    toast('Looking for the target…', 'info', 1400);
     runAutoRectDetect();
   } else if (mode==='aruco'){
     log('ArUco runs continuously — point the camera at the markers');
+    toast('Point camera at the 4 markers', 'info');
   }
 });
 $('#btn-aim').addEventListener('click', ()=>{
-  if (!homography){ log('Calibrate target first','warn'); return; }
+  if (!homography){
+    log('Lock the target first','warn');
+    toast('Lock the target first', 'warn');
+    return;
+  }
   aimSetting = !aimSetting;
-  $('#btn-aim').textContent = aimSetting ? 'Tap target…' : 'Set Aim';
+  $('#btn-aim').textContent = aimSetting ? 'Tap target…' : 'Set aim point';
+  if (aimSetting){
+    setStep(3);
+    toast('Tap where you’re aiming on the target', 'info', 2400);
+  }
 });
 $('#btn-clear').addEventListener('click', ()=>{
   manualPts=[]; cornersImg=null; homography=null; homographyInv=null; aimTargetNorm=null; trailing=[];
-  $('#target-status').textContent='—'; log('Calibration cleared');
+  $('#target-status').textContent='—';
+  $('#btn-calib').textContent='Lock target';
+  $('#btn-aim').textContent='Set aim point';
+  calibrating=false; aimSetting=false;
+  setStep(1);
+  log('Calibration cleared');
+  toast('Calibration cleared — start over when ready', 'warn', 1800);
+  flashCorners();
 });
 
 // ---- View toggle ----
@@ -1020,7 +1117,19 @@ function frameLoop(){
 
     // status badges
     $('#laser-status').textContent = laserImg ? 'tracking' : 'no dot';
-    $('#target-status').textContent = homography ? (mode==='aruco' ? 'ArUco lock' : 'locked') : '—';
+    const ts = homography ? (mode==='aruco' ? 'ArUco lock' : 'locked') : '—';
+    const tEl = $('#target-status');
+    if (tEl.textContent !== ts){
+      tEl.textContent = ts;
+      // first-time ArUco lock — advance the step indicator + nudge user
+      if (homography && mode==='aruco' && !window._arucoAnnounced){
+        window._arucoAnnounced = true;
+        toast('ArUco target locked — pick your aim point', 'ok', 2400);
+        setStep(2);
+        flashCorners();
+      }
+      if (!homography){ window._arucoAnnounced = false; }
+    }
   }
   frameCount++;
   requestAnimationFrame(frameLoop);
@@ -1146,6 +1255,10 @@ function runAutoRectDetect(){
   cornersImg = [tl, tr, br, bl];
   computeHomography();
   log(`Auto rect locked (${bestPass}, ${(bestArea/frameArea*100).toFixed(0)}% of frame)`, 'ok');
+  $('#target-status').textContent = 'locked';
+  toast('Target locked — now pick your aim point', 'ok', 2400);
+  setStep(2);
+  flashCorners();
 }
 
 // Aspect ratio of a quad (longer side / shorter side after picking opposing edges)
@@ -1499,7 +1612,16 @@ function onClickDetected(source, intensity){
     $('#ss-avg').textContent = avg.toFixed(1);
     $('#ss-best').textContent = best.toFixed(1);
   }
-  toast(`${devIn.toFixed(2)}” · ${moa.toFixed(1)} MOA · ${score}`, score>=80 ? 'ok' : (score>=50 ? 'warn' : 'bad'));
+  // Fun, varied shot copy — same data, friendlier tone
+  const cheer = score>=95 ? 'Bullseye! ' : score>=85 ? 'Nice grouping. ' : score>=70 ? 'Solid hit. ' : score>=50 ? 'Close. ' : score>=30 ? 'Off-center — keep going. ' : 'Wide. Reset and try again. ';
+  toast(`${cheer}${devIn.toFixed(2)}” · ${moa.toFixed(1)} MOA · ${score}`, score>=80 ? 'ok' : (score>=50 ? 'warn' : 'bad'), 2200);
+  const hTag = document.getElementById('hero-tag');
+  if (hTag){
+    hTag.textContent = score>=85 ? 'Hot streak' : score>=50 ? 'On target' : 'Off the mark';
+    hTag.style.color = score>=85 ? 'var(--yellow)' : score>=50 ? 'var(--mint)' : 'var(--rust)';
+    hTag.style.borderColor = score>=85 ? 'rgba(250,226,50,0.45)' : score>=50 ? 'rgba(159,211,181,0.35)' : 'rgba(232,131,107,0.4)';
+    hTag.style.background = score>=85 ? 'rgba(250,226,50,0.08)' : score>=50 ? 'rgba(159,211,181,0.07)' : 'rgba(232,131,107,0.06)';
+  }
   log(`SHOT [${source}] ${devIn.toFixed(2)}in / ${moa.toFixed(1)}MOA → ${score}`,'ok');
 }
 
@@ -1516,7 +1638,7 @@ $('#btn-start').addEventListener('click', async ()=>{
   if (sessionArmed){
     // Toggle off
     setArmed(false);
-    $('#btn-start').textContent = 'Start Session';
+    $('#btn-start').textContent = 'Start session';
     toast('Session stopped', 'warn');
     return;
   }
@@ -1530,7 +1652,7 @@ $('#btn-start').addEventListener('click', async ()=>{
   }
   if (!aimTargetNorm && homography){ aimTargetNorm = {x:0.5, y:0.5}; log('Default aim set to target center'); }
   setArmed(true);
-  $('#btn-start').textContent = 'Stop Session';
+  $('#btn-start').textContent = 'Stop session';
   if (!homography){
     toast('Live — calibrate the target to score shots', 'warn', 2800);
   } else {
@@ -1540,7 +1662,7 @@ $('#btn-start').addEventListener('click', async ()=>{
 // Manual TEST SHOT — fires a synthetic click so the user can verify the pipeline
 // without needing a real laser bore-sighter, mic-detected click, or BLE sensor.
 function testShot(){
-  if (!sessionArmed){ setArmed(true); $('#btn-start').textContent='Stop Session'; }
+  if (!sessionArmed){ setArmed(true); $('#btn-start').textContent='Stop session'; }
   if (homography && !laserNorm){
     // Fabricate a random laser position near aim for demonstration purposes
     const ax = (aimTargetNorm && aimTargetNorm.x) || 0.5;
@@ -1553,6 +1675,7 @@ function testShot(){
   setTimeout(()=>{ if (!laserImg) laserNorm = null; }, 100);
 }
 $('#btn-reset').addEventListener('click', ()=>{
+  const had = sessionShots.length;
   sessionShots = []; trailing=[];
   $('#ss-shots').textContent='0'; $('#ss-avg').textContent='—'; $('#ss-best').textContent='—';
   ['s-in','s-moa','s-score'].forEach(id=>{
@@ -1560,10 +1683,13 @@ $('#btn-reset').addEventListener('click', ()=>{
     if(el){ el.textContent='—'; el.classList.add('empty'); el.classList.remove('bad','warn'); }
   });
   const sb=document.getElementById('score-bar'); if(sb) sb.style.setProperty('--score-cover', 1);
+  const hTag = document.getElementById('hero-tag');
+  if (hTag){ hTag.textContent = 'Ready'; hTag.style.color=''; hTag.style.borderColor=''; hTag.style.background=''; }
   setArmed(false);
-  $('#btn-start').textContent = 'Start Session';
-  toast('Session reset', 'warn');
+  $('#btn-start').textContent = 'Start session';
+  toast(had ? `Cleared ${had} shot${had===1?'':'s'} — fresh start` : 'Already clean — ready when you are', 'warn', 2000);
   log('Session reset');
+  flashCorners();
 });
 const btnTest = document.getElementById('btn-test');
 if (btnTest) btnTest.addEventListener('click', testShot);
