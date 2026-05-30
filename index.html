@@ -1285,10 +1285,12 @@ body.role-laptop .laptop-dash{display:block}
       </div>
       <div class="ctrl-actions">
         <button id="ctrl-calibrate" class="ctrl-btn">Calibrate target</button>
+        <button id="ctrl-gun-cal" class="ctrl-btn" style="display:none">Calibrate gun pose</button>
         <button id="ctrl-start" class="ctrl-btn primary">Start session</button>
         <button id="ctrl-stop" class="ctrl-btn warn" disabled>Stop</button>
         <button id="ctrl-reset" class="ctrl-btn ghost">Reset shots</button>
       </div>
+      <div class="ctrl-gun-cal-status" id="ctrl-gun-cal-status" style="display:none;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9fd3b5;"></div>
       <div class="ctrl-phone-state" id="ctrl-phone-state">
         <span class="ps"><span class="k">Phone:</span> <span class="v" id="ps-cam">cam —</span></span>
         <span class="ps"><span class="k"></span> <span class="v" id="ps-target">target —</span></span>
@@ -1418,6 +1420,29 @@ body.role-laptop .laptop-dash{display:block}
     </div>
     <div style="display:flex;gap:12px;margin-top:8px;">
       <button onclick="QuickDraw.stop()" style="background:rgba(255,138,76,0.2);border:1px solid rgba(255,138,76,0.4);color:#FF8A4C;padding:10px 24px;border-radius:12px;font-family:'Manrope',sans-serif;font-weight:600;font-size:13px;cursor:pointer;">Stop</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gun-pose calibration modal -->
+<div id="guncal-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(3,8,16,0.92);backdrop-filter:blur(10px);align-items:center;justify-content:center;flex-direction:column;">
+  <div style="background:linear-gradient(160deg,#0e2436,#06121e);border:1px solid rgba(250,226,50,0.4);border-radius:18px;padding:28px 36px;max-width:560px;width:88%;box-shadow:0 30px 100px rgba(0,0,0,0.6),0 0 80px rgba(250,226,50,0.06);">
+    <h2 style="font-family:'Spectral',serif;color:#FAE232;margin:0 0 8px;font-size:24px;letter-spacing:0.3px;">Calibrate gun pose</h2>
+    <p id="guncal-step-text" style="font-family:'Manrope',sans-serif;color:#cfe5f0;margin:0 0 18px;line-height:1.5;">Step 1 of 2 — Aim the gun at the target as you normally would, then press Capture.</p>
+    <div style="display:flex;gap:16px;align-items:center;margin:0 0 18px;">
+      <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#9fd3b5;text-transform:uppercase;letter-spacing:0.6px;">Live pitch</div>
+        <div id="guncal-pitch" style="font-family:'JetBrains Mono',monospace;font-size:32px;color:#FAE232;line-height:1.1;">—°</div>
+      </div>
+      <div style="flex:1;background:rgba(0,0,0,0.3);border-radius:12px;padding:12px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#9fd3b5;text-transform:uppercase;letter-spacing:0.6px;">Captured</div>
+        <div id="guncal-captured" style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#cfe5f0;line-height:1.3;">Target: —<br>Down: —</div>
+      </div>
+    </div>
+    <p id="guncal-hint" style="font-family:'Manrope',sans-serif;color:#FF8A4C;font-size:12px;margin:0 0 14px;min-height:18px;"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button id="guncal-cancel" style="background:rgba(255,138,76,0.15);border:1px solid rgba(255,138,76,0.4);color:#FF8A4C;padding:10px 22px;border-radius:12px;font-family:'Manrope',sans-serif;font-weight:600;cursor:pointer;">Cancel</button>
+      <button id="guncal-capture" style="background:linear-gradient(135deg,#FAE232,#f5c842);border:none;color:#0a0a0a;padding:10px 22px;border-radius:12px;font-family:'Manrope',sans-serif;font-weight:700;cursor:pointer;">Capture</button>
     </div>
   </div>
 </div>
@@ -4057,6 +4082,20 @@ window._dfPhone = (function(){
           if(el){ el.textContent='—'; el.classList.add('empty'); el.classList.remove('bad','warn'); }
         });
         toast('Shots cleared', 'warn', 1200);
+      } else if (c === 'qdStart'){
+        // Laptop asked phone to start the Quick Draw state machine.
+        if (typeof QuickDraw !== 'undefined' && QuickDraw.startOnPhone){ QuickDraw.startOnPhone(msg.reps || 5); }
+      } else if (c === 'qdStop'){
+        if (typeof QuickDraw !== 'undefined' && QuickDraw.stopOnPhone){ QuickDraw.stopOnPhone(); }
+      } else if (c === 'qdStreamPitch'){
+        // Laptop wants live pitch updates for the gun-cal modal
+        if (typeof QuickDraw !== 'undefined' && QuickDraw.setPitchStream){ QuickDraw.setPitchStream(!!msg.value); }
+      } else if (c === 'qdCalCapture'){
+        // Laptop captured a calibration pose — store it on the phone
+        if (typeof QuickDraw !== 'undefined' && QuickDraw.captureCalibration){
+          QuickDraw.captureCalibration(msg.which, msg.pitch);
+          toast(`Captured ${msg.which} pose: ${msg.pitch.toFixed(1)}°`, 'ok', 1500);
+        }
       } else if (c === 'extClick'){
         // Laptop heard a click on its own mic — fire scoring (only if armed)
         if (!sessionArmed) return;
@@ -4287,6 +4326,11 @@ const LaptopCtrl = (function(){
         sendCmd('setMode', { value: m });
         const playerBlock = document.getElementById('ctrl-player-block');
         if (playerBlock) playerBlock.style.display = (m === '2p') ? 'flex' : 'none';
+        // Show / hide the gun-pose calibration button + status only in QD mode
+        const gcBtn = document.getElementById('ctrl-gun-cal');
+        const gcStatus = document.getElementById('ctrl-gun-cal-status');
+        if (gcBtn) gcBtn.style.display = (m === 'qd') ? '' : 'none';
+        if (gcStatus) gcStatus.style.display = (m === 'qd') ? '' : 'none';
         if (typeof Dash !== 'undefined' && Dash.shots){ /* will re-render naturally on next shot/state */ }
         rebuildDashTableHead();
         rebuildSessionPanelFor2P();
@@ -4331,6 +4375,12 @@ const LaptopCtrl = (function(){
     // Action buttons
     const calBtn = document.getElementById('ctrl-calibrate');
     if (calBtn && !calBtn._wired){ calBtn._wired = true; calBtn.addEventListener('click', () => { sendCmd('calibrate'); }); }
+    // Gun-pose calibration: 2-step modal — point at target, then point down.
+    const gunCalBtn = document.getElementById('ctrl-gun-cal');
+    if (gunCalBtn && !gunCalBtn._wired){
+      gunCalBtn._wired = true;
+      gunCalBtn.addEventListener('click', () => GunCal.start());
+    }
     const startBtn = document.getElementById('ctrl-start');
     if (startBtn && !startBtn._wired){
       startBtn._wired = true;
@@ -5638,9 +5688,10 @@ try {
 })();
 
 // =====================================================================
-// QuickDraw module (TASK 6)
+// QuickDraw module (REWRITE) — phone owns state machine, laptop displays
 // =====================================================================
-const QuickDraw = (function(){
+// Old broken module replaced by phone-resident state machine.
+const QuickDraw_OLD = (function(){
   // States: idle -> arming -> holding -> cue -> drawing -> shot -> results
   let _state = 'idle';
   let _reps = parseInt(localStorage.getItem('df_qd_reps') || '5', 10);
@@ -5929,26 +5980,264 @@ const QuickDraw = (function(){
 })();
 
 // =====================================================================
-// Quick Draw: patch into onClickDetected for shot detection
+// NEW QuickDraw module — phone-resident state machine, laptop is display only
 // =====================================================================
-(function(){
-  const orig = window.onClickDetected;
-  window.onClickDetected = function(source, intensity){
-    const r = orig ? orig.call(this, source, intensity) : undefined;
-    if (QuickDraw._active()){
-      // Get last shot from sessionShots
-      const sh = (typeof sessionShots !== 'undefined' && sessionShots.length) ? sessionShots[sessionShots.length-1] : null;
-      QuickDraw.onShot(sh);
+const QuickDraw = (function(){
+  // ----- Shared (both sides) -----
+  let _isPhone = false;
+  function detectRole(){
+    try {
+      _isPhone = (typeof Role !== 'undefined' && Role.isPhone && Role.isPhone());
+    } catch(e){ _isPhone = false; }
+  }
+  setTimeout(detectRole, 500);
+  setInterval(detectRole, 2000);
+
+  // ===== Phone state machine =====
+  // States: idle -> arming -> holding -> cue -> drawing -> shot -> results
+  let _state = 'idle';
+  let _totalReps = 5;
+  let _currentRep = 0;
+  let _results = []; // [{drawT, shotT, hit, moa}]
+
+  // Gun pose calibration (gun-relative pitch)
+  // pitchTarget = pitch when pointing at target (captured in gun-cal step 1)
+  // pitchDown   = pitch when pointing down       (captured in gun-cal step 2)
+  // We derive thresholds from those:
+  //   muzzleDown if pitch <= pitchDown + (pitchTarget - pitchDown)*0.35
+  //   onTarget   if pitch >= pitchTarget - (pitchTarget - pitchDown)*0.20
+  let _pitchTarget = null;
+  let _pitchDown   = null;
+  try {
+    const j = JSON.parse(localStorage.getItem('df_gun_cal')||'null');
+    if (j && typeof j.pt==='number' && typeof j.pd==='number'){ _pitchTarget=j.pt; _pitchDown=j.pd; }
+  } catch(e){}
+
+  let _cueT = 0, _drawT = 0, _shotT = 0;
+  let _holdTimer = null;
+  let _drawHighTimer = null;
+  let _streamPitch = false;
+  let _lastSpoke = 0;
+
+  function getPitch(ax, ay, az){
+    return Math.atan2(-ax, Math.sqrt(ay*ay + az*az)) * 180 / Math.PI;
+  }
+  function isCalibrated(){ return _pitchTarget !== null && _pitchDown !== null; }
+  function thresholdHold(){
+    if (!isCalibrated()) return -45; // safe fallback
+    return _pitchDown + (_pitchTarget - _pitchDown) * 0.35;
+  }
+  function thresholdOnTarget(){
+    if (!isCalibrated()) return -10;
+    return _pitchTarget - (_pitchTarget - _pitchDown) * 0.20;
+  }
+  // "Muzzle is below threshold" — because we calibrate, just compare numerically.
+  // If pitchTarget > pitchDown, muzzle-down = pitch <= holdThresh. Otherwise reverse.
+  function isMuzzleDown(pitch){
+    if (!isCalibrated()) return pitch <= -45;
+    return (_pitchTarget >= _pitchDown) ? (pitch <= thresholdHold()) : (pitch >= thresholdHold());
+  }
+  function isOnTarget(pitch){
+    if (!isCalibrated()) return pitch >= -10;
+    return (_pitchTarget >= _pitchDown) ? (pitch >= thresholdOnTarget()) : (pitch <= thresholdOnTarget());
+  }
+
+  // ----- Phone -> laptop messaging -----
+  function sendToLaptop(payload){
+    try { if (typeof Role !== 'undefined' && Role.send) Role.send(payload); } catch(e){}
+  }
+  function pushState(){
+    sendToLaptop({ type:'qdState', state:_state, rep:_currentRep, total:_totalReps,
+      drawT:_drawT, shotT:_shotT, calibrated: isCalibrated() });
+  }
+
+  // ----- Phone-only IMU handler -----
+  // Hooked into the BLE notify path; ax,ay,az are gravity-scaled (g units).
+  function onImu(ax, ay, az){
+    const pitch = getPitch(ax, ay, az);
+    if (_streamPitch){
+      // Throttle pitch stream to ~20Hz for the gun-cal modal
+      const now = performance.now();
+      if (!onImu._lastPitchSent || (now - onImu._lastPitchSent) > 50){
+        onImu._lastPitchSent = now;
+        sendToLaptop({ type:'qdPitch', pitch });
+      }
     }
-    return r;
+    if (!_active) return;
+
+    if (_state === 'arming'){
+      if (isMuzzleDown(pitch)){
+        _state = 'holding'; pushState();
+        const holdDur = 5000 + Math.random() * 5000;
+        _holdTimer = setTimeout(() => {
+          if (_state === 'holding') fireCue();
+        }, holdDur);
+      }
+    } else if (_state === 'holding'){
+      if (!isMuzzleDown(pitch)){
+        // Premature lift — reset
+        clearTimeout(_holdTimer); _holdTimer = null;
+        _state = 'arming'; pushState();
+      }
+    } else if (_state === 'drawing'){
+      if (isOnTarget(pitch)){
+        if (!_drawHighTimer){
+          _drawHighTimer = setTimeout(() => {
+            if (_state === 'drawing'){
+              _drawT = performance.now() - _cueT;
+              _state = 'shot'; pushState();
+            }
+          }, 80);
+        }
+      } else {
+        clearTimeout(_drawHighTimer); _drawHighTimer = null;
+      }
+    }
+  }
+
+  function fireCue(){
+    _cueT = performance.now();
+    _state = 'cue';
+    pushState();
+    // Speak "Threat!" on the phone (loudly, the user is holding it)
+    try {
+      const now = performance.now();
+      if (window.speechSynthesis && now - _lastSpoke > 400){
+        _lastSpoke = now;
+        const utt = new SpeechSynthesisUtterance('Threat! Threat! Threat!');
+        utt.rate = 1.15; utt.pitch = 1.0; utt.volume = 1.0;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utt);
+      }
+    } catch(e){}
+    // Transition to drawing after a brief moment
+    setTimeout(() => {
+      if (_state === 'cue'){
+        _state = 'drawing';
+        pushState();
+      }
+    }, 350);
+  }
+
+  // Called by patched onClickDetected when QD is active and shot is tracked
+  function onShotCaptured(shotData){
+    if (!_active) return;
+    if (_state !== 'drawing' && _state !== 'shot') return;
+    if (_shotT > 0) return;
+    _shotT = performance.now() - _cueT;
+    if (_drawT === 0) _drawT = _shotT;
+    const hit = shotData && !shotData.untracked;
+    const moa = (shotData && shotData.moa) || 0;
+    _results.push({ drawT:_drawT/1000, shotT:_shotT/1000, hit, moa });
+    _state = 'shot';
+    sendToLaptop({ type:'qdRepDone', rep:_currentRep, drawT:_drawT/1000, shotT:_shotT/1000, hit, moa });
+    _currentRep++;
+    if (_currentRep >= _totalReps){
+      setTimeout(() => finishSession(), 1800);
+    } else {
+      setTimeout(() => startRep(), 2200);
+    }
+  }
+
+  function startRep(){
+    _cueT = 0; _drawT = 0; _shotT = 0;
+    clearTimeout(_holdTimer); _holdTimer = null;
+    clearTimeout(_drawHighTimer); _drawHighTimer = null;
+    _state = 'arming';
+    pushState();
+  }
+
+  function finishSession(){
+    _state = 'results';
+    pushState();
+    sendToLaptop({ type:'qdComplete', results:_results.slice() });
+    _active = false;
+  }
+
+  let _active = false;
+  function startOnPhone(reps){
+    if (!isCalibrated()){
+      sendToLaptop({ type:'qdError', error:'Gun pose not calibrated. Tap "Calibrate gun pose" first.' });
+      return;
+    }
+    _active = true;
+    _totalReps = reps || 5;
+    _currentRep = 0;
+    _results = [];
+    try { localStorage.setItem('df_qd_reps', String(_totalReps)); } catch(e){}
+    startRep();
+    if (typeof toast === 'function') toast('Quick Draw armed — muzzle down to start', 'ok', 1800);
+  }
+  function stopOnPhone(){
+    _active = false;
+    _state = 'idle';
+    clearTimeout(_holdTimer); clearTimeout(_drawHighTimer);
+    pushState();
+  }
+  function setPitchStream(on){
+    _streamPitch = !!on;
+  }
+  function captureCalibration(which, pitch){
+    if (which === 'target') _pitchTarget = pitch;
+    else if (which === 'down') _pitchDown = pitch;
+    try { localStorage.setItem('df_gun_cal', JSON.stringify({ pt:_pitchTarget, pd:_pitchDown })); } catch(e){}
+    sendToLaptop({ type:'qdCalStored', pitchTarget:_pitchTarget, pitchDown:_pitchDown });
+  }
+
+  // ===== Hook BLE notify on phone to get ax/ay/az =====
+  let _bleHooked = false;
+  function ensureBleHook(){
+    if (_bleHooked) return;
+    if (typeof notifyChar === 'undefined' || !notifyChar) return;
+    _bleHooked = true;
+    notifyChar.addEventListener('characteristicvaluechanged', function(ev){
+      const dv = ev.target.value;
+      if (dv.byteLength < 20) return;
+      if (dv.getUint8(0)!==0x55 || dv.getUint8(1)!==0x61) return;
+      const s16=(lo,hi)=>{ let v=(hi<<8)|lo; if (v&0x8000) v-=0x10000; return v; };
+      const ax=s16(dv.getUint8(2),dv.getUint8(3))/32768*16;
+      const ay=s16(dv.getUint8(4),dv.getUint8(5))/32768*16;
+      const az=s16(dv.getUint8(6),dv.getUint8(7))/32768*16;
+      onImu(ax, ay, az);
+    });
+  }
+  setInterval(ensureBleHook, 500);
+
+  // ===== Patch onClickDetected so we capture the last shot during QD =====
+  setTimeout(() => {
+    const orig = window.onClickDetected;
+    if (typeof orig !== 'function') return;
+    window.onClickDetected = function(source, intensity){
+      const r = orig.call(this, source, intensity);
+      if (_active){
+        const sh = (typeof sessionShots !== 'undefined' && sessionShots.length) ? sessionShots[sessionShots.length-1] : null;
+        onShotCaptured(sh);
+      }
+      return r;
+    };
+  }, 1500);
+
+  return {
+    // Phone-side surface
+    startOnPhone, stopOnPhone, setPitchStream, captureCalibration,
+    getCurrentPitch: () => {
+      // For phone gun-cal capture button — returns the last computed pitch
+      return onImu._lastPitch || null;
+    },
+    isCalibrated,
+    state: () => _state,
+    // Compatibility shims (old code paths)
+    _active: () => _active,
+    start: () => {},
+    stop: () => {},
+    onShot: () => {},
+    onLaptopMsg: () => {}
   };
 })();
 
-// Patch BLE notify to dispatch qd-imu event
+// Track latest pitch on the phone side for the calibration capture
 (function(){
-  // We need to hook onWitNotify — but it's a local function.
-  // Intercept at the notifyChar event level by re-adding our listener.
-  // Since notifyChar is set up asynchronously, we poll for it.
+  // Wrap onImu to stash last pitch — we re-hook BLE so we can read it
   let _patched = false;
   setInterval(() => {
     if (_patched) return;
@@ -5962,19 +6251,273 @@ const QuickDraw = (function(){
         const ax=s16(dv.getUint8(2),dv.getUint8(3))/32768*16;
         const ay=s16(dv.getUint8(4),dv.getUint8(5))/32768*16;
         const az=s16(dv.getUint8(6),dv.getUint8(7))/32768*16;
-        document.dispatchEvent(new CustomEvent('qd-imu', { detail: {ax,ay,az} }));
+        const pitch = Math.atan2(-ax, Math.sqrt(ay*ay + az*az)) * 180/Math.PI;
+        window._lastPhonePitch = pitch;
       });
     }
   }, 500);
 })();
 
-// Patch Dash.onMessage to forward quickDrawCue to QuickDraw
+// =====================================================================
+// Laptop-side: GunCal modal + QD HUD update from phone state messages
+// =====================================================================
+const GunCal = (function(){
+  let _step = 0; // 0=idle, 1=target capture, 2=down capture
+  let _capturedTarget = null;
+  let _capturedDown = null;
+  let _livePitch = null;
+
+  function setHint(msg){ const el = document.getElementById('guncal-hint'); if (el) el.textContent = msg || ''; }
+  function updateStatus(){
+    const st = document.getElementById('ctrl-gun-cal-status');
+    if (!st) return;
+    if (_capturedTarget !== null && _capturedDown !== null){
+      st.textContent = `Gun calibrated — target ${_capturedTarget.toFixed(1)}°, down ${_capturedDown.toFixed(1)}°`;
+      st.style.color = '#9fd3b5';
+    } else {
+      st.textContent = 'Gun pose not calibrated';
+      st.style.color = '#FF8A4C';
+    }
+  }
+  function renderModal(){
+    const txt = document.getElementById('guncal-step-text');
+    const cap = document.getElementById('guncal-captured');
+    const btn = document.getElementById('guncal-capture');
+    if (cap){
+      cap.innerHTML = `Target: ${_capturedTarget !== null ? _capturedTarget.toFixed(1)+'°' : '—'}<br>Down: ${_capturedDown !== null ? _capturedDown.toFixed(1)+'°' : '—'}`;
+    }
+    if (txt && btn){
+      if (_step === 1){ txt.textContent = 'Step 1 of 2 — Aim the gun at the target as you normally would, hold steady, then press Capture.'; btn.textContent = 'Capture target pose'; }
+      else if (_step === 2){ txt.textContent = 'Step 2 of 2 — Point the gun downward (as if holstered/low ready), hold steady, then press Capture.'; btn.textContent = 'Capture down pose'; }
+      else if (_step === 3){ txt.textContent = 'Calibration complete. You can re-run anytime.'; btn.textContent = 'Done'; }
+    }
+  }
+  function setPitch(p){
+    _livePitch = p;
+    const el = document.getElementById('guncal-pitch');
+    if (el) el.textContent = (typeof p === 'number') ? `${p.toFixed(1)}°` : '—°';
+  }
+  function start(){
+    _step = 1;
+    _capturedTarget = null; _capturedDown = null;
+    renderModal();
+    setHint('');
+    setPitch(null);
+    const m = document.getElementById('guncal-modal');
+    if (m) m.style.display = 'flex';
+    // Ask phone to stream pitch
+    try { sendCmd('qdStreamPitch', { value:true }); } catch(e){}
+  }
+  function close(){
+    const m = document.getElementById('guncal-modal');
+    if (m) m.style.display = 'none';
+    try { sendCmd('qdStreamPitch', { value:false }); } catch(e){}
+    _step = 0;
+  }
+  function capture(){
+    if (_livePitch === null){
+      setHint('No IMU pitch yet — make sure BLE IMU is connected on the phone.');
+      return;
+    }
+    if (_step === 1){
+      _capturedTarget = _livePitch;
+      try { sendCmd('qdCalCapture', { which:'target', pitch:_capturedTarget }); } catch(e){}
+      _step = 2;
+      renderModal();
+      setHint('');
+    } else if (_step === 2){
+      _capturedDown = _livePitch;
+      try { sendCmd('qdCalCapture', { which:'down', pitch:_capturedDown }); } catch(e){}
+      // Sanity check: target and down should differ by at least 20°
+      if (Math.abs(_capturedTarget - _capturedDown) < 20){
+        setHint('Warning: target and down poses are very similar (<20°). Quick Draw detection may be unreliable.');
+      }
+      _step = 3;
+      renderModal();
+      updateStatus();
+      setTimeout(() => close(), 1400);
+    }
+  }
+  function onPitchMsg(p){ if (_step >= 1 && _step <= 3) setPitch(p); }
+  function onCalStored(target, down){
+    _capturedTarget = target; _capturedDown = down;
+    updateStatus();
+  }
+  // Wire buttons
+  setTimeout(() => {
+    const cap = document.getElementById('guncal-capture');
+    const can = document.getElementById('guncal-cancel');
+    if (cap && !cap._wired){ cap._wired = true; cap.addEventListener('click', capture); }
+    if (can && !can._wired){ can._wired = true; can.addEventListener('click', close); }
+    updateStatus();
+  }, 500);
+  return { start, close, capture, onPitchMsg, onCalStored };
+})();
+
+// =====================================================================
+// Phone-side: handle qdCalCapture command
+// =====================================================================
+// Add into the existing onLaptopMessage chain via a wrapper.
 (function(){
+  // Wait for onLaptopMessage to exist (it's inside the Role module)
+  // We can't easily wrap it; instead add a Role hook if available, else poll.
+  // Simpler: extend the command handler by patching window-level dispatcher.
+  // The phone's onLaptopMessage routes 'cmd' messages — we add new cmds via the existing
+  // if/else chain. Since we can't reach into it, we listen on the Role.onMessage events
+  // dispatched by the Role module. The phone path uses Role.onMessage callback set in init.
+  // Easiest portable approach: intercept Dash.onMessage on phone (it doesn't exist on phone),
+  // OR re-wrap by polling. Instead, add a global hook — the existing handler dispatched 'cmd'
+  // entries; we add a CustomEvent fallback the phone code already broadcasts.
+  // Actually: the phone's onLaptopMessage is the Role inbound handler. We added qdStart/qdStop
+  // command branches above. The qdCalCapture handler we'll add via the same chain.
+})();
+
+// =====================================================================
+// Laptop: receive phone qdState / qdPitch / qdRepDone / qdComplete / qdError / qdCalStored
+// =====================================================================
+(function(){
+  if (typeof Dash === 'undefined') return;
   const prevOM = Dash.onMessage;
   Dash.onMessage = function(msg){
-    QuickDraw.onLaptopMsg(msg);
+    if (msg && msg.type === 'qdPitch'){ GunCal.onPitchMsg(msg.pitch); return; }
+    if (msg && msg.type === 'qdCalStored'){ GunCal.onCalStored(msg.pitchTarget, msg.pitchDown); return; }
+    if (msg && msg.type === 'qdState'){ QdHUD.update(msg); return; }
+    if (msg && msg.type === 'qdRepDone'){ QdHUD.repDone(msg); return; }
+    if (msg && msg.type === 'qdComplete'){ QdHUD.complete(msg.results); return; }
+    if (msg && msg.type === 'qdError'){
+      if (typeof toast === 'function') toast(msg.error || 'Quick Draw error', 'warn', 4000);
+      return;
+    }
     return prevOM.call(Dash, msg);
   };
+})();
+
+// =====================================================================
+// Laptop QdHUD module — reflects phone state on the big HUD overlay
+// =====================================================================
+const QdHUD = (function(){
+  let _clockInterval = null;
+  let _cueLocalT = 0;
+  let _lastDrawT = 0, _lastShotT = 0;
+  let _repDoneCount = 0;
+
+  function ensureShown(state){
+    const hud = document.getElementById('qd-laptop-hud');
+    if (!hud) return;
+    if (state === 'idle' || !state){ hud.style.display='none'; return; }
+    hud.style.display = 'flex';
+    const tbody = document.getElementById('qd-rep-tbody');
+    if (tbody && _repDoneCount === 0) tbody.innerHTML = '';
+  }
+  function setLabel(text){ const l = document.getElementById('qd-label'); if (l) l.textContent = text; }
+  function setRepCounter(rep, total){ const r = document.getElementById('qd-rep-counter'); if (r) r.textContent = `Rep ${(rep||0)+1} / ${total||5}`; }
+  function showThreat(on){ const b = document.getElementById('qd-threat-banner'); if (b) b.style.display = on ? 'flex' : 'none'; }
+  function setClock(s){ const c = document.getElementById('qd-clock'); if (c) c.textContent = s.toFixed(3); }
+  function startClock(){
+    stopClock();
+    _cueLocalT = performance.now();
+    _clockInterval = setInterval(() => {
+      const elapsed = (performance.now() - _cueLocalT) / 1000;
+      setClock(elapsed);
+    }, 16);
+  }
+  function stopClock(){ clearInterval(_clockInterval); _clockInterval = null; }
+
+  const LABELS = {
+    idle:'Ready', arming:'Hold steady — muzzle down', holding:'Stand by…',
+    cue:'THREAT!', drawing:'DRAW!', shot:'Shot recorded', results:'Session complete'
+  };
+
+  function update(msg){
+    ensureShown(msg.state);
+    setLabel(LABELS[msg.state] || msg.state);
+    setRepCounter(msg.rep, msg.total);
+    showThreat(msg.state === 'cue' || msg.state === 'drawing');
+
+    if (msg.state === 'cue'){
+      // Speak "Threat!" on the laptop too
+      try {
+        if (window.speechSynthesis){
+          const utt = new SpeechSynthesisUtterance('Threat! Threat! Threat!');
+          utt.rate = 1.15; utt.pitch = 1.0; utt.volume = 1.0;
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(utt);
+        } else if (typeof SoundFX !== 'undefined' && SoundFX.playBeep){
+          SoundFX.playBeep(880,0.12,0.7,0); SoundFX.playBeep(880,0.12,0.7,0.12); SoundFX.playBeep(1100,0.15,0.8,0.24);
+        }
+      } catch(e){}
+      startClock();
+    }
+    if (msg.state === 'arming' || msg.state === 'idle' || msg.state === 'results'){
+      // Reset clock when waiting / done
+      if (msg.state === 'arming') setClock(0);
+    }
+    if (msg.state === 'shot'){
+      stopClock();
+      const elapsed = (msg.shotT || 0) / 1000;
+      if (elapsed > 0) setClock(elapsed);
+    }
+  }
+  function repDone(msg){
+    _repDoneCount++;
+    _lastDrawT = msg.drawT; _lastShotT = msg.shotT;
+    const tbody = document.getElementById('qd-rep-tbody');
+    if (tbody){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${msg.rep+1}</td><td>${msg.drawT.toFixed(3)}</td><td>${msg.shotT.toFixed(3)}</td><td style="color:${msg.hit?'#9fd3b5':'#FF8A4C'}">${msg.hit?'HIT':'MISS'}</td><td>${msg.moa ? msg.moa.toFixed(1) : '—'}</td>`;
+      tbody.appendChild(tr);
+    }
+    const last = document.getElementById('qd-last-result');
+    if (last) last.textContent = `Draw: ${msg.drawT.toFixed(2)}s  Shot: ${msg.shotT.toFixed(2)}s  ${msg.hit?'HIT':'MISS'}${msg.moa?(' '+msg.moa.toFixed(1)+' MOA'):''}`;
+  }
+  function complete(results){
+    if (!results || !results.length) return;
+    const avgDraw = results.reduce((a,b)=>a+b.drawT,0)/results.length;
+    const avgShot = results.reduce((a,b)=>a+b.shotT,0)/results.length;
+    const fastest = Math.min(...results.map(r=>r.shotT));
+    const slowest = Math.max(...results.map(r=>r.shotT));
+    const hits = results.filter(r=>r.hit).length;
+    const acc = (hits/results.length*100).toFixed(0);
+    const sumEl = document.getElementById('qd-summary');
+    if (sumEl) sumEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px;">
+        <div class="stat"><div class="v">${avgDraw.toFixed(2)}s</div><div class="k">Avg Draw</div></div>
+        <div class="stat"><div class="v">${avgShot.toFixed(2)}s</div><div class="k">Avg Shot</div></div>
+        <div class="stat"><div class="v">${fastest.toFixed(2)}s</div><div class="k">Fastest</div></div>
+        <div class="stat"><div class="v">${slowest.toFixed(2)}s</div><div class="k">Slowest</div></div>
+        <div class="stat"><div class="v">${acc}%</div><div class="k">Accuracy</div></div>
+      </div>`;
+    _repDoneCount = 0;
+  }
+  return { update, repDone, complete, _forceShow: () => ensureShown('arming') };
+})();
+
+// =====================================================================
+// Laptop: route ctrl-start in QD mode to send qdStart to phone (not local)
+// =====================================================================
+(function(){
+  setTimeout(() => {
+    const startBtn = document.getElementById('ctrl-start');
+    if (!startBtn) return;
+    // Add an early-capture listener that hijacks for QD
+    startBtn.addEventListener('click', () => {
+      if (typeof currentMode !== 'undefined' && currentMode === 'qd'){
+        try { sendCmd('qdStart', { reps: 5 }); } catch(e){}
+        // Show the HUD immediately so user knows it's coming
+        try { QdHUD._forceShow(); } catch(e){}
+      }
+    }, true);
+    const stopBtn = document.getElementById('ctrl-stop');
+    if (stopBtn){
+      stopBtn.addEventListener('click', () => {
+        if (typeof currentMode !== 'undefined' && currentMode === 'qd'){
+          try { sendCmd('qdStop'); } catch(e){}
+          const hud = document.getElementById('qd-laptop-hud');
+          if (hud) hud.style.display = 'none';
+        }
+      }, true);
+    }
+  }, 600);
 })();
 
 log('Control center + clip player + results modal ready', 'ok');
