@@ -334,6 +334,13 @@
     border:1px solid var(--line);
   }
   button.action.tertiary:hover{color:var(--text);border-color:var(--line-2);}
+  button.action.glow{
+    border-color:rgba(250,226,50,0.32);
+    color:var(--yellow);
+    background:linear-gradient(180deg, rgba(250,226,50,0.10) 0%, rgba(250,226,50,0.03) 100%);
+    box-shadow:0 0 0 1px rgba(250,226,50,0.10), 0 6px 18px rgba(250,226,50,0.10);
+  }
+  button.action.glow:hover{border-color:rgba(250,226,50,0.55);box-shadow:0 0 0 1px rgba(250,226,50,0.20), 0 8px 22px rgba(250,226,50,0.18);}
 
   /* ── Panel cards ────────────────────────────────────────────────────── */
   .panel{
@@ -373,6 +380,21 @@
     position:relative;overflow:hidden;
   }
   .hero .panel-head{margin-bottom:14px;}
+  .hero h2{
+    margin:0;font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:0.20em;font-weight:700;
+    display:inline-flex;align-items:center;gap:10px;
+  }
+  .hero h2::before{
+    content:"";width:14px;height:1px;background:var(--yellow-dim);
+  }
+  .hero .panel-tag{
+    font-size:9px;color:var(--yellow-dim);letter-spacing:0.18em;font-weight:700;
+    text-transform:uppercase;
+    font-family:'JetBrains Mono', monospace;
+    padding:3px 8px;border:1px solid rgba(250,226,50,0.20);border-radius:6px;
+    background:rgba(250,226,50,0.04);
+  }
   .hero-grid{
     display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:end;
   }
@@ -662,7 +684,7 @@
       <div class="field"><label>Distance</label><input id="in-dist" type="number" step="0.5" value="15" /><span class="unit">ft</span></div>
     </div>
     <div class="row3" style="margin-top:14px;">
-      <button class="action primary" id="btn-calib">Calibrate</button>
+      <button class="action secondary glow" id="btn-calib">Calibrate</button>
       <button class="action secondary" id="btn-aim">Set Aim</button>
       <button class="action tertiary" id="btn-clear">Clear</button>
     </div>
