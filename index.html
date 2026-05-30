@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0a0a" />
+<title>Dry-Fire Aim Coach</title>
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --panel: #14161a;
+    --panel-2: #1c1f25;
+    --text: #f1f3f5;
+    --muted: #9aa0a6;
+    --accent: #4ade80;
+    --accent-2: #38bdf8;
+    --warn: #f59e0b;
+    --bad: #ef4444;
+    --border: #262a31;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+    overscroll-behavior: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  body {
+    min-height: 100dvh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    display: flex; flex-direction: column;
+  }
+  header {
+    padding: 12px 14px 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+  }
+  header h1 { font-size: 16px; margin: 0; font-weight: 600; letter-spacing: 0.2px; }
+  .pill {
+    font-size: 11px; padding: 3px 8px; border-radius: 999px;
+    background: var(--panel-2); color: var(--muted); border: 1px solid var(--border);
+  }
+  .pill.ok { color: var(--accent); border-color: #1f3a2a; }
+  .pill.bad { color: var(--bad); border-color: #3a1f1f; }
+  .pill.warn { color: var(--warn); border-color: #3a2e1f; }
+
+  main { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+
+  .stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .stage video, .stage canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .stage .overlay { pointer-events: none; }
+
+  .crosshair {
+    position: absolute; left: 50%; top: 50%;
+    width: 18px; height: 18px;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(74, 222, 128, 0.85);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .crosshair::before, .crosshair::after {
+    content: ""; position: absolute; background: rgba(74,222,128,0.85);
+  }
+  .crosshair::before { left: 50%; top: -8px; width: 2px; height: 34px; transform: translateX(-50%); }
+  .crosshair::after { top: 50%; left: -8px; height: 2px; width: 34px; transform: translateY(-50%); }
+
+  .badge {
+    position: absolute; top: 8px; left: 8px;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+    padding: 6px 10px; border-radius: 8px;
+    font-size: 12px; color: #e5e7eb; line-height: 1.3;
+  }
+  .badge .row { display: flex; gap: 6px; align-items: center; }
+
+  .controls {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  button.btn {
+    appearance: none; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text);
+    padding: 12px 8px; border-radius: 10px; font-size: 13px;
+    font-weight: 500;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer;
+    transition: transform 0.05s ease, background 0.15s ease;
+  }
+  button.btn:active { transform: scale(0.97); background: var(--panel-2); }
+  button.btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+  button.btn.active { border-color: var(--accent); color: var(--accent); }
+  button.btn .label { font-size: 11px; color: var(--muted); }
+  button.btn.active .label { color: var(--accent); }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  button.action {
+    padding: 14px; border-radius: 10px; font-weight: 600; font-size: 14px;
+    border: none; cursor: pointer;
+  }
+  button.action.primary { background: var(--accent); color: #052e15; }
+  button.action.secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .panel h2 {
+    margin: 0 0 8px; font-size: 13px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600;
+  }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat { background: var(--panel-2); border-radius: 8px; padding: 8px; text-align: center; }
+  .stat .v { font-size: 18px; font-weight: 700; }
+  .stat .l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  #log {
+    background: #0e1014; border-radius: 8px; padding: 8px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px; color: #cdd3da;
+    max-height: 130px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+    border: 1px solid var(--border);
+  }
+  #log .err { color: var(--bad); }
+  #log .ok { color: var(--accent); }
+  #log .warn { color: var(--warn); }
+
+  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+
+  details { background: var(--panel-2); border-radius: 8px; padding: 8px 12px; border: 1px solid var(--border); }
+  details summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+  details[open] summary { margin-bottom: 6px; }
+
+  @media (min-width: 720px) {
+    main { max-width: 480px; margin: 0 auto; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Dry-Fire Aim Coach</h1>
+  <div class="row" style="display:flex;gap:6px;">
+    <span class="pill" id="pill-secure">ctx</span>
+    <span class="pill" id="pill-ble">BLE</span>
+  </div>
+</header>
+
+<main>
+  <div class="stage" id="stage">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="overlay" class="overlay"></canvas>
+    <div class="crosshair"></div>
+    <div class="badge" id="badge">
+      <div class="row">Laser: <span id="laser-status">—</span></div>
+      <div class="row">Audio: <span id="audio-status">—</span></div>
+      <div class="row">IMU: <span id="imu-status">—</span></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btn-cam">📷<span class="label">Camera</span></button>
+    <button class="btn" id="btn-mic">🎙<span class="label">Mic</span></button>
+    <button class="btn" id="btn-ble">📡<span class="label">BLE IMU</span></button>
+  </div>
+
+  <div class="row2">
+    <button class="action primary" id="btn-start">Start Session</button>
+    <button class="action secondary" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="panel">
+    <h2>Last Shot</h2>
+    <div class="stats">
+      <div class="stat"><div class="v" id="s-dev">—</div><div class="l">Deviation px</div></div>
+      <div class="stat"><div class="v" id="s-jerk">—</div><div class="l">Jerk (g)</div></div>
+      <div class="stat"><div class="v" id="s-score">—</div><div class="l">Score</div></div>
+    </div>
+    <div class="hint">Tap the video to set a new target point. Pull trigger — click is detected by mic spike and/or IMU shock.</div>
+  </div>
+
+  <div class="panel">
+    <h2>Session</h2>
+    <div class="stats">
+      <div class="stat"><div class="v" id="ss-shots">0</div><div class="l">Shots</div></div>
+      <div class="stat"><div class="v" id="ss-avg">—</div><div class="l">Avg score</div></div>
+      <div class="stat"><div class="v" id="ss-best">—</div><div class="l">Best</div></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>Diagnostics</summary>
+    <div id="log"></div>
+  </details>
+</main>
+
+<script>
+/* =========================================================
+   Dry-Fire Aim Coach
+   - Camera: getUserMedia, laser blob tracking (HSV-ish red)
+   - Mic: WebAudio analyser, transient spike = click
+   - BLE: Web Bluetooth, WitMotion BWT901BLE5.0 protocol
+   ========================================================= */
+
+const $ = (s) => document.querySelector(s);
+const logEl = $('#log');
+
+function log(msg, kind='') {
+  const t = new Date().toLocaleTimeString();
+  const div = document.createElement('div');
+  if (kind) div.className = kind;
+  div.textContent = `[${t}] ${msg}`;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+// ---- Secure context / feature pills ----
+(function initPills(){
+  const sec = $('#pill-secure');
+  if (window.isSecureContext) { sec.textContent = 'HTTPS'; sec.classList.add('ok'); }
+  else { sec.textContent = 'INSECURE'; sec.classList.add('bad'); }
+
+  const ble = $('#pill-ble');
+  if (navigator.bluetooth) { ble.textContent = 'Web BT ok'; ble.classList.add('ok'); }
+  else { ble.textContent = 'No Web BT'; ble.classList.add('bad'); }
+})();
+
+// ---- Camera + laser tracking ----
+const video = $('#video');
+const overlay = $('#overlay');
+const octx = overlay.getContext('2d', { willReadFrequently: false });
+let camStream = null;
+let trackBuf = document.createElement('canvas');
+let trackCtx = trackBuf.getContext('2d', { willReadFrequently: true });
+const TRACK_W = 160, TRACK_H = 213; // small downscaled frame for analysis
+trackBuf.width = TRACK_W; trackBuf.height = TRACK_H;
+
+let targetPoint = null; // {x, y} in overlay (full) coords
+let laserPos = null;    // {x, y} in overlay coords
+let lastLaser = null;
+let trailing = [];      // recent laser positions
+
+async function startCamera() {
+  try {
+    if (camStream) { stopCamera(); return; }
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    camStream = stream;
+    video.srcObject = stream;
+    await video.play();
+    $('#btn-cam').classList.add('active');
+    log('Camera started', 'ok');
+    resizeOverlay();
+    requestAnimationFrame(trackLoop);
+  } catch (e) {
+    log('Camera error: ' + e.message, 'err');
+  }
+}
+function stopCamera() {
+  if (!camStream) return;
+  camStream.getTracks().forEach(t => t.stop());
+  camStream = null;
+  video.srcObject = null;
+  $('#btn-cam').classList.remove('active');
+  log('Camera stopped');
+}
+
+function resizeOverlay() {
+  const r = video.getBoundingClientRect();
+  overlay.width = r.width * devicePixelRatio;
+  overlay.height = r.height * devicePixelRatio;
+  overlay.style.width = r.width + 'px';
+  overlay.style.height = r.height + 'px';
+}
+window.addEventListener('resize', resizeOverlay);
+
+// Tap to set target
+$('#stage').addEventListener('click', (ev) => {
+  const r = overlay.getBoundingClientRect();
+  const x = (ev.clientX - r.left) / r.width;
+  const y = (ev.clientY - r.top) / r.height;
+  targetPoint = { x, y }; // normalized
+  log(`Target set (${x.toFixed(2)}, ${y.toFixed(2)})`);
+});
+
+function trackLoop() {
+  if (!camStream) return;
+  if (video.readyState >= 2) {
+    // draw downscaled
+    trackCtx.drawImage(video, 0, 0, TRACK_W, TRACK_H);
+    const img = trackCtx.getImageData(0, 0, TRACK_W, TRACK_H);
+    const d = img.data;
+    // find brightest reddish pixel
+    let best = -1, bx = -1, by = -1;
+    let sumX = 0, sumY = 0, sumW = 0;
+    for (let y = 0; y < TRACK_H; y++) {
+      for (let x = 0; x < TRACK_W; x++) {
+        const i = (y * TRACK_W + x) * 4;
+        const r = d[i], g = d[i+1], b = d[i+2];
+        // crude "red dominance + bright"
+        const redness = r - Math.max(g, b);
+        if (r > 180 && redness > 60) {
+          const score = r + redness;
+          if (score > best) { best = score; bx = x; by = y; }
+          // centroid weighting
+          sumX += x * score; sumY += y * score; sumW += score;
+        }
+      }
+    }
+    if (sumW > 0) {
+      const cx = sumX / sumW / TRACK_W;
+      const cy = sumY / sumW / TRACK_H;
+      laserPos = { x: cx, y: cy }; // normalized
+      $('#laser-status').textContent = 'tracking';
+      trailing.push({ ...laserPos, t: performance.now() });
+      if (trailing.length > 30) trailing.shift();
+    } else {
+      laserPos = null;
+      $('#laser-status').textContent = 'no dot';
+    }
+
+    drawOverlay();
+  }
+  requestAnimationFrame(trackLoop);
+}
+
+function drawOverlay() {
+  octx.clearRect(0, 0, overlay.width, overlay.height);
+  const W = overlay.width, H = overlay.height;
+  // trail
+  octx.lineWidth = 2 * devicePixelRatio;
+  octx.strokeStyle = 'rgba(56,189,248,0.7)';
+  octx.beginPath();
+  trailing.forEach((p, i) => {
+    const x = p.x * W, y = p.y * H;
+    if (i === 0) octx.moveTo(x, y); else octx.lineTo(x, y);
+  });
+  octx.stroke();
+
+  // target
+  if (targetPoint) {
+    const tx = targetPoint.x * W, ty = targetPoint.y * H;
+    octx.strokeStyle = 'rgba(245,158,11,0.9)';
+    octx.lineWidth = 2 * devicePixelRatio;
+    octx.beginPath(); octx.arc(tx, ty, 14 * devicePixelRatio, 0, Math.PI * 2); octx.stroke();
+    octx.beginPath(); octx.moveTo(tx - 22*devicePixelRatio, ty); octx.lineTo(tx + 22*devicePixelRatio, ty); octx.stroke();
+    octx.beginPath(); octx.moveTo(tx, ty - 22*devicePixelRatio); octx.lineTo(tx, ty + 22*devicePixelRatio); octx.stroke();
+  }
+
+  // current laser
+  if (laserPos) {
+    const lx = laserPos.x * W, ly = laserPos.y * H;
+    octx.fillStyle = 'rgba(239,68,68,0.95)';
+    octx.beginPath(); octx.arc(lx, ly, 6 * devicePixelRatio, 0, Math.PI * 2); octx.fill();
+  }
+}
+
+// ---- Microphone click detection ----
+let audioCtx, analyser, micStream, micData;
+let micRunning = false;
+let audioBaseline = 0;
+let lastClickTs = 0;
+
+async function startMic() {
+  try {
+    if (micRunning) { stopMic(); return; }
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false, noiseSuppression: false, autoGainControl: false
+      }
+    });
+    micStream = stream;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    src.connect(analyser);
+    micData = new Float32Array(analyser.fftSize);
+    micRunning = true;
+    $('#btn-mic').classList.add('active');
+    $('#audio-status').textContent = 'listening';
+    log('Mic started', 'ok');
+    micLoop();
+  } catch (e) {
+    log('Mic error: ' + e.message, 'err');
+  }
+}
+function stopMic() {
+  if (!micRunning) return;
+  micStream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close();
+  micRunning = false;
+  $('#btn-mic').classList.remove('active');
+  $('#audio-status').textContent = '—';
+  log('Mic stopped');
+}
+
+function micLoop() {
+  if (!micRunning) return;
+  analyser.getFloatTimeDomainData(micData);
+  // peak amplitude
+  let peak = 0;
+  for (let i = 0; i < micData.length; i++) {
+    const a = Math.abs(micData[i]);
+    if (a > peak) peak = a;
+  }
+  // rolling baseline
+  audioBaseline = audioBaseline * 0.97 + peak * 0.03;
+  const now = performance.now();
+  // click = sharp transient well above baseline
+  if (peak > Math.max(0.18, audioBaseline * 6) && now - lastClickTs > 350) {
+    lastClickTs = now;
+    onClickDetected('mic', peak);
+  }
+  requestAnimationFrame(micLoop);
+}
+
+// ---- BLE WitMotion ----
+const WT_SERVICE = '0000ffe5-0000-1000-8000-00805f9a34fb';
+const WT_NOTIFY  = '0000ffe4-0000-1000-8000-00805f9a34fb';
+const WT_WRITE   = '0000ffe9-0000-1000-8000-00805f9a34fb';
+
+let bleDevice = null, bleServer = null, notifyChar = null;
+let lastAccel = { x: 0, y: 0, z: 0, t: 0 };
+let recentAccelMag = []; // for shock detection
+let recentGyro = [];
+
+async function connectBLE() {
+  if (!navigator.bluetooth) {
+    log('Web Bluetooth not supported in this browser. On Android, use Chrome (not Firefox/Samsung Internet). On iOS, no browser supports Web Bluetooth.', 'err');
+    return;
+  }
+  try {
+    log('Requesting BLE device...');
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [
+        { namePrefix: 'WT' },
+        { namePrefix: 'BWT' },
+        { services: [WT_SERVICE] }
+      ],
+      optionalServices: [WT_SERVICE]
+    });
+    bleDevice.addEventListener('gattserverdisconnected', () => {
+      log('BLE disconnected', 'warn');
+      $('#btn-ble').classList.remove('active');
+      $('#imu-status').textContent = '—';
+    });
+    log('Connecting to GATT...');
+    bleServer = await bleDevice.gatt.connect();
+    const svc = await bleServer.getPrimaryService(WT_SERVICE);
+    notifyChar = await svc.getCharacteristic(WT_NOTIFY);
+    await notifyChar.startNotifications();
+    notifyChar.addEventListener('characteristicvaluechanged', onWitNotify);
+    $('#btn-ble').classList.add('active');
+    $('#imu-status').textContent = 'connected';
+    log('BLE connected: ' + bleDevice.name, 'ok');
+  } catch (e) {
+    log('BLE error: ' + e.message, 'err');
+  }
+}
+
+function onWitNotify(ev) {
+  const dv = ev.target.value;
+  // WitMotion default packet: 0x55 0x61 + 18 bytes (Ax,Ay,Az,Gx,Gy,Gz,RollPitchYaw)
+  if (dv.byteLength < 20) return;
+  if (dv.getUint8(0) !== 0x55 || dv.getUint8(1) !== 0x61) return;
+
+  const s16 = (lo, hi) => {
+    let v = (hi << 8) | lo;
+    if (v & 0x8000) v -= 0x10000;
+    return v;
+  };
+  const ax = s16(dv.getUint8(2),  dv.getUint8(3))  / 32768 * 16;
+  const ay = s16(dv.getUint8(4),  dv.getUint8(5))  / 32768 * 16;
+  const az = s16(dv.getUint8(6),  dv.getUint8(7))  / 32768 * 16;
+  const gx = s16(dv.getUint8(8),  dv.getUint8(9))  / 32768 * 2000;
+  const gy = s16(dv.getUint8(10), dv.getUint8(11)) / 32768 * 2000;
+  const gz = s16(dv.getUint8(12), dv.getUint8(13)) / 32768 * 2000;
+
+  const mag = Math.sqrt(ax*ax + ay*ay + az*az);
+  const now = performance.now();
+  lastAccel = { x: ax, y: ay, z: az, t: now };
+  recentAccelMag.push({ m: mag, t: now });
+  if (recentAccelMag.length > 60) recentAccelMag.shift();
+  recentGyro.push({ x: gx, y: gy, z: gz, t: now });
+  if (recentGyro.length > 60) recentGyro.shift();
+
+  // shock detection: |a - 1g| spike
+  const dev = Math.abs(mag - 1.0);
+  if (dev > 1.2 && now - lastClickTs > 350) {
+    lastClickTs = now;
+    onClickDetected('imu', dev);
+  }
+  $('#imu-status').textContent = `a=${mag.toFixed(2)}g`;
+}
+
+// ---- Shot scoring ----
+let sessionShots = [];
+
+function onClickDetected(source, intensity) {
+  // measure deviation from target at moment of click
+  if (!targetPoint || !laserPos) {
+    log(`Click (${source}, ${intensity.toFixed(2)}) — no target/laser`, 'warn');
+    return;
+  }
+  const dx = (laserPos.x - targetPoint.x);
+  const dy = (laserPos.y - targetPoint.y);
+  const rect = overlay.getBoundingClientRect();
+  const pxDev = Math.sqrt((dx*rect.width)**2 + (dy*rect.height)**2);
+  // estimate jerk: recent gyro magnitude burst
+  let jerk = 0;
+  if (recentGyro.length > 5) {
+    const tail = recentGyro.slice(-10);
+    const peak = Math.max(...tail.map(g => Math.sqrt(g.x*g.x + g.y*g.y + g.z*g.z)));
+    jerk = peak / 100; // rough scaled value
+  }
+  const score = Math.max(0, Math.round(100 - pxDev * 0.6 - jerk * 4));
+
+  $('#s-dev').textContent = pxDev.toFixed(0);
+  $('#s-jerk').textContent = jerk.toFixed(2);
+  $('#s-score').textContent = score;
+  sessionShots.push({ score, dev: pxDev, jerk, source, t: Date.now() });
+  $('#ss-shots').textContent = sessionShots.length;
+  const avg = sessionShots.reduce((a,b)=>a+b.score,0) / sessionShots.length;
+  const best = Math.max(...sessionShots.map(s=>s.score));
+  $('#ss-avg').textContent = avg.toFixed(0);
+  $('#ss-best').textContent = best;
+  log(`SHOT [${source}] dev=${pxDev.toFixed(0)}px jerk=${jerk.toFixed(2)} → ${score}`, 'ok');
+  // flash
+  flash();
+}
+
+function flash() {
+  const s = $('#stage');
+  s.style.boxShadow = '0 0 0 3px rgba(74,222,128,0.7)';
+  setTimeout(() => s.style.boxShadow = '', 200);
+}
+
+// ---- Buttons ----
+$('#btn-cam').addEventListener('click', startCamera);
+$('#btn-mic').addEventListener('click', startMic);
+$('#btn-ble').addEventListener('click', connectBLE);
+$('#btn-start').addEventListener('click', async () => {
+  if (!camStream) await startCamera();
+  if (!micRunning) await startMic();
+  if (!bleServer && navigator.bluetooth) {
+    log('Tap "BLE IMU" to connect your accelerometer when ready.', 'warn');
+  }
+  if (!targetPoint) {
+    targetPoint = { x: 0.5, y: 0.5 };
+    log('Default target set to center. Tap video to change.');
+  }
+});
+$('#btn-reset').addEventListener('click', () => {
+  sessionShots = [];
+  $('#ss-shots').textContent = '0';
+  $('#ss-avg').textContent = '—';
+  $('#ss-best').textContent = '—';
+  $('#s-dev').textContent = '—';
+  $('#s-jerk').textContent = '—';
+  $('#s-score').textContent = '—';
+  trailing = [];
+  log('Session reset');
+});
+
+// initial diag
+log('Build: dry-fire coach v1');
+log('UA: ' + navigator.userAgent);
+if (!navigator.mediaDevices) log('mediaDevices unavailable — needs HTTPS', 'err');
+if (!navigator.bluetooth) log('Web Bluetooth unavailable in this browser', 'warn');
+
+</script>
+</body>
+</html>
