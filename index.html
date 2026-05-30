@@ -591,6 +591,169 @@
   .steps .bar.done{background:rgba(159,211,181,0.55);}
   .steps .label{margin-left:6px;color:var(--text-1);font-weight:600;letter-spacing:-0.005em;}
 
+  /* ── Setup wizard modal ─────────────────────────────────────────────── */
+  .wiz-backdrop{
+    position:fixed;inset:0;z-index:200;
+    background:rgba(8,9,10,0.82);
+    backdrop-filter:blur(10px) saturate(1.2);
+    -webkit-backdrop-filter:blur(10px) saturate(1.2);
+    display:none;align-items:center;justify-content:center;
+    padding:18px;
+    animation:wiz-fade .25s ease;
+  }
+  .wiz-backdrop.open{display:flex;}
+  @keyframes wiz-fade { from{opacity:0;} to{opacity:1;} }
+  @keyframes wiz-slide { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
+  .wiz{
+    width:100%;max-width:480px;max-height:calc(100dvh - 36px);
+    background:linear-gradient(180deg, var(--surface) 0%, #131517 100%);
+    border:1px solid var(--line);
+    border-radius:22px;
+    box-shadow:0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(250,226,50,0.08);
+    overflow:hidden;
+    display:flex;flex-direction:column;
+    animation:wiz-slide .3s cubic-bezier(.22,1,.36,1);
+  }
+  .wiz-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 18px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  .wiz-head h3{
+    margin:0;font-size:15px;color:var(--text-1);font-weight:700;letter-spacing:-0.01em;
+    display:flex;align-items:center;gap:9px;
+  }
+  .wiz-head h3::before{
+    content:"";width:7px;height:7px;border-radius:50%;
+    background:var(--yellow);box-shadow:0 0 0 3px rgba(250,226,50,0.16);
+  }
+  .wiz-close{
+    background:transparent;border:1px solid var(--line);color:var(--text-2);
+    width:30px;height:30px;border-radius:10px;cursor:pointer;
+    font-size:16px;line-height:1;font-family:inherit;
+  }
+  .wiz-close:hover{color:var(--text-1);border-color:var(--text-2);}
+
+  .wiz-body{
+    padding:18px;overflow-y:auto;flex:1;
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .wiz-screen{display:none;flex-direction:column;gap:14px;animation:wiz-slide .25s ease;}
+  .wiz-screen.on{display:flex;}
+  .wiz-screen h4{
+    margin:0;font-size:16px;color:var(--text-1);font-weight:700;letter-spacing:-0.01em;
+  }
+  .wiz-screen p{
+    margin:0;color:var(--text-2);font-size:13px;line-height:1.55;
+  }
+  .wiz-screen .lead{color:var(--text-1);}
+
+  .wiz-diagram{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    display:flex;align-items:center;justify-content:center;
+    min-height:160px;
+  }
+  .wiz-diagram svg{width:100%;max-width:340px;height:auto;}
+
+  .wiz-tips{
+    list-style:none;padding:0;margin:0;
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .wiz-tips li{
+    display:flex;gap:11px;align-items:flex-start;
+    color:var(--text-2);font-size:13px;line-height:1.5;
+  }
+  .wiz-tips li .tag{
+    flex:none;font-size:10px;font-weight:700;
+    color:var(--yellow);
+    background:rgba(250,226,50,0.10);
+    border:1px solid rgba(250,226,50,0.25);
+    padding:3px 8px;border-radius:999px;
+    min-width:44px;text-align:center;
+  }
+  .wiz-tips li.good .tag{color:var(--mint);background:rgba(159,211,181,0.10);border-color:rgba(159,211,181,0.30);}
+  .wiz-tips li.warn .tag{color:var(--sand);background:rgba(217,199,160,0.10);border-color:rgba(217,199,160,0.30);}
+  .wiz-tips li.bad .tag{color:var(--rust);background:rgba(232,131,107,0.10);border-color:rgba(232,131,107,0.30);}
+
+  .wiz-mode-grid{
+    display:grid;grid-template-columns:1fr;gap:9px;
+  }
+  .wiz-mode{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:13px 14px;
+    display:flex;gap:12px;align-items:flex-start;
+    text-align:left;cursor:pointer;
+    font-family:inherit;color:var(--text-1);
+    transition:border-color .2s ease, background .2s ease, transform .08s ease;
+  }
+  .wiz-mode:hover{border-color:rgba(250,226,50,0.40);background:var(--surface-3);}
+  .wiz-mode:active{transform:scale(.99);}
+  .wiz-mode .badge-l{
+    flex:none;width:36px;height:36px;border-radius:10px;
+    background:rgba(250,226,50,0.10);
+    border:1px solid rgba(250,226,50,0.30);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;color:var(--yellow);font-size:14px;
+  }
+  .wiz-mode .t{font-weight:700;font-size:14px;letter-spacing:-0.01em;color:var(--text-1);}
+  .wiz-mode .d{font-size:12px;color:var(--text-2);margin-top:3px;line-height:1.5;}
+  .wiz-mode .rec{
+    display:inline-block;font-size:9px;font-weight:700;color:var(--mint);
+    background:rgba(159,211,181,0.12);border:1px solid rgba(159,211,181,0.30);
+    padding:2px 7px;border-radius:999px;margin-left:6px;letter-spacing:0.02em;
+    vertical-align:1px;
+  }
+
+  .wiz-foot{
+    padding:12px 18px 14px;
+    border-top:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(0,0,0,0.18);
+  }
+  .wiz-dots{display:flex;gap:6px;}
+  .wiz-dots span{
+    width:6px;height:6px;border-radius:50%;background:var(--surface-3);
+    transition:background .2s ease, width .2s ease;
+  }
+  .wiz-dots span.on{background:var(--yellow);width:18px;border-radius:3px;}
+  .wiz-actions{display:flex;gap:8px;}
+  .wiz-btn{
+    padding:9px 14px;border-radius:10px;
+    font-family:inherit;font-size:12.5px;font-weight:600;
+    border:1px solid var(--line);background:var(--surface-2);color:var(--text-1);
+    cursor:pointer;letter-spacing:-0.005em;
+  }
+  .wiz-btn:hover{background:var(--surface-3);}
+  .wiz-btn.primary{
+    background:linear-gradient(180deg, var(--yellow) 0%, #e6cc1c 100%);
+    color:#1a1700;border-color:transparent;
+  }
+  .wiz-btn.primary:hover{filter:brightness(1.05);}
+  .wiz-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  /* Inline link to open the wizard from the calib panel */
+  .help-link{
+    display:inline-flex;align-items:center;gap:6px;
+    margin-top:8px;
+    font-size:12px;color:var(--mint);
+    cursor:pointer;text-decoration:none;
+    background:none;border:none;font-family:inherit;
+    padding:0;letter-spacing:-0.005em;font-weight:500;
+  }
+  .help-link:hover{color:var(--yellow);}
+  .help-link::before{
+    content:"?";display:inline-flex;align-items:center;justify-content:center;
+    width:16px;height:16px;border-radius:50%;
+    background:rgba(159,211,181,0.15);border:1px solid rgba(159,211,181,0.4);
+    color:var(--mint);font-size:10px;font-weight:700;
+  }
+  .help-link:hover::before{background:rgba(250,226,50,0.15);border-color:rgba(250,226,50,0.5);color:var(--yellow);}
+
   details{
     background:var(--surface);
     border-radius:var(--radius-md);padding:12px 14px;
@@ -748,6 +911,7 @@
     </div>
     <div class="hint" id="calib-hint">Print the 4 corner markers, tape one to each corner of your target, then point the camera at it. Detection is automatic.</div>
     <a class="link" id="btn-print" href="#">Print one-page target sheet</a>
+    <button class="help-link" id="btn-setup-help" type="button">Where should I put the camera?</button>
   </div>
 
   <div class="row3 actions">
@@ -788,6 +952,115 @@
     <div id="log"></div>
   </details>
 </main>
+
+<!-- ============================ Setup wizard ============================ -->
+<div class="wiz-backdrop" id="wiz" role="dialog" aria-modal="true" aria-labelledby="wiz-title">
+  <div class="wiz">
+    <div class="wiz-head">
+      <h3 id="wiz-title">Camera setup</h3>
+      <button class="wiz-close" id="wiz-close" aria-label="Close">✕</button>
+    </div>
+    <div class="wiz-body">
+
+      <!-- Screen 1 — Where to put the camera -->
+      <div class="wiz-screen on" data-screen="1">
+        <h4>Where should the camera be?</h4>
+        <p class="lead">Place your phone on a tripod or stand <strong>off to the side of the target line</strong> — between you and the target, looking sideways at the target. It does <em>not</em> need to be straight-on.</p>
+        <div class="wiz-diagram" aria-label="Top-down camera placement diagram">
+          <svg viewBox="0 0 340 180" xmlns="http://www.w3.org/2000/svg">
+            <!-- Floor / scene -->
+            <rect x="4" y="4" width="332" height="172" rx="10" fill="#0d0e0f" stroke="#2c3034"/>
+            <!-- Shooter -->
+            <g transform="translate(30,90)">
+              <circle r="10" fill="#1a1c1f" stroke="#9FD3B5" stroke-width="1.5"/>
+              <text y="30" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#9FD3B5" font-weight="600">You</text>
+            </g>
+            <!-- Bore line -->
+            <line x1="42" y1="90" x2="300" y2="90" stroke="#FAE232" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.75"/>
+            <text x="170" y="82" text-anchor="middle" font-family="Manrope, sans-serif" font-size="9" fill="#FAE232" font-weight="600" letter-spacing="0.04em">LINE OF AIM</text>
+            <!-- Target -->
+            <g transform="translate(305,90)">
+              <rect x="-7" y="-22" width="14" height="44" rx="2" fill="#1a1c1f" stroke="#fff" stroke-width="1"/>
+              <circle r="7" fill="#fff"/>
+              <circle r="3" fill="#000"/>
+              <text y="36" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#fff" font-weight="600">Target</text>
+            </g>
+            <!-- Camera (recommended) -->
+            <g transform="translate(170,140)">
+              <rect x="-14" y="-9" width="28" height="18" rx="4" fill="#1a1c1f" stroke="#FAE232" stroke-width="1.5"/>
+              <circle cx="0" cy="0" r="4" fill="#FAE232"/>
+              <!-- View cone toward target -->
+              <path d="M0,-8 L132,-42 L132,-58 L0,-8 Z" transform="rotate(-22)" fill="#FAE232" opacity="0.10" stroke="#FAE232" stroke-width="0.7" opacity="0.45"/>
+              <text y="22" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" fill="#FAE232" font-weight="700">Phone (side angle)</text>
+            </g>
+            <!-- Distance annotation -->
+            <text x="170" y="172" text-anchor="middle" font-family="Manrope, sans-serif" font-size="9" fill="#9c9c9c">~3–6 ft from the target line, aimed at the target</text>
+          </svg>
+        </div>
+        <ul class="wiz-tips">
+          <li class="good"><span class="tag">Best</span><span>Phone on a tripod off to one side, <strong>3–6 feet from the target</strong>, lens pointed AT the target. Tilt up to 30° off perpendicular is fine — the app corrects perspective.</span></li>
+          <li class="good"><span class="tag">Best</span><span>The whole printed sheet fills at least <strong>half the camera view</strong>. The 4 corner markers must all be visible.</span></li>
+          <li class="warn"><span class="tag">OK</span><span>Camera farther back is OK if markers stay sharp — zoom <em>out</em>, never in. Pinch-zoom blurs the markers.</span></li>
+          <li class="bad"><span class="tag">Avoid</span><span>Don’t put the phone behind you aimed downrange — muzzle flash and laser glare will overwhelm the lens. Side angle is safer and works better.</span></li>
+          <li class="bad"><span class="tag">Avoid</span><span>Glossy paper + a bright overhead light = washed-out markers. Use matte paper, side or ambient lighting.</span></li>
+        </ul>
+      </div>
+
+      <!-- Screen 2 — Pick a mode -->
+      <div class="wiz-screen" data-screen="2">
+        <h4>Pick a calibration mode</h4>
+        <p>Three ways to lock the target. Pick one — you can change later.</p>
+        <div class="wiz-mode-grid">
+          <button class="wiz-mode" data-pick="aruco" type="button">
+            <span class="badge-l">A</span>
+            <span>
+              <span class="t">ArUco markers<span class="rec">Recommended</span></span>
+              <span class="d">Print the one-page sheet (4 black‑and‑white squares at the corners). Detection is fully automatic and survives camera angle. Best accuracy.</span>
+            </span>
+          </button>
+          <button class="wiz-mode" data-pick="manual" type="button">
+            <span class="badge-l">M</span>
+            <span>
+              <span class="t">Manual tap</span>
+              <span class="d">Tap the 4 corners of your target on the video, in order: top‑left → top‑right → bottom‑right → bottom‑left. Works with any rectangular target.</span>
+            </span>
+          </button>
+          <button class="wiz-mode" data-pick="auto" type="button">
+            <span class="badge-l">□</span>
+            <span>
+              <span class="t">Auto rectangle</span>
+              <span class="d">Finds the largest bright rectangle in view. Works well with a white sheet on a dark wall. Re‑lock if you move the phone.</span>
+            </span>
+          </button>
+        </div>
+        <p style="font-size:12px;color:var(--text-2);"><strong>Tip:</strong> if ArUco shows <em>“searching…”</em> for more than a few seconds, the markers are too small in the frame — move the phone closer or zoom out.</p>
+      </div>
+
+      <!-- Screen 3 — Set aim + shoot -->
+      <div class="wiz-screen" data-screen="3">
+        <h4>Set your aim point, then dry-fire</h4>
+        <p>Once the target locks (the badge in the corner says “ArUco lock” or “locked”):</p>
+        <ul class="wiz-tips">
+          <li><span class="tag">1</span><span>Tap <strong>Set aim point</strong>, then tap where on the target you’re aiming (usually the bullseye).</span></li>
+          <li><span class="tag">2</span><span>Tap <strong>Start session</strong>. The app turns on the camera (for laser tracking) and the mic (to detect the click).</span></li>
+          <li><span class="tag">3</span><span>With your laser bore‑sighter in the chamber, take a dry shot. The mic catches the click; the camera measures where the laser landed.</span></li>
+          <li class="good"><span class="tag">View</span><span>Tap <strong>Rectified</strong> (top‑right of the stage) to see a flat top‑down view of the target with your hits.</span></li>
+          <li class="warn"><span class="tag">Tip</span><span>Hit <strong>Test shot</strong> any time to verify the pipeline without firing.</span></li>
+        </ul>
+      </div>
+
+    </div>
+    <div class="wiz-foot">
+      <div class="wiz-dots" id="wiz-dots">
+        <span class="on"></span><span></span><span></span>
+      </div>
+      <div class="wiz-actions">
+        <button class="wiz-btn" id="wiz-back" disabled>Back</button>
+        <button class="wiz-btn primary" id="wiz-next">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- js-aruco2 (pure JS, no WASM) -->
 <script src="vendor/cv.js"></script>
@@ -860,6 +1133,60 @@ function flashCorners(){
   setTimeout(()=>s.classList.remove('flash'), 600);
 }
 
+// ---- Setup wizard ----
+(function setupWizard(){
+  const wiz = document.getElementById('wiz');
+  if (!wiz) return;
+  const closeBtn = document.getElementById('wiz-close');
+  const backBtn = document.getElementById('wiz-back');
+  const nextBtn = document.getElementById('wiz-next');
+  const dots = document.querySelectorAll('#wiz-dots span');
+  const screens = document.querySelectorAll('.wiz-screen');
+  const TOTAL = screens.length;
+  let cur = 1;
+
+  function show(n){
+    cur = Math.max(1, Math.min(TOTAL, n));
+    screens.forEach(s=>{
+      s.classList.toggle('on', parseInt(s.dataset.screen,10) === cur);
+    });
+    dots.forEach((d,i)=>d.classList.toggle('on', i+1 === cur));
+    backBtn.disabled = (cur === 1);
+    nextBtn.textContent = (cur === TOTAL) ? 'Got it' : 'Next';
+  }
+  function open(){ wiz.classList.add('open'); show(1); }
+  function close(){ wiz.classList.remove('open'); localStorage.setItem('df_wiz_seen','1'); }
+
+  closeBtn.addEventListener('click', close);
+  wiz.addEventListener('click', (e)=>{ if (e.target === wiz) close(); });
+  backBtn.addEventListener('click', ()=> show(cur-1));
+  nextBtn.addEventListener('click', ()=>{
+    if (cur === TOTAL) close();
+    else show(cur+1);
+  });
+  // Mode-pick shortcut buttons inside wizard
+  document.querySelectorAll('.wiz-mode').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const pick = b.dataset.pick;
+      const target = document.querySelector(`#mode-seg button[data-mode="${pick}"]`);
+      if (target) target.click();
+      // Move to screen 3 so user sees what to do next
+      show(3);
+    });
+  });
+  // Help link in calib panel
+  const help = document.getElementById('btn-setup-help');
+  if (help) help.addEventListener('click', open);
+  // Esc closes
+  document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && wiz.classList.contains('open')) close(); });
+
+  // Show first-time — only on initial load when no flag set
+  if (!localStorage.getItem('df_wiz_seen')){
+    // Delay a beat so the app paints first
+    setTimeout(open, 350);
+  }
+})();
+
 // ---- Feature pills ----
 (function(){
   const sec = $('#pill-secure');
@@ -896,6 +1223,16 @@ let trailing = [];        // recent laser positions in target space
 const ANALY_W = 320, ANALY_H = 240;
 const aBuf = document.createElement('canvas'); aBuf.width=ANALY_W; aBuf.height=ANALY_H;
 const actx = aBuf.getContext('2d', { willReadFrequently:true });
+// Higher-resolution canvas used ONLY for ArUco detection — 320×240 is too small for
+// 1" markers at 10+ ft (~12 px/marker, below js-aruco2's reliable threshold).
+// 640×480 gives ~24-30 px/marker which detects cleanly.
+const ARUCO_W = 640, ARUCO_H = 480;
+const aBufHi = document.createElement('canvas'); aBufHi.width=ARUCO_W; aBufHi.height=ARUCO_H;
+const actxHi = aBufHi.getContext('2d', { willReadFrequently:true });
+// Track ArUco detection over recent frames so we can show meaningful feedback
+let arucoLastCount = 0;
+let arucoLastIds = [];
+let arucoFramesSinceSeen = 999;
 
 // ArUco detector
 let arucoDetector = null;
@@ -1099,7 +1436,7 @@ function frameLoop(){
 
     // 2) Target detection per mode (every few frames for perf)
     if (mode==='aruco' && (frameCount % 3 === 0) && arucoDetector){
-      detectAruco(img);
+      detectAruco();
     }
 
     // 3) Project laser to target space
@@ -1117,7 +1454,17 @@ function frameLoop(){
 
     // status badges
     $('#laser-status').textContent = laserImg ? 'tracking' : 'no dot';
-    const ts = homography ? (mode==='aruco' ? 'ArUco lock' : 'locked') : '—';
+    let ts = '—';
+    if (homography){
+      ts = (mode==='aruco' ? 'ArUco lock' : 'locked');
+    } else if (mode==='aruco'){
+      // Show live feedback during ArUco search so user knows it's looking
+      if (arucoLastCount > 0 && arucoFramesSinceSeen < 30){
+        ts = `seeing ${arucoLastCount}/4`;
+      } else {
+        ts = 'searching…';
+      }
+    }
     const tEl = $('#target-status');
     if (tEl.textContent !== ts){
       tEl.textContent = ts;
@@ -1156,35 +1503,66 @@ function findLaser(img){
 }
 
 // ---- ArUco detection ----
-function detectAruco(img){
+// Runs on a separate higher-resolution canvas (640×480) so 1" markers at 10+ ft
+// are large enough (~24-30 px) for js-aruco2 to detect. Marker coordinates are
+// scaled back to ANALY_W/H space because the homography is computed there.
+function detectAruco(){
+  if (!arucoDetector) return;
   try{
-    const markers = arucoDetector.detect(img);
-    if (markers.length < 4) return;
-    // Use marker IDs 0..3 if present; otherwise use any 4 by spatial sort.
+    actxHi.drawImage(video, 0,0, ARUCO_W, ARUCO_H);
+    const hiImg = actxHi.getImageData(0,0,ARUCO_W,ARUCO_H);
+    const markers = arucoDetector.detect(hiImg);
+    arucoLastCount = markers.length;
+    arucoLastIds = markers.map(m=>m.id).sort((a,b)=>a-b);
+    if (markers.length === 0){ arucoFramesSinceSeen++; return; }
+    arucoFramesSinceSeen = 0;
+
+    // Scale factor from ArUco canvas back to analysis canvas
+    const sx = ANALY_W / ARUCO_W;
+    const sy = ANALY_H / ARUCO_H;
+    const center = (m) => {
+      let cx=0, cy=0;
+      m.corners.forEach(c=>{ cx+=c.x; cy+=c.y; });
+      return { x:(cx/4)*sx, y:(cy/4)*sy };
+    };
+
     const byId = {};
     markers.forEach(m=>{ byId[m.id]=m; });
-    let tl,tr,br,bl;
+
+    // 4 markers — best case, use IDs 0..3 directly
     if (byId[0]&&byId[1]&&byId[2]&&byId[3]){
-      tl = markerCenter(byId[0]); tr = markerCenter(byId[1]);
-      br = markerCenter(byId[2]); bl = markerCenter(byId[3]);
-    } else {
-      // sort spatially
-      const cs = markers.slice(0,4).map(markerCenter);
-      cs.sort((a,b)=>a.y-b.y);
-      const top = cs.slice(0,2).sort((a,b)=>a.x-b.x);
-      const bot = cs.slice(2,4).sort((a,b)=>a.x-b.x);
-      tl=top[0]; tr=top[1]; bl=bot[0]; br=bot[1];
+      cornersImg = [center(byId[0]), center(byId[1]), center(byId[2]), center(byId[3])];
+      computeHomography();
+      return;
     }
-    cornersImg = [tl,tr,br,bl];
-    computeHomography();
+
+    // 3 markers — project the 4th from the parallelogram completion of the other 3.
+    // Works because the printed target rectangle is preserved up to perspective; for
+    // small-to-moderate tilt the parallelogram approximation is well within usable error.
+    const haveIds = [0,1,2,3].filter(i=>byId[i]);
+    if (haveIds.length === 3){
+      const missing = [0,1,2,3].find(i=>!byId[i]);
+      const c = {};
+      haveIds.forEach(i=>{ c[i]=center(byId[i]); });
+      // Opposite corner of `missing` on the rectangle:
+      // pairs: 0↔·2 (TL↔BR) and 1↔·3 (TR↔BL)
+      const opp = (missing===0||missing===2) ? (missing===0?2:0) : (missing===1?3:1);
+      const adjA = [0,1,2,3].find(i=>i!==missing && i!==opp);
+      const adjB = [0,1,2,3].find(i=>i!==missing && i!==opp && i!==adjA);
+      // missing = adjA + adjB - opp (parallelogram completion)
+      c[missing] = {
+        x: c[adjA].x + c[adjB].x - c[opp].x,
+        y: c[adjA].y + c[adjB].y - c[opp].y,
+      };
+      cornersImg = [c[0], c[1], c[2], c[3]];
+      computeHomography();
+      return;
+    }
+
+    // <3 known IDs: don't lock — wait for more visibility
   } catch(e){
     // ArUco detection failure is non-fatal
   }
-}
-function markerCenter(m){
-  let cx=0, cy=0;
-  m.corners.forEach(c=>{ cx+=c.x; cy+=c.y; });
-  return { x:cx/4, y:cy/4 };
 }
 
 // ---- Auto rectangle detection (largest bright quadrilateral) ----
