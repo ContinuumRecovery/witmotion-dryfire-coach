@@ -815,9 +815,164 @@
   }
 
 
+/* =========================================================
+   Phone↔Laptop pairing + Laptop dashboard
+   ========================================================= */
+.role-overlay{position:fixed;inset:0;background:radial-gradient(circle at 30% 20%,#1a1a1a 0%,#0a0a0a 70%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.role-card{background:#141414;border:1px solid #2a2a2a;border-radius:24px;padding:28px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+.role-card h2{margin:0 0 6px;font-size:22px;color:var(--yellow);letter-spacing:0.3px}
+.role-card .sub{color:#aaa;font-size:13px;margin-bottom:18px}
+.role-pick{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.role-btn{background:#1c1c1c;border:1px solid #333;border-radius:18px;padding:18px 14px;cursor:pointer;color:#eee;text-align:left;transition:all .15s}
+.role-btn:hover{border-color:var(--yellow);background:#222;transform:translateY(-1px)}
+.role-btn .icon{font-size:28px;line-height:1;margin-bottom:8px}
+.role-btn .label{font-size:15px;font-weight:600;margin-bottom:4px}
+.role-btn .hint{font-size:12px;color:#888;line-height:1.35}
+.role-pair{margin-top:18px;padding:18px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:18px;display:none}
+.role-pair.show{display:block}
+.qr-wrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.qr-code{background:#fff;padding:12px;border-radius:14px}
+.qr-code img,.qr-code canvas{display:block}
+.code-pill{font-family:ui-monospace,monospace;font-size:22px;letter-spacing:4px;background:#fff7c2;color:#1a1700;padding:8px 16px;border-radius:10px;font-weight:700}
+.code-input{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:10px}
+.code-input input{font-family:ui-monospace,monospace;font-size:18px;text-transform:uppercase;letter-spacing:3px;padding:10px 14px;border-radius:10px;border:1px solid #333;background:#0a0a0a;color:#fff;width:160px;text-align:center}
+.code-input button{background:var(--yellow);color:#1a1700;border:none;padding:10px 18px;border-radius:10px;font-weight:700;cursor:pointer}
+.pair-status{margin-top:10px;font-size:12px;color:#9fd3b5;text-align:center;min-height:16px}
+.pair-status.err{color:#e8836b}
+.pair-status.wait{color:#fae232}
+.role-card .skip{margin-top:14px;text-align:center}
+.role-card .skip a{color:#888;font-size:12px;text-decoration:underline;cursor:pointer}
+.peer-badge{position:fixed;top:12px;right:12px;z-index:50;background:#0a0a0a;border:1px solid var(--yellow);color:var(--yellow);font-family:ui-monospace,monospace;font-size:11px;padding:6px 10px;border-radius:999px;display:none}
+.peer-badge.show{display:flex;align-items:center;gap:6px}
+.peer-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+.peer-badge.waiting .dot{background:#fae232;animation:peerblink 1s infinite}
+.peer-badge.err .dot{background:#e8836b}
+@keyframes peerblink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Laptop dashboard layout — only shown when role=laptop */
+body.role-laptop main{display:none}
+body.role-laptop header{display:none}
+.laptop-dash{display:none;position:fixed;inset:0;background:#0a0a0a;padding:14px;gap:14px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;overflow:hidden}
+body.role-laptop .laptop-dash{display:grid}
+.dash-panel{background:#111;border:1px solid #222;border-radius:18px;padding:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative}
+.dash-panel h3{margin:0 0 10px;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fae232;display:flex;align-items:center;gap:8px}
+.dash-panel h3 .tag{font-size:10px;color:#888;font-weight:500;letter-spacing:0.5px;text-transform:none}
+.dash-panel .body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+#dash-video{flex:1;min-height:0;background:#000;border-radius:12px;object-fit:contain;width:100%}
+#dash-rect-canvas{flex:1;min-height:0;background:#000;border-radius:12px;display:block;width:100%;height:100%}
+#dash-wobble-canvas{flex:1;min-height:0;background:#000;border-radius:12px;display:block;width:100%;height:100%}
+.jerk-readout{display:flex;justify-content:space-around;align-items:center;padding:6px 0 0;font-size:13px}
+.jerk-readout .big{font-size:22px;font-weight:800;color:var(--yellow);font-family:ui-monospace,monospace}
+.jerk-readout .lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:2px;text-align:center}
+.jerk-readout .col{text-align:center}
+.dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.dash-stats .stat{background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:8px 10px}
+.dash-stats .stat .v{font-family:ui-monospace,monospace;font-size:18px;font-weight:800;color:var(--yellow)}
+.dash-stats .stat .k{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-top:2px}
+#dash-table-wrap{flex:1;min-height:0;overflow:auto;border:1px solid #222;border-radius:10px;background:#0a0a0a}
+#dash-table{width:100%;border-collapse:collapse;font-size:12px;font-family:ui-monospace,monospace}
+#dash-table th{background:#161616;color:#fae232;text-align:left;padding:8px 10px;position:sticky;top:0;font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #222}
+#dash-table td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ddd}
+#dash-table tr:hover td{background:#161616}
+#dash-table .good{color:#9fd3b5}
+#dash-table .bad{color:#e8836b}
+.dash-tools{display:flex;gap:6px;margin-top:8px}
+.dash-tools button{flex:1;background:#1c1c1c;color:#eee;border:1px solid #333;border-radius:10px;padding:7px 10px;font-size:12px;cursor:pointer}
+.dash-tools button:hover{border-color:var(--yellow)}
+@media (max-width:900px){.laptop-dash{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}}
+
 </style>
 </head>
 <body>
+
+<!-- Role selection overlay (shown until user picks Phone or Laptop) -->
+<div class="role-overlay" id="role-overlay">
+  <div class="role-card">
+    <h2>Dry-Fire Coach</h2>
+    <div class="sub">How are you using this device right now?</div>
+    <div class="role-pick">
+      <button class="role-btn" id="role-phone-btn">
+        <div class="icon">📱</div>
+        <div class="label">This is my Phone</div>
+        <div class="hint">Camera, BLE sensor, mic, laser tracking. Mirrors data to a laptop if paired.</div>
+      </button>
+      <button class="role-btn" id="role-laptop-btn">
+        <div class="icon">🖥️</div>
+        <div class="label">This is my Laptop</div>
+        <div class="hint">Big-screen dashboard: live feed, rectified target, wobble trace, session stats.</div>
+      </button>
+    </div>
+
+    <!-- Phone pairing card (host) -->
+    <div class="role-pair" id="phone-pair">
+      <div class="qr-wrap">
+        <div style="font-size:13px;color:#ddd;text-align:center">On your laptop, open this same URL and enter the code, or scan:</div>
+        <div class="qr-code" id="phone-qr"></div>
+        <div class="code-pill" id="phone-code">——————</div>
+        <div class="pair-status wait" id="phone-status">Generating session…</div>
+      </div>
+      <div class="skip"><a id="phone-skip">Skip pairing — just use phone solo</a></div>
+    </div>
+
+    <!-- Laptop pairing card (join) -->
+    <div class="role-pair" id="laptop-pair">
+      <div style="font-size:13px;color:#ddd;text-align:center;margin-bottom:8px">Enter the 6-character code shown on your phone:</div>
+      <div class="code-input">
+        <input id="laptop-code" placeholder="ABC123" maxlength="6" autocomplete="off" spellcheck="false"/>
+        <button id="laptop-join">Connect</button>
+      </div>
+      <div class="pair-status" id="laptop-status"></div>
+    </div>
+
+    <div class="skip"><a id="role-reset" style="display:none">← back</a></div>
+  </div>
+</div>
+
+<!-- Peer connection status badge -->
+<div class="peer-badge" id="peer-badge"><div class="dot"></div><span id="peer-badge-text">paired</span></div>
+
+<!-- Laptop dashboard (only visible when body.role-laptop) -->
+<div class="laptop-dash" id="laptop-dash">
+  <div class="dash-panel">
+    <h3>Live camera <span class="tag" id="dash-video-tag">from phone</span></h3>
+    <div class="body"><video id="dash-video" autoplay playsinline muted></video></div>
+  </div>
+  <div class="dash-panel">
+    <h3>Rectified target <span class="tag">shot trail</span></h3>
+    <div class="body"><canvas id="dash-rect-canvas" width="600" height="600"></canvas></div>
+  </div>
+  <div class="dash-panel">
+    <h3>Pre-shot wobble <span class="tag">last 200ms before break</span></h3>
+    <div class="body">
+      <canvas id="dash-wobble-canvas" width="600" height="360"></canvas>
+      <div class="jerk-readout">
+        <div class="col"><div class="lbl">Direction</div><div class="big" id="dash-jerk-dir">—</div></div>
+        <div class="col"><div class="lbl">Magnitude</div><div class="big" id="dash-jerk-mag">—</div></div>
+        <div class="col"><div class="lbl">Verdict</div><div class="big" id="dash-jerk-verdict" style="font-size:14px">—</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="dash-panel">
+    <h3>Session <span class="tag" id="dash-session-tag">no shots yet</span></h3>
+    <div class="body">
+      <div class="dash-stats">
+        <div class="stat"><div class="v" id="dash-shots">0</div><div class="k">Shots</div></div>
+        <div class="stat"><div class="v" id="dash-avg">—</div><div class="k">Avg MOA</div></div>
+        <div class="stat"><div class="v" id="dash-best">—</div><div class="k">Best MOA</div></div>
+      </div>
+      <div id="dash-table-wrap">
+        <table id="dash-table">
+          <thead><tr><th>#</th><th>Time</th><th>In</th><th>MOA</th><th>Score</th><th>Direction</th></tr></thead>
+          <tbody id="dash-tbody"></tbody>
+        </table>
+      </div>
+      <div class="dash-tools">
+        <button id="dash-csv">Export CSV</button>
+        <button id="dash-clear">Clear table</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <header>
   <div class="brand">
@@ -1068,6 +1223,9 @@
 <script src="vendor/posit1.js"></script>
 <script src="vendor/aruco.js"></script>
 <script src="vendor/dictionaries/aruco_mip_36h12.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script src="vendor/bridge.js"></script>
 
 <script>
 /* =========================================================
@@ -2259,6 +2417,645 @@ log('Build: dry-fire coach v2 (perspective tracking)');
 log('UA: ' + navigator.userAgent);
 if (!navigator.mediaDevices) log('mediaDevices unavailable — needs HTTPS','err');
 if (!navigator.bluetooth) log('Web Bluetooth unavailable in this browser','warn');
+
+/* =========================================================================
+   Phone↔Laptop pairing, jerk analytics, auto-aim, laptop dashboard
+   ========================================================================= */
+
+// ---- Pre-shot ring buffers ----
+// Sampled at ~30Hz for laser (one sample per camera frame), ~100Hz for IMU.
+// Each entry: {t, x, y} for laser (normalized rectified coords), {t, ax, ay, az, gx, gy, gz} for IMU.
+const PRESHOT_WINDOW_MS = 300; // we keep 300ms, analyze last 200ms before click
+const preShotLaser = [];
+const preShotImu   = [];
+
+function pushPreShotLaser(){
+  if (!laserNorm) return;
+  const now = performance.now();
+  preShotLaser.push({ t: now, x: laserNorm.x, y: laserNorm.y });
+  // Trim
+  const cutoff = now - PRESHOT_WINDOW_MS;
+  while (preShotLaser.length && preShotLaser[0].t < cutoff) preShotLaser.shift();
+}
+function pushPreShotImu(sample){
+  const now = performance.now();
+  preShotImu.push(Object.assign({ t: now }, sample));
+  const cutoff = now - PRESHOT_WINDOW_MS;
+  while (preShotImu.length && preShotImu[0].t < cutoff) preShotImu.shift();
+}
+
+// Analyze the 200ms window before the click. Returns {dir, mag (MOA), verdict, lasers:[], imus:[]}
+function analyzeJerk(distFt, targetWidthIn){
+  const now = performance.now();
+  const windowStart = now - 200;
+  const lasers = preShotLaser.filter(s => s.t >= windowStart);
+  const imus   = preShotImu.filter(s => s.t >= windowStart);
+
+  let laserDir = null, laserMagIn = 0;
+  if (lasers.length >= 3){
+    // First → last vector, plus magnitude as max excursion from mean
+    const meanX = lasers.reduce((a,b)=>a+b.x,0)/lasers.length;
+    const meanY = lasers.reduce((a,b)=>a+b.y,0)/lasers.length;
+    let maxR = 0;
+    for (const s of lasers){
+      const dx=s.x-meanX, dy=s.y-meanY;
+      const r=Math.sqrt(dx*dx+dy*dy);
+      if (r>maxR) maxR=r;
+    }
+    const dx = lasers[lasers.length-1].x - lasers[0].x;
+    const dy = lasers[lasers.length-1].y - lasers[0].y;
+    laserDir = { x: dx, y: dy };
+    // Convert normalized excursion → inches → MOA later
+    laserMagIn = maxR * (targetWidthIn || 8.5);
+  }
+
+  // IMU: integrate gyro to estimate angular delta (deg) over window
+  let imuAngleDeg = 0;
+  let imuDir = null;
+  if (imus.length >= 3){
+    let sumGx=0, sumGy=0, sumGz=0;
+    for (const s of imus){ sumGx += Math.abs(s.gx||0); sumGy += Math.abs(s.gy||0); sumGz += Math.abs(s.gz||0); }
+    // Average dps over the window
+    const avgGx = sumGx/imus.length, avgGy = sumGy/imus.length, avgGz = sumGz/imus.length;
+    imuAngleDeg = (avgGx + avgGy + avgGz) * 0.2; // 0.2s window
+    // Direction from gyro yaw (gz) and pitch (gy) signs (approximate)
+    const lastGy = imus[imus.length-1].gy || 0;
+    const lastGz = imus[imus.length-1].gz || 0;
+    imuDir = { x: lastGz, y: lastGy }; // yaw maps to horizontal, pitch to vertical
+  }
+
+  // Convert laser inches to MOA at the configured distance
+  const distYd = (distFt||15)/3;
+  const laserMagMoa = distYd>0 ? laserMagIn / (1.047 * distYd / 100) : 0;
+  // IMU angle in MOA: 1° = 60 MOA. But that's huge — use it as a multiplier instead.
+  const imuMagMoa = imuAngleDeg * 60;
+
+  // Choose dominant source (whichever indicates more movement); fall back if missing.
+  let mag = 0, dir = { x:0, y:0 }, source = 'none';
+  if (laserMagMoa > 0 && imuMagMoa > 0){
+    // Fused: weighted average favoring laser (more accurate POI proxy)
+    mag = laserMagMoa * 0.7 + imuMagMoa * 0.3;
+    dir = laserDir;
+    source = 'fused';
+  } else if (laserMagMoa > 0){
+    mag = laserMagMoa; dir = laserDir; source = 'laser';
+  } else if (imuMagMoa > 0){
+    mag = imuMagMoa; dir = imuDir; source = 'imu';
+  }
+
+  // Classify direction into a friendly label
+  let label = '—';
+  if (mag < 1.0){
+    label = 'Clean break';
+  } else if (dir){
+    const ang = Math.atan2(dir.y, dir.x) * 180 / Math.PI;
+    const aMag = Math.sqrt(dir.x*dir.x + dir.y*dir.y);
+    if (aMag < 1e-5){ label = 'Slight wobble'; }
+    else if (ang >= -22.5 && ang < 22.5)   label = 'Pushing right';
+    else if (ang >=  22.5 && ang < 67.5)   label = 'Low-right';
+    else if (ang >=  67.5 && ang < 112.5)  label = 'Diving (low)';
+    else if (ang >= 112.5 && ang < 157.5)  label = 'Low-left';
+    else if (ang >= -157.5 && ang < -112.5) label = 'High-left';
+    else if (ang >= -112.5 && ang < -67.5)  label = 'Heeling (high)';
+    else if (ang >= -67.5 && ang < -22.5)   label = 'High-right';
+    else                                    label = 'Jerking left';
+  }
+  // Verdict severity
+  let verdict = label;
+  if (mag >= 5)   verdict = label + ' (severe)';
+  else if (mag >= 2.5) verdict = label;
+  else if (mag >= 1.0) verdict = label + ' (mild)';
+
+  return { dir, mag, source, label, verdict, lasers, imus };
+}
+
+// ---- Patch onWitNotify so IMU samples land in the pre-shot buffer ----
+(function(){
+  const origNotify = window.onWitNotify;
+  // The function is declared as a top-level fn so we wrap via DataView path: hook into recentGyro push instead.
+  // We extend the existing function by overriding it.
+})();
+// Simpler: every time recentGyro is appended we also push the IMU sample. Patch by wrapping recentGyro.push.
+(function(){
+  const origPush = Array.prototype.push;
+  // No — we don't want to globally patch. Instead, poll recentGyro at 100Hz and detect new entries:
+  let lastLen = 0;
+  setInterval(()=>{
+    if (recentGyro.length === lastLen) return;
+    // Push only the newest entries
+    for (let i=lastLen; i<recentGyro.length; i++){
+      const g = recentGyro[i];
+      pushPreShotImu({ ax:0, ay:0, az:0, gx:g.x, gy:g.y, gz:g.z });
+    }
+    lastLen = recentGyro.length;
+  }, 10);
+})();
+
+// ---- Hook into laser updates: sample at frame rate ----
+setInterval(pushPreShotLaser, 33); // ~30Hz
+
+// ---- Auto-aim: scan rectified target for bullseye after homography locks ----
+function autoDetectAim(){
+  if (!homography) return false;
+  // Render target into the existing rect-view canvas (already done by frame loop)
+  // Read pixels from the analysis buffer mapped through homography.
+  // Simpler: read from #rect-view if present and non-empty.
+  const rect = document.getElementById('rect-view');
+  if (!rect || !rect.width || !rect.height) return false;
+  let ctx;
+  try { ctx = rect.getContext('2d'); } catch(e){ return false; }
+  let img;
+  try { img = ctx.getImageData(0,0,rect.width, rect.height); } catch(e){ return false; }
+  const d = img.data, W = rect.width, H = rect.height;
+  // Search only middle 60%
+  const x0 = Math.floor(W*0.2), x1 = Math.floor(W*0.8);
+  const y0 = Math.floor(H*0.2), y1 = Math.floor(H*0.8);
+  let sumX=0, sumY=0, n=0;
+  // Threshold: pixels darker than 80 (averaged R,G,B)
+  for (let y=y0; y<y1; y+=2){
+    for (let x=x0; x<x1; x+=2){
+      const i = (y*W + x)*4;
+      const v = (d[i]+d[i+1]+d[i+2])/3;
+      if (v < 80){
+        sumX += x; sumY += y; n++;
+      }
+    }
+  }
+  if (n < 30){ return false; } // not enough dark pixels — keep default
+  const cx = sumX/n, cy = sumY/n;
+  // Sanity: must be in middle 60%
+  const fx = cx/W, fy = cy/H;
+  if (fx < 0.2 || fx > 0.8 || fy < 0.2 || fy > 0.8) return false;
+  aimTargetNorm = { x: fx, y: fy };
+  log(`Auto-aim: bullseye centroid at (${fx.toFixed(2)}, ${fy.toFixed(2)}) from ${n} dark pixels`, 'ok');
+  return true;
+}
+// Trigger auto-aim ~600ms after homography first locks. Re-run on calibrate.
+let _lastHomoState = false;
+setInterval(()=>{
+  const have = !!homography;
+  if (have && !_lastHomoState){
+    _lastHomoState = true;
+    setTimeout(()=>{
+      if (!aimTargetNorm){
+        const ok = autoDetectAim();
+        if (!ok){
+          aimTargetNorm = { x: 0.5, y: 0.5 };
+          log('Auto-aim: no bullseye found, defaulting to geometric center', 'warn');
+        }
+      }
+    }, 600);
+  } else if (!have){
+    _lastHomoState = false;
+  }
+}, 200);
+
+// ---- Pairing UI + bridge wiring ----
+const Role = (function(){
+  let bridge = null;
+  let role = null;
+  let code = null;
+  let connected = false;
+
+  const $$ = (sel) => document.querySelector(sel);
+  const overlay = $$('#role-overlay');
+  const peerBadge = $$('#peer-badge');
+  const peerBadgeText = $$('#peer-badge-text');
+
+  function setBadge(state, text){
+    peerBadge.classList.remove('waiting','err');
+    peerBadge.classList.add('show');
+    if (state === 'waiting') peerBadge.classList.add('waiting');
+    if (state === 'err') peerBadge.classList.add('err');
+    peerBadgeText.textContent = text;
+  }
+
+  function hideOverlay(){ overlay.style.display = 'none'; }
+  function showOverlay(){ overlay.style.display = 'flex'; }
+
+  function setRole(r){
+    role = r;
+    document.body.classList.remove('role-phone','role-laptop');
+    document.body.classList.add('role-' + r);
+    try { localStorage.setItem('df_role', r); } catch(e){}
+  }
+
+  function renderQR(text, containerSel){
+    const c = $$(containerSel);
+    if (!c) return;
+    c.innerHTML = '';
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(text);
+      qr.make();
+      // 4px per cell, 6 margin
+      c.innerHTML = qr.createImgTag(4, 8);
+    } catch(e){ c.textContent = '[QR error]'; }
+  }
+
+  function startPhone(){
+    setRole('phone');
+    if (!window.DryFireBridge){ alert('Bridge module failed to load'); return; }
+    if (!window.Peer){ alert('PeerJS failed to load — check network'); return; }
+    $$('#phone-pair').classList.add('show');
+    $$('#role-reset').style.display = 'inline-block';
+    code = window.DryFireBridge.makeCode();
+    $$('#phone-code').textContent = code;
+    const pairUrl = location.origin + location.pathname + '?join=' + code;
+    renderQR(pairUrl, '#phone-qr');
+    $$('#phone-status').textContent = 'Waiting for laptop…';
+    $$('#phone-status').className = 'pair-status wait';
+    setBadge('waiting', `code ${code} · waiting`);
+
+    bridge = new window.DryFireBridge.Bridge();
+    bridge
+      .on('open', info => { log(`Bridge open as phone, id=${info.id}`, 'ok'); })
+      .on('peer', info => {
+        connected = true;
+        $$('#phone-status').textContent = 'Laptop connected ✓';
+        $$('#phone-status').className = 'pair-status';
+        setBadge('ok', `paired · ${code}`);
+        // Once data channel is open, start the camera + push the track
+        ensureCamThenPushStream();
+        // Auto-dismiss the overlay shortly after pairing
+        setTimeout(hideOverlay, 700);
+      })
+      .on('data', msg => { /* phone doesn't expect inbound right now */ })
+      .on('close', kind => { log(`Bridge closed: ${kind}`, 'warn'); setBadge('err','disconnected'); connected=false; })
+      .on('error', e => { log('Bridge error: '+(e && e.type || e), 'err'); setBadge('err','error'); });
+    bridge.hostAsPhone(code);
+    window._dfBridge = bridge;
+  }
+
+  async function ensureCamThenPushStream(){
+    try {
+      if (!camStream) await startCamera();
+      if (camStream && bridge){
+        bridge.pushStream(camStream);
+        log('Streaming camera to laptop', 'ok');
+      }
+    } catch(e){ log('Could not start camera for streaming: '+e.message, 'err'); }
+  }
+
+  function startLaptop(prefillCode){
+    $$('#laptop-pair').classList.add('show');
+    $$('#role-reset').style.display = 'inline-block';
+    if (prefillCode){
+      $$('#laptop-code').value = prefillCode.toUpperCase();
+    }
+    $$('#laptop-code').focus();
+  }
+
+  function joinAsLaptop(c){
+    if (!c || c.length !== 6){
+      $$('#laptop-status').textContent = 'Enter a 6-character code'; $$('#laptop-status').className='pair-status err'; return;
+    }
+    setRole('laptop');
+    code = c;
+    $$('#laptop-status').textContent = 'Connecting…';
+    $$('#laptop-status').className = 'pair-status wait';
+    setBadge('waiting', `connecting…`);
+    bridge = new window.DryFireBridge.Bridge();
+    bridge
+      .on('open', info => { log(`Bridge open as laptop, code=${info.code}`, 'ok'); })
+      .on('peer', info => {
+        connected = true;
+        $$('#laptop-status').textContent = 'Connected ✓';
+        $$('#laptop-status').className = 'pair-status';
+        setBadge('ok', `paired · ${code}`);
+        setTimeout(hideOverlay, 500);
+      })
+      .on('stream', remote => {
+        const v = $$('#dash-video');
+        v.srcObject = remote;
+        v.play().catch(()=>{});
+        log('Receiving camera stream from phone', 'ok');
+      })
+      .on('data', msg => Dash.onMessage(msg))
+      .on('close', kind => { log(`Bridge closed: ${kind}`, 'warn'); setBadge('err','disconnected'); })
+      .on('error', e => {
+        const code = e && e.type;
+        log('Bridge error: '+(code||e), 'err');
+        if (code === 'peer-unavailable'){
+          $$('#laptop-status').textContent = 'Phone not found — make sure the phone shows that code';
+          $$('#laptop-status').className = 'pair-status err';
+          setBadge('err','phone offline');
+        } else {
+          setBadge('err','error');
+        }
+      });
+    bridge.joinAsLaptop(c);
+    window._dfBridge = bridge;
+  }
+
+  function skipPairing(){
+    setRole('phone');
+    hideOverlay();
+    setBadge('ok','solo mode');
+    // No bridge — phone works standalone
+  }
+
+  function reset(){
+    if (bridge){ bridge.destroy(); bridge = null; }
+    document.body.classList.remove('role-phone','role-laptop');
+    role = null; code = null; connected = false;
+    $$('#phone-pair').classList.remove('show');
+    $$('#laptop-pair').classList.remove('show');
+    $$('#role-reset').style.display = 'none';
+    peerBadge.classList.remove('show');
+    showOverlay();
+  }
+
+  // ---- Public API ----
+  return {
+    init(){
+      $$('#role-phone-btn').addEventListener('click', startPhone);
+      $$('#role-laptop-btn').addEventListener('click', () => startLaptop());
+      $$('#phone-skip').addEventListener('click', skipPairing);
+      $$('#laptop-join').addEventListener('click', () => joinAsLaptop($$('#laptop-code').value.trim().toUpperCase()));
+      $$('#laptop-code').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') joinAsLaptop($$('#laptop-code').value.trim().toUpperCase());
+      });
+      $$('#role-reset').addEventListener('click', reset);
+
+      // If URL has ?join=CODE, treat as laptop side automatically
+      const params = new URLSearchParams(location.search);
+      const join = params.get('join');
+      if (join){
+        startLaptop(join);
+      }
+    },
+    send(obj){ if (bridge) return bridge.send(obj); return false; },
+    isPhone(){ return role === 'phone'; },
+    isLaptop(){ return role === 'laptop'; },
+    isConnected(){ return connected; }
+  };
+})();
+
+Role.init();
+
+// ---- Laptop dashboard ----
+const Dash = (function(){
+  const shots = [];
+  let lastJerk = null;
+  let lastTelemetry = null;
+
+  function onMessage(msg){
+    if (!msg || !msg.type) return;
+    if (msg.type === 'shot'){
+      shots.push(msg);
+      renderTable();
+      renderRect();
+      renderWobble(msg);
+      updateStats();
+    } else if (msg.type === 'telemetry'){
+      lastTelemetry = msg;
+      // Could show live laser dot on the rect canvas
+      renderRect();
+    } else if (msg.type === 'state'){
+      lastTelemetry = Object.assign(lastTelemetry||{}, msg);
+    }
+  }
+
+  function renderTable(){
+    const tbody = document.getElementById('dash-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    for (let i=shots.length-1; i>=0; i--){
+      const s = shots[i];
+      const tr = document.createElement('tr');
+      const time = new Date(s.t).toLocaleTimeString();
+      const dir = (s.jerk && s.jerk.label) || '—';
+      const cls = s.score >= 80 ? 'good' : (s.score >= 50 ? '' : 'bad');
+      tr.innerHTML = `<td>${i+1}</td><td>${time}</td><td>${(s.devIn||0).toFixed(2)}</td><td class="${cls}">${(s.moa||0).toFixed(1)}</td><td class="${cls}">${s.score||0}</td><td>${dir}</td>`;
+      tbody.appendChild(tr);
+    }
+    const tag = document.getElementById('dash-session-tag');
+    if (tag) tag.textContent = shots.length ? `${shots.length} shots` : 'no shots yet';
+  }
+
+  function updateStats(){
+    const tracked = shots.filter(s => typeof s.moa === 'number' && !s.untracked);
+    document.getElementById('dash-shots').textContent = shots.length;
+    if (tracked.length){
+      const avg = tracked.reduce((a,b)=>a+b.moa,0)/tracked.length;
+      const best = Math.min(...tracked.map(s=>s.moa));
+      document.getElementById('dash-avg').textContent = avg.toFixed(1);
+      document.getElementById('dash-best').textContent = best.toFixed(1);
+    }
+  }
+
+  function renderRect(){
+    const c = document.getElementById('dash-rect-canvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    // Background paper
+    ctx.fillStyle = '#f4f1e6';
+    ctx.fillRect(0,0,W,H);
+    // Concentric rings (NRA-style B-2)
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 1.5;
+    for (let r=1; r<=6; r++){
+      ctx.beginPath();
+      ctx.arc(W/2, H/2, (r/7)*Math.min(W,H)/2, 0, Math.PI*2);
+      ctx.stroke();
+    }
+    // Black center
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(W/2, H/2, (1/7)*Math.min(W,H)/2, 0, Math.PI*2); ctx.fill();
+    // Shots
+    for (const s of shots){
+      if (s.untracked || !s.poi) continue;
+      const x = s.poi.x * W, y = s.poi.y * H;
+      ctx.fillStyle = s.score >= 80 ? '#0a8454' : s.score >= 50 ? '#fae232' : '#e8836b';
+      ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    // Live laser dot
+    if (lastTelemetry && lastTelemetry.laser){
+      const x = lastTelemetry.laser.x * W, y = lastTelemetry.laser.y * H;
+      ctx.fillStyle = 'rgba(232,131,107,0.9)';
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  function renderWobble(shot){
+    const c = document.getElementById('dash-wobble-canvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0,0,W,H);
+    // Crosshair
+    ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+    // Ring guides
+    ctx.strokeStyle = '#1a1a1a';
+    for (let r=1;r<=4;r++){ ctx.beginPath(); ctx.arc(W/2,H/2, (r/5)*Math.min(W,H)/2, 0, Math.PI*2); ctx.stroke(); }
+
+    if (!shot || !shot.preShot) return;
+    const lasers = shot.preShot.laser || [];
+    // Map: rectified normalized coords [0,1] → polyline centered around mean. Show ±0.15 norm range as full panel.
+    if (lasers.length >= 2){
+      // Center the path: shift by mean to highlight wobble
+      const meanX = lasers.reduce((a,b)=>a+b.x,0)/lasers.length;
+      const meanY = lasers.reduce((a,b)=>a+b.y,0)/lasers.length;
+      const scale = Math.min(W,H) / 0.30; // ±0.15 normalized = full panel
+      ctx.beginPath();
+      for (let i=0;i<lasers.length;i++){
+        const px = W/2 + (lasers[i].x - meanX) * scale;
+        const py = H/2 + (lasers[i].y - meanY) * scale;
+        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      // Fade older points: draw the path with gradient by segment
+      ctx.strokeStyle = '#fae232'; ctx.lineWidth = 2.5; ctx.stroke();
+      // End dot (the trigger break)
+      const last = lasers[lasers.length-1];
+      ctx.fillStyle = '#e8836b';
+      ctx.beginPath();
+      ctx.arc(W/2 + (last.x-meanX)*scale, H/2 + (last.y-meanY)*scale, 6, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // Direction arrow + labels
+    if (shot.jerk && shot.jerk.dir){
+      const d = shot.jerk.dir;
+      const aMag = Math.sqrt(d.x*d.x + d.y*d.y);
+      if (aMag > 1e-5){
+        const nx = d.x / aMag, ny = d.y / aMag;
+        const len = Math.min(W,H)*0.25;
+        const ax = W/2, ay = H/2;
+        const bx = ax + nx*len, by = ay + ny*len;
+        ctx.strokeStyle = '#fae232'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+        // arrowhead
+        const ah = 10;
+        const ang = Math.atan2(ny,nx);
+        ctx.beginPath();
+        ctx.moveTo(bx,by);
+        ctx.lineTo(bx - ah*Math.cos(ang-0.4), by - ah*Math.sin(ang-0.4));
+        ctx.lineTo(bx - ah*Math.cos(ang+0.4), by - ah*Math.sin(ang+0.4));
+        ctx.closePath(); ctx.fillStyle = '#fae232'; ctx.fill();
+      }
+    }
+
+    // Update the readout text
+    document.getElementById('dash-jerk-dir').textContent = (shot.jerk && shot.jerk.label) || '—';
+    document.getElementById('dash-jerk-mag').textContent = (shot.jerk && typeof shot.jerk.mag === 'number') ? (shot.jerk.mag.toFixed(1) + ' MOA') : '—';
+    document.getElementById('dash-jerk-verdict').textContent = (shot.jerk && shot.jerk.verdict) || '—';
+  }
+
+  function exportCsv(){
+    const rows = [['#','time','inches','moa','score','source','direction','magnitude_moa','verdict']];
+    shots.forEach((s,i) => {
+      rows.push([
+        i+1,
+        new Date(s.t).toISOString(),
+        (s.devIn||0).toFixed(3),
+        (s.moa||0).toFixed(2),
+        s.score||0,
+        s.source||'',
+        (s.jerk && s.jerk.label) || '',
+        (s.jerk && typeof s.jerk.mag === 'number') ? s.jerk.mag.toFixed(2) : '',
+        (s.jerk && s.jerk.verdict) || ''
+      ]);
+    });
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `dryfire-session-${Date.now()}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function clearTable(){
+    shots.length = 0; renderTable(); updateStats(); renderRect();
+    const w = document.getElementById('dash-wobble-canvas'); if (w){ const cx = w.getContext('2d'); cx.fillStyle='#0a0a0a'; cx.fillRect(0,0,w.width,w.height); }
+    document.getElementById('dash-jerk-dir').textContent='—';
+    document.getElementById('dash-jerk-mag').textContent='—';
+    document.getElementById('dash-jerk-verdict').textContent='—';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const csv = document.getElementById('dash-csv'); if (csv) csv.addEventListener('click', exportCsv);
+    const clr = document.getElementById('dash-clear'); if (clr) clr.addEventListener('click', clearTable);
+  });
+  // Already loaded? attach immediately too.
+  setTimeout(() => {
+    const csv = document.getElementById('dash-csv'); if (csv && !csv._wired){ csv._wired=true; csv.addEventListener('click', exportCsv); }
+    const clr = document.getElementById('dash-clear'); if (clr && !clr._wired){ clr._wired=true; clr.addEventListener('click', clearTable); }
+    renderRect(); // initial empty render
+  }, 100);
+
+  return { onMessage, shots, renderRect };
+})();
+
+// ---- Hook into onClickDetected to emit shots over bridge with jerk analytics ----
+(function(){
+  const orig = window.onClickDetected;
+  // onClickDetected is a top-level function declaration so window.onClickDetected works.
+  if (typeof orig !== 'function'){ console.warn('Cannot patch onClickDetected'); return; }
+  window.onClickDetected = function(source, intensity){
+    // Capture pre-shot snapshot BEFORE running scoring (so the buffer reflects the moment of break)
+    const distFt = parseFloat(document.getElementById('in-dist').value) || 15;
+    const tWin   = parseFloat(document.getElementById('in-width').value) || 8.5;
+    const jerk   = analyzeJerk(distFt, tWin);
+
+    // Save count to detect a new shot from the patched scorer
+    const before = sessionShots.length;
+    const result = orig.call(this, source, intensity);
+
+    // If a shot was appended, augment it with jerk + send to laptop
+    if (sessionShots.length > before){
+      const s = sessionShots[sessionShots.length - 1];
+      s.jerk   = { dir: jerk.dir, mag: jerk.mag, source: jerk.source, label: jerk.label, verdict: jerk.verdict };
+      s.preShot = { laser: jerk.lasers.slice(), imu: jerk.imus.slice() };
+      // POI in normalized rectified coords (re-derive)
+      if (laserNorm){ s.poi = { x: laserNorm.x, y: laserNorm.y }; }
+
+      // Update the local stats panel with the jerk readout (so phone-only mode still benefits)
+      try {
+        // No phone-side jerk widget exists yet — surface via toast and log
+        if (jerk.mag > 0){
+          log(`Jerk: ${jerk.verdict} · ${jerk.mag.toFixed(1)} MOA · src=${jerk.source}`, jerk.mag < 1.5 ? 'ok' : (jerk.mag < 3 ? 'warn' : 'err'));
+        }
+      } catch(e){}
+
+      // Send to laptop if connected
+      if (Role.isConnected()){
+        Role.send({
+          type: 'shot',
+          t: s.t,
+          devIn: s.devIn,
+          moa: s.moa,
+          score: s.score,
+          source: s.source,
+          untracked: !!s.untracked,
+          reason: s.reason,
+          poi: s.poi,
+          jerk: s.jerk,
+          preShot: s.preShot
+        });
+      }
+      // Also render on the dashboard if this device is the laptop (won't happen typically — laptop receives from phone)
+      if (Role.isLaptop()){ Dash.onMessage({type:'shot', ...s}); }
+    }
+    return result;
+  };
+})();
+
+// ---- Periodic telemetry: send laser position to laptop ----
+setInterval(() => {
+  if (!Role.isPhone() || !Role.isConnected()) return;
+  Role.send({
+    type: 'telemetry',
+    laser: laserNorm ? { x: laserNorm.x, y: laserNorm.y } : null,
+    haveTarget: !!homography,
+    haveAim: !!aimTargetNorm,
+    armed: sessionArmed
+  });
+}, 100); // 10Hz telemetry to keep bandwidth low
+
+log('Phone↔Laptop module ready', 'ok');
 </script>
 </body>
 </html>
