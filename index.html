@@ -3472,7 +3472,8 @@ window._dfPhone = (function(){
         });
         toast('Shots cleared', 'warn', 1200);
       } else if (c === 'extClick'){
-        // Laptop heard a click on its own mic — fire scoring
+        // Laptop heard a click on its own mic — fire scoring (only if armed)
+        if (!sessionArmed) return;
         const now = performance.now();
         if (now - lastClickTs > 350){
           lastClickTs = now;
