@@ -7,7 +7,7 @@
 <title>Dry-Fire Aim Coach</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 
   /* ── Rivian-inspired palette ───────────────────────────────────────── */
@@ -28,6 +28,13 @@
     --mint:      #9FD3B5;
     --sand:      #D9C7A0;
     --rust:      #E8836B;
+    /* ── Painterly Farewell-North accents (laptop dashboard) ─────────── */
+    --paint-bg-1: #1a3d4d;
+    --paint-bg-2: #0d1d2a;
+    --paint-bg-3: #050a12;
+    --paint-sunset: #FF8A4C;
+    --paint-magenta: #C661E8;
+    --paint-mist: rgba(255,255,255,0.05);
     --bad:       #E5604E;
     --radius-lg: 22px;
     --radius-md: 16px;
@@ -852,97 +859,177 @@
 /* Laptop dashboard layout — only shown when role=laptop */
 body.role-laptop main{display:none}
 body.role-laptop header{display:none}
-.laptop-dash{display:none;position:fixed;inset:0;background:#0a0a0a;padding:14px;gap:14px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;overflow:hidden}
+/* ── Painterly laptop dashboard (Farewell-North inspired) ──────────────── */
+.laptop-dash{display:none;position:fixed;inset:0;padding:18px;gap:16px;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;overflow:hidden;
+  background:
+    radial-gradient(ellipse 1200px 700px at 50% -10%, rgba(255,138,76,0.10), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 100% 110%, rgba(198,97,232,0.08), transparent 65%),
+    radial-gradient(ellipse 1100px 800px at 0% 100%, rgba(26,61,77,0.55), transparent 70%),
+    linear-gradient(180deg, #1a3d4d 0%, #0d1d2a 55%, #050a12 100%);
+  position:fixed;
+}
+.laptop-dash::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");opacity:0.5;mix-blend-mode:overlay;z-index:0}
+.laptop-dash::after{content:"";position:absolute;left:0;right:0;bottom:0;height:140px;pointer-events:none;z-index:0;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 140' preserveAspectRatio='none'><defs><linearGradient id='m' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23061523' stop-opacity='0'/><stop offset='1' stop-color='%23030a14' stop-opacity='1'/></linearGradient></defs><path fill='url(%23m)' d='M0,80 C 120,40 200,100 320,70 C 460,40 540,90 680,60 C 820,30 920,95 1060,70 C 1200,45 1320,100 1460,75 C 1540,60 1580,75 1600,70 L1600,140 L0,140 Z'/><path fill='%23030a14' opacity='0.85' d='M0,110 C 160,90 260,120 420,105 C 580,90 700,125 880,108 C 1060,90 1200,128 1380,110 C 1480,100 1560,115 1600,108 L1600,140 L0,140 Z'/></svg>") bottom/cover no-repeat;
+}
 body.role-laptop .laptop-dash{display:grid}
-.dash-panel{background:#111;border:1px solid #222;border-radius:18px;padding:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative}
-.dash-panel h3{margin:0 0 10px;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#fae232;display:flex;align-items:center;gap:8px}
-.dash-panel h3 .tag{font-size:10px;color:#888;font-weight:500;letter-spacing:0.5px;text-transform:none}
+.laptop-dash > *{position:relative;z-index:1}
+
+/* Painterly floating bloom particles */
+@keyframes paint-drift { 0%{transform:translateY(0) translateX(0);opacity:0} 10%{opacity:0.8} 90%{opacity:0.6} 100%{transform:translateY(-120vh) translateX(40px);opacity:0} }
+.laptop-dash .paint-particle{position:absolute;width:5px;height:5px;border-radius:50%;background:radial-gradient(circle, rgba(250,226,50,0.9), rgba(250,226,50,0));filter:blur(0.5px);pointer-events:none;z-index:0;animation:paint-drift 16s linear infinite}
+
+.dash-panel{
+  background:linear-gradient(160deg, rgba(20,40,55,0.85), rgba(8,18,28,0.92));
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:20px;padding:16px;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    0 6px 18px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,255,255,0.02);
+  backdrop-filter:blur(2px);
+  transition:box-shadow .4s ease, border-color .4s ease;
+}
+.dash-panel::before{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,138,76,0.10), transparent 70%);opacity:0.9}
+.dash-panel:hover{border-color:rgba(250,226,50,0.18);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 24px rgba(0,0,0,0.6), 0 0 40px rgba(250,226,50,0.10)}
+.dash-panel h3{margin:0 0 12px;font-family:'Spectral', Georgia, serif;font-size:18px;font-weight:600;letter-spacing:0.2px;color:#fae232;display:flex;align-items:center;gap:10px;text-shadow:0 1px 12px rgba(250,226,50,0.18)}
+.dash-panel h3 .tag{font-family:'Manrope', sans-serif;font-size:10px;color:rgba(216,224,232,0.5);font-weight:500;letter-spacing:0.8px;text-transform:uppercase}
 .dash-panel .body{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
-#dash-video{flex:1;min-height:0;background:#000;border-radius:12px;object-fit:contain;width:100%}
-#dash-rect-canvas{flex:1;min-height:0;background:#000;border-radius:12px;display:block;width:100%;height:100%}
-#dash-wobble-canvas{flex:1;min-height:0;background:#000;border-radius:12px;display:block;width:100%;height:100%}
-.jerk-readout{display:flex;justify-content:space-around;align-items:center;padding:6px 0 0;font-size:13px}
-.jerk-readout .big{font-size:22px;font-weight:800;color:var(--yellow);font-family:ui-monospace,monospace}
-.jerk-readout .lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:2px;text-align:center}
-.jerk-readout .col{text-align:center}
-.dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
-.dash-stats .stat{background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:8px 10px}
-.dash-stats .stat .v{font-family:ui-monospace,monospace;font-size:18px;font-weight:800;color:var(--yellow)}
-.dash-stats .stat .k{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888;margin-top:2px}
-#dash-table-wrap{flex:1;min-height:0;overflow:auto;border:1px solid #222;border-radius:10px;background:#0a0a0a}
-#dash-table{width:100%;border-collapse:collapse;font-size:12px;font-family:ui-monospace,monospace}
-#dash-table th{background:#161616;color:#fae232;text-align:left;padding:8px 10px;position:sticky;top:0;font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #222}
-#dash-table td{padding:7px 10px;border-bottom:1px solid #1a1a1a;color:#ddd}
-#dash-table tr:hover td{background:#161616}
+#dash-video{flex:1;min-height:0;background:#02060c;border-radius:14px;object-fit:contain;width:100%;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05)}
+#dash-rect-canvas{flex:1;min-height:0;background:#02060c;border-radius:14px;display:block;width:100%;height:100%;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05)}
+#dash-wobble-canvas{flex:1;min-height:0;background:#02060c;border-radius:14px;display:block;width:100%;height:100%;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.05)}
+.jerk-readout{display:flex;justify-content:space-around;align-items:center;padding:10px 0 0;font-size:13px;gap:10px}
+.jerk-readout .big{font-size:24px;font-weight:700;color:var(--yellow);font-family:'JetBrains Mono', ui-monospace, monospace;text-shadow:0 0 14px rgba(250,226,50,0.25)}
+.jerk-readout .lbl{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(216,224,232,0.45);margin-bottom:3px;text-align:center;font-family:'Manrope', sans-serif}
+.jerk-readout .col{text-align:center;flex:1}
+.dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.dash-stats .stat{background:linear-gradient(160deg, rgba(8,18,28,0.7), rgba(4,10,18,0.85));border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:10px 12px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.dash-stats .stat .v{font-family:'JetBrains Mono', ui-monospace, monospace;font-size:22px;font-weight:700;color:var(--yellow);text-shadow:0 0 10px rgba(250,226,50,0.18)}
+.dash-stats .stat .k{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(216,224,232,0.5);margin-top:3px;font-family:'Manrope', sans-serif}
+#dash-table-wrap{flex:1;min-height:0;overflow:auto;border:1px solid rgba(255,255,255,0.06);border-radius:12px;background:linear-gradient(180deg, rgba(8,18,28,0.5), rgba(4,10,18,0.7))}
+#dash-table{width:100%;border-collapse:collapse;font-size:12px;font-family:'JetBrains Mono', ui-monospace, monospace}
+#dash-table th{background:rgba(14,34,48,0.85);color:#fae232;text-align:left;padding:9px 10px;position:sticky;top:0;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);font-family:'Manrope', sans-serif}
+#dash-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(228,232,238,0.9)}
+#dash-table tr:hover td{background:rgba(20,40,55,0.5)}
 #dash-table .good{color:#9fd3b5}
-#dash-table .bad{color:#e8836b}
-.dash-tools{display:flex;gap:6px;margin-top:8px}
-.dash-tools button{flex:1;background:#1c1c1c;color:#eee;border:1px solid #333;border-radius:10px;padding:7px 10px;font-size:12px;cursor:pointer}
-.dash-tools button:hover{border-color:var(--yellow)}
+#dash-table .bad{color:#FF8A4C}
+/* 2P scoreboard in Session panel */
+.dash-2p-board{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.dash-2p-board .p-card{background:linear-gradient(160deg, rgba(8,18,28,0.7), rgba(4,10,18,0.9));border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.dash-2p-board .p-card.pA{border-color:rgba(255,179,71,0.3);box-shadow:inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px rgba(255,179,71,0.08)}
+.dash-2p-board .p-card.pB{border-color:rgba(198,97,232,0.3);box-shadow:inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px rgba(198,97,232,0.08)}
+.dash-2p-board .p-head{font-family:'Spectral', Georgia, serif;font-weight:600;font-size:15px;margin-bottom:6px;letter-spacing:0.4px}
+.dash-2p-board .pA .p-head{color:#FFB347}
+.dash-2p-board .pB .p-head{color:#C661E8}
+.dash-2p-board .p-row{display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;border-bottom:1px dashed rgba(255,255,255,0.05);font-family:'Manrope', sans-serif;font-size:11px;color:rgba(216,224,232,0.65)}
+.dash-2p-board .p-row:last-child{border-bottom:none}
+.dash-2p-board .p-row b{color:#fae232;font-family:'JetBrains Mono', ui-monospace, monospace;font-weight:700;font-size:15px}
+.dash-tools{display:flex;gap:8px;margin-top:10px}
+.dash-tools button{flex:1;background:rgba(20,40,55,0.7);color:#eee;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:8px 10px;font-size:12px;cursor:pointer;font-family:'Manrope', sans-serif;font-weight:600;letter-spacing:0.3px;transition:all .2s}
+.dash-tools button:hover{border-color:var(--yellow);background:rgba(30,55,72,0.85);transform:translateY(-1px)}
 @media (max-width:900px){.laptop-dash{grid-template-columns:1fr;grid-template-rows:auto auto auto auto}}
 
 /* Control rail — lives in the dashboard grid as the top-left panel; expanded to span both top cells */
 body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-columns:1fr 1fr}
-#dash-controls-panel{grid-column:1 / -1; padding:14px 16px}
-.ctrl-body{gap:10px}
-.ctrl-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:10px}
-@media (max-width:1200px){ .ctrl-grid{grid-template-columns:repeat(3,1fr)} }
+#dash-controls-panel{grid-column:1 / -1; padding:16px 18px}
+.ctrl-body{gap:12px}
+.ctrl-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:12px;margin-bottom:12px}
+@media (max-width:1500px){ .ctrl-grid{grid-template-columns:repeat(4,1fr)} }
+@media (max-width:1000px){ .ctrl-grid{grid-template-columns:repeat(2,1fr)} }
 .ctrl-block{display:flex;flex-direction:column;gap:6px;min-width:0}
-.ctrl-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#888}
-.ctrl-input-row{display:flex;align-items:center;gap:6px;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:4px 8px}
-.ctrl-input-row input{flex:1;min-width:0;background:transparent;border:0;color:#fae232;font-family:ui-monospace,monospace;font-size:16px;font-weight:700;outline:none;text-align:right}
+.ctrl-label{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(216,224,232,0.55);font-family:'Manrope', sans-serif;font-weight:600}
+.ctrl-input-row{display:flex;align-items:center;gap:6px;background:rgba(4,10,18,0.7);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:5px 10px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.ctrl-input-row:focus-within{border-color:rgba(250,226,50,0.35);box-shadow:inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 3px rgba(250,226,50,0.10)}
+.ctrl-input-row input{flex:1;min-width:0;background:transparent;border:0;color:#fae232;font-family:'JetBrains Mono', ui-monospace, monospace;font-size:17px;font-weight:600;outline:none;text-align:right}
 .ctrl-input-row input::-webkit-outer-spin-button,.ctrl-input-row input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .ctrl-input-row input[type=number]{-moz-appearance:textfield}
-.ctrl-unit{font-size:11px;color:#888}
-.ctrl-step{background:#1c1c1c;border:1px solid #2a2a2a;color:#fae232;width:24px;height:24px;border-radius:8px;cursor:pointer;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
-.ctrl-step:hover{background:#262626}
-.ctrl-seg{display:flex;background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:3px;gap:3px}
-.ctrl-seg button{flex:1;background:transparent;border:0;color:#aaa;font-size:11px;padding:6px 8px;border-radius:7px;cursor:pointer;font-weight:600}
-.ctrl-seg button.active{background:#fae232;color:#1a1700}
+.ctrl-unit{font-size:11px;color:rgba(216,224,232,0.5);font-family:'Manrope', sans-serif}
+.ctrl-step{background:rgba(20,40,55,0.8);border:1px solid rgba(255,255,255,0.08);color:#fae232;width:26px;height:26px;border-radius:9px;cursor:pointer;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;transition:all .15s}
+.ctrl-step:hover{background:rgba(35,60,80,0.9);transform:scale(1.06)}
+.ctrl-seg{display:flex;background:rgba(4,10,18,0.7);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:3px;gap:3px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.ctrl-seg button{flex:1;background:transparent;border:0;color:rgba(216,224,232,0.7);font-size:11px;padding:7px 8px;border-radius:9px;cursor:pointer;font-weight:600;font-family:'Manrope', sans-serif;transition:all .2s}
+.ctrl-seg button:hover{color:#fff;background:rgba(255,255,255,0.04)}
+.ctrl-seg button.active{background:linear-gradient(135deg, #fae232, #FFE600);color:#1a1700;box-shadow:0 0 16px rgba(250,226,50,0.4)}
+.ctrl-seg.player-seg button.active[data-player="A"]{background:linear-gradient(135deg, #fae232, #FFB347);color:#1a1700;box-shadow:0 0 16px rgba(255,179,71,0.45)}
+.ctrl-seg.player-seg button.active[data-player="B"]{background:linear-gradient(135deg, #C661E8, #7A5BE0);color:#fff;box-shadow:0 0 16px rgba(198,97,232,0.45)}
 .ctrl-aim{display:grid;grid-template-columns:1fr;gap:4px;justify-items:center}
-.ctrl-aim button{background:#1c1c1c;border:1px solid #2a2a2a;color:#fae232;font-size:12px;padding:4px 8px;border-radius:8px;cursor:pointer;font-weight:700;min-width:32px}
-.ctrl-aim button:hover{background:#262626}
+.ctrl-aim button{background:rgba(20,40,55,0.8);border:1px solid rgba(255,255,255,0.08);color:#fae232;font-size:12px;padding:5px 10px;border-radius:9px;cursor:pointer;font-weight:700;min-width:34px;transition:all .15s}
+.ctrl-aim button:hover{background:rgba(35,60,80,0.9);transform:scale(1.05)}
 .ctrl-aim-row{display:flex;gap:4px}
-.ctrl-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px solid #1a1a1a}
-.ctrl-btn{background:#1c1c1c;border:1px solid #2a2a2a;color:#eee;padding:9px 16px;border-radius:10px;cursor:pointer;font-weight:700;font-size:13px;letter-spacing:.3px}
-.ctrl-btn:hover{background:#262626;border-color:#fae232}
-.ctrl-btn:disabled{opacity:.4;cursor:not-allowed}
-.ctrl-btn.primary{background:#fae232;color:#1a1700;border-color:#fae232}
-.ctrl-btn.primary:hover{background:#fff04a}
-.ctrl-btn.warn{background:#e8836b;color:#1a0a05;border-color:#e8836b}
+.ctrl-actions{display:flex;gap:10px;flex-wrap:wrap;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)}
+.ctrl-btn{background:rgba(20,40,55,0.8);border:1px solid rgba(255,255,255,0.08);color:#eee;padding:10px 18px;border-radius:12px;cursor:pointer;font-weight:600;font-size:13px;letter-spacing:.3px;font-family:'Manrope', sans-serif;transition:all .2s}
+.ctrl-btn:hover{background:rgba(35,60,80,0.9);border-color:rgba(250,226,50,0.4);transform:translateY(-1px)}
+.ctrl-btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.ctrl-btn.primary{background:linear-gradient(135deg, #fae232, #FFE600);color:#1a1700;border-color:transparent;box-shadow:0 0 22px rgba(250,226,50,0.35)}
+.ctrl-btn.primary:hover{background:linear-gradient(135deg, #fff04a, #fae232);box-shadow:0 0 28px rgba(250,226,50,0.5)}
+.ctrl-btn.warn{background:linear-gradient(135deg, #FF8A4C, #E8836B);color:#1a0a05;border-color:transparent;box-shadow:0 0 18px rgba(255,138,76,0.3)}
 .ctrl-btn.ghost{background:transparent}
-.ctrl-phone-state{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#888;padding-top:6px;border-top:1px solid #1a1a1a}
-.ctrl-phone-state .v{color:#fae232;font-family:ui-monospace,monospace;font-weight:700}
+.ctrl-phone-state{display:flex;gap:18px;flex-wrap:wrap;font-size:11px;color:rgba(216,224,232,0.55);padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-family:'Manrope', sans-serif}
+.ctrl-phone-state .v{color:#fae232;font-family:'JetBrains Mono', ui-monospace, monospace;font-weight:600}
 
 /* Per-shot table row — clickable for clip playback */
 #dash-table tbody tr{cursor:pointer}
 #dash-table tbody tr.has-clip td:first-child::before{content:"▶ ";color:#fae232;font-size:9px;margin-right:2px}
 #dash-table tbody tr.selected td{background:#1f1f1f}
 
-/* Results modal */
-.results-modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+/* Results modal — painterly */
+.results-modal{position:fixed;inset:0;background:rgba(5,10,18,0.88);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
 .results-modal.open{display:flex}
-.results-card{background:#141414;border:1px solid #2a2a2a;border-radius:24px;padding:28px;max-width:980px;width:100%;position:relative;box-shadow:0 30px 80px rgba(0,0,0,0.7)}
-.results-card h2{margin:0 0 8px;color:#fae232;font-size:24px;letter-spacing:.4px}
-.results-card h4{margin:0 0 10px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#888}
-.results-close{position:absolute;top:14px;right:14px;background:transparent;border:0;color:#aaa;font-size:28px;line-height:1;cursor:pointer;padding:4px 10px;border-radius:8px}
-.results-close:hover{color:#fff;background:#222}
-.results-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.results-stats .stat{background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:12px 14px}
-.results-stats .stat .v{font-family:ui-monospace,monospace;font-size:24px;font-weight:800;color:#fae232}
-.results-stats .stat .k{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#888;margin-top:4px}
+.results-card{
+  background:
+    radial-gradient(ellipse 800px 400px at 50% -10%, rgba(255,138,76,0.12), transparent 60%),
+    radial-gradient(ellipse 600px 400px at 100% 100%, rgba(198,97,232,0.08), transparent 65%),
+    linear-gradient(160deg, rgba(20,40,55,0.95), rgba(8,18,28,0.97));
+  border:1px solid rgba(255,255,255,0.08);border-radius:26px;padding:30px;max-width:1080px;width:100%;position:relative;
+  box-shadow:0 30px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.results-card h2{margin:0 0 6px;color:#fae232;font-size:28px;font-family:'Spectral', Georgia, serif;font-weight:600;letter-spacing:.4px;text-shadow:0 0 20px rgba(250,226,50,0.2)}
+.results-card .results-sub{margin:0 0 18px;color:rgba(216,224,232,0.6);font-size:13px;font-family:'Manrope', sans-serif;font-style:italic}
+.results-card h4{margin:0 0 12px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(216,224,232,0.55);font-family:'Manrope', sans-serif;font-weight:600}
+.results-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(216,224,232,0.7);font-size:24px;line-height:1;cursor:pointer;padding:6px 12px;border-radius:10px;transition:all .2s}
+.results-close:hover{color:#fff;background:rgba(255,138,76,0.2);border-color:rgba(255,138,76,0.4)}
+.results-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.results-stats .stat{background:linear-gradient(160deg, rgba(8,18,28,0.6), rgba(4,10,18,0.85));border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px 16px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.results-stats .stat .v{font-family:'JetBrains Mono', ui-monospace, monospace;font-size:26px;font-weight:700;color:#fae232;text-shadow:0 0 12px rgba(250,226,50,0.2)}
+.results-stats .stat .k{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(216,224,232,0.55);margin-top:4px;font-family:'Manrope', sans-serif}
 .results-grid{display:grid;grid-template-columns:auto 1fr;gap:24px;margin-bottom:18px}
-.results-target canvas{display:block;border-radius:12px;background:#f4f1e6}
+.results-target canvas{display:block;border-radius:14px;background:#f4f1e6;box-shadow:0 8px 24px rgba(0,0,0,0.45)}
 .results-shots{max-height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:6px}
-.results-shot{background:#0a0a0a;border:1px solid #222;border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;cursor:pointer}
-.results-shot:hover{border-color:#fae232}
-.results-shot .num{font-family:ui-monospace,monospace;font-size:18px;font-weight:800;color:#fae232;min-width:30px}
-.results-shot .meta{font-size:12px;color:#ccc;line-height:1.4}
-.results-shot .meta .dir{color:#888;font-size:11px}
-.results-shot .moa{font-family:ui-monospace,monospace;font-weight:800;font-size:16px}
+.results-shot{background:linear-gradient(160deg, rgba(8,18,28,0.6), rgba(4,10,18,0.85));border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:11px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;cursor:pointer;transition:all .2s}
+.results-shot:hover{border-color:rgba(250,226,50,0.35);background:linear-gradient(160deg, rgba(14,30,42,0.7), rgba(8,18,28,0.9));transform:translateX(2px)}
+.results-shot .num{font-family:'JetBrains Mono', ui-monospace, monospace;font-size:18px;font-weight:700;color:#fae232;min-width:30px}
+.results-shot .meta{font-size:12px;color:rgba(228,232,238,0.85);line-height:1.4;font-family:'Manrope', sans-serif}
+.results-shot .meta .dir{color:rgba(216,224,232,0.55);font-size:11px;margin-top:2px}
+.results-shot .meta .player-badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:0.6px;padding:2px 6px;border-radius:6px;margin-right:6px;font-family:'Manrope', sans-serif}
+.results-shot .meta .player-badge.A{background:rgba(255,179,71,0.2);color:#FFB347;border:1px solid rgba(255,179,71,0.35)}
+.results-shot .meta .player-badge.B{background:rgba(198,97,232,0.2);color:#C661E8;border:1px solid rgba(198,97,232,0.35)}
+.results-shot .moa{font-family:'JetBrains Mono', ui-monospace, monospace;font-weight:700;font-size:17px}
 .results-shot .moa.good{color:#9fd3b5}
-.results-shot .moa.bad{color:#e8836b}
-.results-footer{display:flex;gap:10px;justify-content:flex-end}
+.results-shot .moa.bad{color:#FF8A4C}
+
+/* AAR charts + 2P sections */
+.results-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.results-chart-card{background:linear-gradient(160deg, rgba(8,18,28,0.6), rgba(4,10,18,0.85));border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.results-chart-card canvas{display:block;width:100%;height:200px;border-radius:8px;background:#02060c}
+.results-coach{margin:14px 0 18px;padding:16px 18px;background:linear-gradient(160deg, rgba(20,40,55,0.7), rgba(8,18,28,0.85));border:1px solid rgba(250,226,50,0.18);border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 0 30px rgba(250,226,50,0.08)}
+.results-coach .ctitle{font-family:'Spectral', Georgia, serif;font-style:italic;font-size:14px;color:#fae232;margin-bottom:6px;letter-spacing:0.3px}
+.results-coach .ctext{font-size:13px;color:rgba(228,232,238,0.92);line-height:1.55;font-family:'Manrope', sans-serif}
+.results-winner{margin:8px 0 18px;padding:14px 18px;background:linear-gradient(135deg, rgba(255,138,76,0.18), rgba(198,97,232,0.15));border:1px solid rgba(255,138,76,0.35);border-radius:16px;text-align:center;box-shadow:0 0 24px rgba(255,138,76,0.15)}
+.results-winner .wtitle{font-family:'Manrope', sans-serif;font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(216,224,232,0.7);margin-bottom:6px}
+.results-winner .wname{font-family:'Spectral', Georgia, serif;font-weight:600;font-size:22px;color:#fff;text-shadow:0 0 18px rgba(255,138,76,0.4)}
+.results-winner .wdetail{font-family:'JetBrains Mono', ui-monospace, monospace;font-size:12px;color:rgba(228,232,238,0.75);margin-top:4px}
+.results-2p-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+.results-2p-card{background:linear-gradient(160deg, rgba(8,18,28,0.6), rgba(4,10,18,0.85));border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:14px 16px}
+.results-2p-card.A{border-color:rgba(255,179,71,0.3);box-shadow:0 0 20px rgba(255,179,71,0.08)}
+.results-2p-card.B{border-color:rgba(198,97,232,0.3);box-shadow:0 0 20px rgba(198,97,232,0.08)}
+.results-2p-card .ptitle{font-family:'Spectral', Georgia, serif;font-size:18px;font-weight:600;margin-bottom:8px}
+.results-2p-card.A .ptitle{color:#FFB347}
+.results-2p-card.B .ptitle{color:#C661E8}
+.results-2p-card .pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.results-2p-card .pstat{background:rgba(4,10,18,0.5);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:8px 10px;text-align:center}
+.results-2p-card .pstat .v{font-family:'JetBrains Mono', ui-monospace, monospace;font-weight:700;font-size:18px;color:#fae232}
+.results-2p-card .pstat .k{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(216,224,232,0.55);margin-top:3px;font-family:'Manrope', sans-serif}
+.results-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
 @media (max-width:900px){.results-stats{grid-template-columns:repeat(2,1fr)}.results-grid{grid-template-columns:1fr}.results-target canvas{width:100%;height:auto}}
 
 /* Per-shot clip player overlay */
@@ -1007,6 +1094,13 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
 
 <!-- Laptop dashboard (only visible when body.role-laptop) -->
 <div class="laptop-dash" id="laptop-dash">
+  <!-- Painterly bloom particles -->
+  <div class="paint-particle" style="left:8%;bottom:-10px;animation-delay:0s"></div>
+  <div class="paint-particle" style="left:22%;bottom:-10px;animation-delay:3s"></div>
+  <div class="paint-particle" style="left:48%;bottom:-10px;animation-delay:6s;background:radial-gradient(circle, rgba(198,97,232,0.9), rgba(198,97,232,0))"></div>
+  <div class="paint-particle" style="left:67%;bottom:-10px;animation-delay:9s"></div>
+  <div class="paint-particle" style="left:82%;bottom:-10px;animation-delay:12s;background:radial-gradient(circle, rgba(255,138,76,0.9), rgba(255,138,76,0))"></div>
+  <div class="paint-particle" style="left:93%;bottom:-10px;animation-delay:14s"></div>
   <!-- Top-row control rail: covers both top panels' header area -->
   <div class="dash-panel" id="dash-controls-panel">
     <h3>Control center <span class="tag" id="dash-ctrl-tag">drive the phone from here</span></h3>
@@ -1049,6 +1143,20 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
             <button data-mic="laptop" class="active">Laptop mic</button>
             <button data-mic="phone">Phone mic</button>
             <button data-mic="both">Both</button>
+          </div>
+        </div>
+        <div class="ctrl-block">
+          <div class="ctrl-label">Mode</div>
+          <div class="ctrl-seg" id="ctrl-mode-seg">
+            <button data-mode="1p" class="active">1 player</button>
+            <button data-mode="2p">2 players</button>
+          </div>
+        </div>
+        <div class="ctrl-block" id="ctrl-player-block" style="display:none">
+          <div class="ctrl-label">Active shooter</div>
+          <div class="ctrl-seg player-seg" id="ctrl-player-seg">
+            <button data-player="A" class="active">Player A</button>
+            <button data-player="B">Player B</button>
           </div>
         </div>
         <div class="ctrl-block">
@@ -1122,8 +1230,30 @@ body.role-laptop .laptop-dash{grid-template-rows:auto 1fr 1fr;grid-template-colu
 <div class="results-modal" id="results-modal">
   <div class="results-card">
     <button class="results-close" id="results-close" aria-label="close">×</button>
-    <h2>Session complete</h2>
+    <h2 id="results-title">Session complete</h2>
+    <p class="results-sub" id="results-sub">A full read on the last set — where you shot, how you broke, where to focus next.</p>
+
+    <div id="results-winner-slot"></div>
+    <div id="results-2p-slot"></div>
+
     <div class="results-stats" id="results-stats"></div>
+
+    <div class="results-charts">
+      <div class="results-chart-card">
+        <h4>MOA trend · shot by shot</h4>
+        <canvas id="results-trend" width="500" height="200"></canvas>
+      </div>
+      <div class="results-chart-card">
+        <h4>Jerk direction · where breaks went</h4>
+        <canvas id="results-polar" width="500" height="200"></canvas>
+      </div>
+    </div>
+
+    <div class="results-coach" id="results-coach">
+      <div class="ctitle">Coach’s take</div>
+      <div class="ctext" id="results-coach-text">—</div>
+    </div>
+
     <div class="results-grid">
       <div class="results-target">
         <h4>Where shots landed</h4>
@@ -2714,19 +2844,64 @@ if (!navigator.bluetooth) log('Web Bluetooth unavailable in this browser','warn'
 
 // ---- Pre-shot ring buffers ----
 // Sampled at ~30Hz for laser (one sample per camera frame), ~100Hz for IMU.
-// Each entry: {t, x, y} for laser (normalized rectified coords), {t, ax, ay, az, gx, gy, gz} for IMU.
-const PRESHOT_WINDOW_MS = 300; // we keep 300ms, analyze last 200ms before click
+// Each entry: {t, x, y, synthetic?} for laser; {t, ax, ay, az, gx, gy, gz} for IMU.
+// We keep a longer 600ms window so analyzeJerk always has options even if the laser dropped briefly.
+const PRESHOT_WINDOW_MS = 600;
 const preShotLaser = [];
 const preShotImu   = [];
+// Snapshot of the rectified canvas captured at low rate so we ALWAYS have a still-frame fallback to render
+const preShotFrames = []; // [{t, dataUrl}]
+const PRESHOT_FRAME_W = 240, PRESHOT_FRAME_H = 240;
+const _preShotFrameBuf = document.createElement('canvas');
+_preShotFrameBuf.width = PRESHOT_FRAME_W; _preShotFrameBuf.height = PRESHOT_FRAME_H;
+const _preShotFrameCtx = _preShotFrameBuf.getContext('2d');
+let _lastLaserNorm = null; // last KNOWN laser pos (even if not currently detected) for synthetic fill
 
 function pushPreShotLaser(){
-  if (!laserNorm) return;
   const now = performance.now();
-  preShotLaser.push({ t: now, x: laserNorm.x, y: laserNorm.y });
-  // Trim
+  let entry;
+  if (laserNorm){
+    _lastLaserNorm = { x: laserNorm.x, y: laserNorm.y, t: now };
+    entry = { t: now, x: laserNorm.x, y: laserNorm.y, synthetic: false };
+  } else if (_lastLaserNorm && (now - _lastLaserNorm.t) < 500){
+    // Laser dropped — fill with last known position so the buffer is never empty during armed periods.
+    // Mark synthetic so analytics can de-weight it. Add tiny jitter so the path isn't a single point.
+    const jx = (Math.random() - 0.5) * 0.001;
+    const jy = (Math.random() - 0.5) * 0.001;
+    entry = { t: now, x: _lastLaserNorm.x + jx, y: _lastLaserNorm.y + jy, synthetic: true };
+  } else if (aimTargetNorm){
+    // Never seen a laser yet — anchor to the aim point so we still have *something*.
+    const jx = (Math.random() - 0.5) * 0.002;
+    const jy = (Math.random() - 0.5) * 0.002;
+    entry = { t: now, x: aimTargetNorm.x + jx, y: aimTargetNorm.y + jy, synthetic: true };
+  } else {
+    return; // truly no data
+  }
+  preShotLaser.push(entry);
   const cutoff = now - PRESHOT_WINDOW_MS;
   while (preShotLaser.length && preShotLaser[0].t < cutoff) preShotLaser.shift();
 }
+
+// Capture the rectified canvas as a small JPEG every ~100ms.
+// Guarantees we have a still frame to overlay POI/aim on, even when laser detection failed.
+function pushPreShotFrame(){
+  const now = performance.now();
+  try {
+    // Prefer the rectified buffer (already perspective-corrected); fall back to raw video
+    if (typeof rectBuf !== 'undefined' && rectBuf && rectBuf.width){
+      _preShotFrameCtx.drawImage(rectBuf, 0, 0, PRESHOT_FRAME_W, PRESHOT_FRAME_H);
+    } else if (video && video.readyState >= 2){
+      _preShotFrameCtx.drawImage(video, 0, 0, PRESHOT_FRAME_W, PRESHOT_FRAME_H);
+    } else {
+      return;
+    }
+    const dataUrl = _preShotFrameBuf.toDataURL('image/jpeg', 0.55);
+    preShotFrames.push({ t: now, dataUrl });
+    const cutoff = now - PRESHOT_WINDOW_MS;
+    while (preShotFrames.length && preShotFrames[0].t < cutoff) preShotFrames.shift();
+  } catch(e){ /* ignore */ }
+}
+setInterval(pushPreShotFrame, 100); // 10Hz still-frame buffer
 function pushPreShotImu(sample){
   const now = performance.now();
   preShotImu.push(Object.assign({ t: now }, sample));
@@ -2734,68 +2909,69 @@ function pushPreShotImu(sample){
   while (preShotImu.length && preShotImu[0].t < cutoff) preShotImu.shift();
 }
 
-// Analyze the 200ms window before the click. Returns {dir, mag (MOA), verdict, lasers:[], imus:[]}
+// Analyze the 200ms window before the click. Returns {dir, mag (MOA), verdict, lasers:[], imus:[], frame, syntheticOnly}
 function analyzeJerk(distFt, targetWidthIn){
   const now = performance.now();
   const windowStart = now - 200;
   const lasers = preShotLaser.filter(s => s.t >= windowStart);
   const imus   = preShotImu.filter(s => s.t >= windowStart);
+  // Grab the most recent captured frame so the wobble panel always has SOMETHING to render
+  const frame = preShotFrames.length ? preShotFrames[preShotFrames.length-1] : null;
+  // Real (non-synthetic) laser samples — these drive analytics
+  const realLasers = lasers.filter(s => !s.synthetic);
+  const syntheticOnly = lasers.length > 0 && realLasers.length === 0;
 
   let laserDir = null, laserMagIn = 0;
-  if (lasers.length >= 3){
-    // First → last vector, plus magnitude as max excursion from mean
-    const meanX = lasers.reduce((a,b)=>a+b.x,0)/lasers.length;
-    const meanY = lasers.reduce((a,b)=>a+b.y,0)/lasers.length;
+  if (realLasers.length >= 2){
+    const meanX = realLasers.reduce((a,b)=>a+b.x,0)/realLasers.length;
+    const meanY = realLasers.reduce((a,b)=>a+b.y,0)/realLasers.length;
     let maxR = 0;
-    for (const s of lasers){
+    for (const s of realLasers){
       const dx=s.x-meanX, dy=s.y-meanY;
       const r=Math.sqrt(dx*dx+dy*dy);
       if (r>maxR) maxR=r;
     }
-    const dx = lasers[lasers.length-1].x - lasers[0].x;
-    const dy = lasers[lasers.length-1].y - lasers[0].y;
+    const dx = realLasers[realLasers.length-1].x - realLasers[0].x;
+    const dy = realLasers[realLasers.length-1].y - realLasers[0].y;
     laserDir = { x: dx, y: dy };
-    // Convert normalized excursion → inches → MOA later
     laserMagIn = maxR * (targetWidthIn || 8.5);
   }
 
   // IMU: integrate gyro to estimate angular delta (deg) over window
   let imuAngleDeg = 0;
   let imuDir = null;
-  if (imus.length >= 3){
+  if (imus.length >= 2){
     let sumGx=0, sumGy=0, sumGz=0;
     for (const s of imus){ sumGx += Math.abs(s.gx||0); sumGy += Math.abs(s.gy||0); sumGz += Math.abs(s.gz||0); }
-    // Average dps over the window
     const avgGx = sumGx/imus.length, avgGy = sumGy/imus.length, avgGz = sumGz/imus.length;
-    imuAngleDeg = (avgGx + avgGy + avgGz) * 0.2; // 0.2s window
-    // Direction from gyro yaw (gz) and pitch (gy) signs (approximate)
+    imuAngleDeg = (avgGx + avgGy + avgGz) * 0.2;
     const lastGy = imus[imus.length-1].gy || 0;
     const lastGz = imus[imus.length-1].gz || 0;
-    imuDir = { x: lastGz, y: lastGy }; // yaw maps to horizontal, pitch to vertical
+    imuDir = { x: lastGz, y: lastGy };
   }
 
-  // Convert laser inches to MOA at the configured distance
   const distYd = (distFt||15)/3;
   const laserMagMoa = distYd>0 ? laserMagIn / (1.047 * distYd / 100) : 0;
-  // IMU angle in MOA: 1° = 60 MOA. But that's huge — use it as a multiplier instead.
   const imuMagMoa = imuAngleDeg * 60;
 
-  // Choose dominant source (whichever indicates more movement); fall back if missing.
   let mag = 0, dir = { x:0, y:0 }, source = 'none';
   if (laserMagMoa > 0 && imuMagMoa > 0){
-    // Fused: weighted average favoring laser (more accurate POI proxy)
     mag = laserMagMoa * 0.7 + imuMagMoa * 0.3;
-    dir = laserDir;
-    source = 'fused';
+    dir = laserDir; source = 'fused';
   } else if (laserMagMoa > 0){
     mag = laserMagMoa; dir = laserDir; source = 'laser';
   } else if (imuMagMoa > 0){
     mag = imuMagMoa; dir = imuDir; source = 'imu';
+  } else if (syntheticOnly){
+    // No tracked movement at all — we still want to report SOMETHING. Use a tiny synthetic
+    // wobble derived from the synthetic samples so the panel renders.
+    source = 'static';
   }
 
-  // Classify direction into a friendly label
   let label = '—';
-  if (mag < 1.0){
+  if (source === 'static' || source === 'none'){
+    label = 'Steady (no movement detected)';
+  } else if (mag < 1.0){
     label = 'Clean break';
   } else if (dir){
     const ang = Math.atan2(dir.y, dir.x) * 180 / Math.PI;
@@ -2810,13 +2986,12 @@ function analyzeJerk(distFt, targetWidthIn){
     else if (ang >= -67.5 && ang < -22.5)   label = 'High-right';
     else                                    label = 'Jerking left';
   }
-  // Verdict severity
   let verdict = label;
   if (mag >= 5)   verdict = label + ' (severe)';
   else if (mag >= 2.5) verdict = label;
   else if (mag >= 1.0) verdict = label + ' (mild)';
 
-  return { dir, mag, source, label, verdict, lasers, imus };
+  return { dir, mag, source, label, verdict, lasers, imus, frame, syntheticOnly };
 }
 
 // ---- Patch onWitNotify so IMU samples land in the pre-shot buffer ----
@@ -3107,6 +3282,9 @@ const Dash = (function(){
   function renderTable(){
     const tbody = document.getElementById('dash-tbody');
     if (!tbody) return;
+    // Detect 2P mode from header ("P" column present as 2nd header)
+    const head = document.querySelector('#dash-table thead tr');
+    const is2P = head && head.children.length === 7;
     tbody.innerHTML = '';
     for (let i=shots.length-1; i>=0; i--){
       const s = shots[i];
@@ -3114,7 +3292,13 @@ const Dash = (function(){
       const time = new Date(s.t).toLocaleTimeString();
       const dir = (s.jerk && s.jerk.label) || '—';
       const cls = s.score >= 80 ? 'good' : (s.score >= 50 ? '' : 'bad');
-      tr.innerHTML = `<td>${i+1}</td><td>${time}</td><td>${(s.devIn||0).toFixed(2)}</td><td class="${cls}">${(s.moa||0).toFixed(1)}</td><td class="${cls}">${s.score||0}</td><td>${dir}</td>`;
+      const player = s.player || 'A';
+      const pCellStyle = player === 'A' ? 'color:#FFB347;font-weight:700' : 'color:#C661E8;font-weight:700';
+      if (is2P){
+        tr.innerHTML = `<td>${i+1}</td><td style="${pCellStyle}">${player}</td><td>${time}</td><td>${(s.devIn||0).toFixed(2)}</td><td class="${cls}">${(s.moa||0).toFixed(1)}</td><td class="${cls}">${s.score||0}</td><td>${dir}</td>`;
+      } else {
+        tr.innerHTML = `<td>${i+1}</td><td>${time}</td><td>${(s.devIn||0).toFixed(2)}</td><td class="${cls}">${(s.moa||0).toFixed(1)}</td><td class="${cls}">${s.score||0}</td><td>${dir}</td>`;
+      }
       tbody.appendChild(tr);
     }
     const tag = document.getElementById('dash-session-tag');
@@ -3130,6 +3314,19 @@ const Dash = (function(){
       document.getElementById('dash-avg').textContent = avg.toFixed(1);
       document.getElementById('dash-best').textContent = best.toFixed(1);
     }
+    update2PStats();
+  }
+
+  function update2PStats(){
+    ['A','B'].forEach(P => {
+      const ps = shots.filter(s => (s.player||'A') === P && typeof s.moa === 'number' && !s.untracked);
+      const cEl = document.getElementById('d2p-' + P + 'count');
+      const aEl = document.getElementById('d2p-' + P + 'avg');
+      const bEl = document.getElementById('d2p-' + P + 'best');
+      if (cEl) cEl.textContent = ps.length;
+      if (aEl) aEl.textContent = ps.length ? (ps.reduce((a,b)=>a+b.moa,0)/ps.length).toFixed(1) : '—';
+      if (bEl) bEl.textContent = ps.length ? Math.min(...ps.map(s=>s.moa)).toFixed(1) : '—';
+    });
   }
 
   function renderRect(){
@@ -3167,69 +3364,202 @@ const Dash = (function(){
     }
   }
 
+  // Cache of pre-shot still-frames as Image elements, keyed by shot.t
+  const _frameImgCache = {};
   function renderWobble(shot){
     const c = document.getElementById('dash-wobble-canvas');
     if (!c) return;
     const ctx = c.getContext('2d');
     const W = c.width, H = c.height;
-    ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0,0,W,H);
-    // Crosshair
-    ctx.strokeStyle = '#222'; ctx.lineWidth = 1;
+
+    // Deep painterly panel background
+    const bg = ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0, '#0e2230'); bg.addColorStop(1, '#050a12');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+    // Crosshair + ring guides (soft)
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
-    // Ring guides
-    ctx.strokeStyle = '#1a1a1a';
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
     for (let r=1;r<=4;r++){ ctx.beginPath(); ctx.arc(W/2,H/2, (r/5)*Math.min(W,H)/2, 0, Math.PI*2); ctx.stroke(); }
 
-    if (!shot || !shot.preShot) return;
-    const lasers = shot.preShot.laser || [];
-    // Map: rectified normalized coords [0,1] → polyline centered around mean. Show ±0.15 norm range as full panel.
-    if (lasers.length >= 2){
-      // Center the path: shift by mean to highlight wobble
-      const meanX = lasers.reduce((a,b)=>a+b.x,0)/lasers.length;
-      const meanY = lasers.reduce((a,b)=>a+b.y,0)/lasers.length;
-      const scale = Math.min(W,H) / 0.30; // ±0.15 normalized = full panel
+    const drawBadge = (label, color) => {
+      ctx.save();
+      ctx.font = 'bold 10px ui-monospace, monospace';
+      const padX = 8, padY = 4;
+      const tw = ctx.measureText(label).width;
+      const bw = tw + padX*2, bh = 18;
+      const bx = W - bw - 10, by = 10;
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.beginPath();
-      for (let i=0;i<lasers.length;i++){
-        const px = W/2 + (lasers[i].x - meanX) * scale;
-        const py = H/2 + (lasers[i].y - meanY) * scale;
-        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-      }
-      // Fade older points: draw the path with gradient by segment
-      ctx.strokeStyle = '#fae232'; ctx.lineWidth = 2.5; ctx.stroke();
-      // End dot (the trigger break)
-      const last = lasers[lasers.length-1];
-      ctx.fillStyle = '#e8836b';
-      ctx.beginPath();
-      ctx.arc(W/2 + (last.x-meanX)*scale, H/2 + (last.y-meanY)*scale, 6, 0, Math.PI*2);
+      if (ctx.roundRect) ctx.roundRect(bx, by, bw, bh, 6); else ctx.rect(bx, by, bw, bh);
       ctx.fill();
+      ctx.fillStyle = color || '#fae232';
+      ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+      ctx.fillText(label, bx + padX, by + bh/2);
+      ctx.restore();
+    };
+
+    const writeReadout = (dir, mag, verdict) => {
+      const elDir = document.getElementById('dash-jerk-dir');
+      const elMag = document.getElementById('dash-jerk-mag');
+      const elV   = document.getElementById('dash-jerk-verdict');
+      if (elDir) elDir.textContent = dir || '—';
+      if (elMag) elMag.textContent = mag || '—';
+      if (elV)   elV.textContent   = verdict || '—';
+    };
+
+    if (!shot || !shot.preShot){
+      drawBadge('NO DATA', '#888');
+      writeReadout('—','—','—');
+      return;
     }
 
-    // Direction arrow + labels
-    if (shot.jerk && shot.jerk.dir){
-      const d = shot.jerk.dir;
+    const ps = shot.preShot;
+    const lasers = ps.laser || [];
+    const imus   = ps.imu || [];
+    const realLasers = lasers.filter(s => !s.synthetic);
+    const jerk = shot.jerk || {};
+
+    // ---- Tier 4 background: draw still-frame as moody underlay (if present) ----
+    if (ps.frame && ps.frame.dataUrl){
+      let img = _frameImgCache[shot.t];
+      if (!img){
+        img = new Image();
+        img.src = ps.frame.dataUrl;
+        _frameImgCache[shot.t] = img;
+        img.onload = () => { renderWobble(shot); }; // re-render when loaded
+      }
+      if (img.complete && img.naturalWidth > 0){
+        ctx.save();
+        ctx.globalAlpha = 0.32;
+        // contain-fit
+        const ar = img.naturalWidth / img.naturalHeight;
+        let dw = W, dh = W / ar;
+        if (dh > H){ dh = H; dw = dh * ar; }
+        ctx.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);
+        // subtle gradient dim toward edges for painterly feel
+        const vg = ctx.createRadialGradient(W/2,H/2, Math.min(W,H)*0.15, W/2,H/2, Math.min(W,H)*0.6);
+        vg.addColorStop(0,'rgba(0,0,0,0)');
+        vg.addColorStop(1,'rgba(5,10,18,0.55)');
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = vg; ctx.fillRect(0,0,W,H);
+        ctx.restore();
+      }
+    }
+
+    // ===== Tier 1: real laser polyline =====
+    if (realLasers.length >= 2){
+      const meanX = realLasers.reduce((a,b)=>a+b.x,0)/realLasers.length;
+      const meanY = realLasers.reduce((a,b)=>a+b.y,0)/realLasers.length;
+      const scale = Math.min(W,H) / 0.30; // ±0.15 normalized = full panel
+      // glow trail underneath
+      ctx.save();
+      ctx.shadowColor = 'rgba(250,226,50,0.45)'; ctx.shadowBlur = 12;
+      ctx.beginPath();
+      for (let i=0;i<realLasers.length;i++){
+        const px = W/2 + (realLasers[i].x - meanX) * scale;
+        const py = H/2 + (realLasers[i].y - meanY) * scale;
+        if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.strokeStyle = '#fae232'; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.restore();
+      // tail dot (oldest) — magenta hint
+      const first = realLasers[0];
+      ctx.fillStyle = 'rgba(198,97,232,0.85)';
+      ctx.beginPath();
+      ctx.arc(W/2 + (first.x-meanX)*scale, H/2 + (first.y-meanY)*scale, 4, 0, Math.PI*2);
+      ctx.fill();
+      // end dot (break)
+      const last = realLasers[realLasers.length-1];
+      ctx.fillStyle = '#FF8A4C';
+      ctx.beginPath();
+      ctx.arc(W/2 + (last.x-meanX)*scale, H/2 + (last.y-meanY)*scale, 7, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+      drawBadge('LASER TRACE · ' + realLasers.length + ' pts', '#fae232');
+    }
+    // ===== Tier 2: IMU-only big direction arrow =====
+    else if (imus.length >= 2 && jerk && jerk.dir){
+      const d = jerk.dir;
+      const aMag = Math.sqrt(d.x*d.x + d.y*d.y) || 1;
+      const nx = d.x / aMag, ny = d.y / aMag;
+      const len = Math.min(W,H)*0.35;
+      const ax = W/2, ay = H/2;
+      const bx = ax + nx*len, by = ay + ny*len;
+      // magnitude ring
+      const rNorm = Math.min(1, (jerk.mag||0) / 6);
+      ctx.strokeStyle = 'rgba(255,138,76,0.45)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(W/2, H/2, rNorm * Math.min(W,H)*0.42, 0, Math.PI*2); ctx.stroke();
+      // arrow
+      ctx.save();
+      ctx.shadowColor = 'rgba(255,138,76,0.5)'; ctx.shadowBlur = 14;
+      ctx.strokeStyle = '#FF8A4C'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+      const ah = 14;
+      const ang = Math.atan2(ny,nx);
+      ctx.beginPath();
+      ctx.moveTo(bx,by);
+      ctx.lineTo(bx - ah*Math.cos(ang-0.45), by - ah*Math.sin(ang-0.45));
+      ctx.lineTo(bx - ah*Math.cos(ang+0.45), by - ah*Math.sin(ang+0.45));
+      ctx.closePath(); ctx.fillStyle = '#FF8A4C'; ctx.fill();
+      ctx.restore();
+      drawBadge('IMU ESTIMATE · ' + imus.length + ' samples', '#FF8A4C');
+    }
+    // ===== Tier 3: static frame only (poi dot if known) =====
+    else if (ps.frame){
+      // POI dot at the break
+      if (shot.poi){
+        const x = shot.poi.x * W, y = shot.poi.y * H;
+        ctx.save();
+        ctx.shadowColor = 'rgba(255,138,76,0.6)'; ctx.shadowBlur = 16;
+        ctx.fillStyle = '#FF8A4C';
+        ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.restore();
+      }
+      // crosshair on aim center
+      ctx.strokeStyle = 'rgba(250,226,50,0.7)'; ctx.lineWidth = 2;
+      const ch = 14;
+      ctx.beginPath(); ctx.moveTo(W/2-ch,H/2); ctx.lineTo(W/2+ch,H/2);
+      ctx.moveTo(W/2,H/2-ch); ctx.lineTo(W/2,H/2+ch); ctx.stroke();
+      drawBadge('STATIC FRAME', '#C661E8');
+    }
+    // ===== Final fallback: text =====
+    else {
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      ctx.font = 'italic 16px Spectral, Lora, Georgia, serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('Steady break — no movement captured', W/2, H/2);
+      drawBadge('NO DATA', '#888');
+    }
+
+    // Direction arrow on top of laser trace too (small, secondary)
+    if (realLasers.length >= 2 && jerk && jerk.dir){
+      const d = jerk.dir;
       const aMag = Math.sqrt(d.x*d.x + d.y*d.y);
       if (aMag > 1e-5){
         const nx = d.x / aMag, ny = d.y / aMag;
-        const len = Math.min(W,H)*0.25;
-        const ax = W/2, ay = H/2;
+        const len = Math.min(W,H)*0.18;
+        const ax = W*0.18, ay = H*0.82;
         const bx = ax + nx*len, by = ay + ny*len;
-        ctx.strokeStyle = '#fae232'; ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(255,138,76,0.85)'; ctx.lineWidth = 2.5;
         ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
-        // arrowhead
-        const ah = 10;
-        const ang = Math.atan2(ny,nx);
+        const ah = 8; const ang = Math.atan2(ny,nx);
         ctx.beginPath();
         ctx.moveTo(bx,by);
         ctx.lineTo(bx - ah*Math.cos(ang-0.4), by - ah*Math.sin(ang-0.4));
         ctx.lineTo(bx - ah*Math.cos(ang+0.4), by - ah*Math.sin(ang+0.4));
-        ctx.closePath(); ctx.fillStyle = '#fae232'; ctx.fill();
+        ctx.closePath(); ctx.fillStyle = '#FF8A4C'; ctx.fill();
       }
     }
 
-    // Update the readout text
-    document.getElementById('dash-jerk-dir').textContent = (shot.jerk && shot.jerk.label) || '—';
-    document.getElementById('dash-jerk-mag').textContent = (shot.jerk && typeof shot.jerk.mag === 'number') ? (shot.jerk.mag.toFixed(1) + ' MOA') : '—';
-    document.getElementById('dash-jerk-verdict').textContent = (shot.jerk && shot.jerk.verdict) || '—';
+    // Readout
+    writeReadout(
+      jerk.label || '—',
+      (typeof jerk.mag === 'number' && jerk.mag > 0) ? (jerk.mag.toFixed(1) + ' MOA') : '—',
+      jerk.verdict || jerk.label || '—'
+    );
   }
 
   function exportCsv(){
@@ -3273,7 +3603,7 @@ const Dash = (function(){
     renderRect(); // initial empty render
   }, 100);
 
-  return { onMessage, shots, renderRect };
+  return { onMessage, shots, renderRect, update2PStats };
 })();
 
 // ---- Hook into onClickDetected to emit shots over bridge with jerk analytics ----
@@ -3295,9 +3625,12 @@ const Dash = (function(){
     if (sessionShots.length > before){
       const s = sessionShots[sessionShots.length - 1];
       s.jerk   = { dir: jerk.dir, mag: jerk.mag, source: jerk.source, label: jerk.label, verdict: jerk.verdict };
-      s.preShot = { laser: jerk.lasers.slice(), imu: jerk.imus.slice() };
+      s.preShot = { laser: jerk.lasers.slice(), imu: jerk.imus.slice(), frame: jerk.frame, syntheticOnly: !!jerk.syntheticOnly };
       // POI in normalized rectified coords (re-derive)
       if (laserNorm){ s.poi = { x: laserNorm.x, y: laserNorm.y }; }
+      // Tag with active player (2P mode only — 1P just stamps 'A' for consistency)
+      s.player = (sessionMode === '2p') ? activePlayer : 'A';
+      s.mode = sessionMode;
 
       // Update the local stats panel with the jerk readout (so phone-only mode still benefits)
       try {
@@ -3320,7 +3653,9 @@ const Dash = (function(){
           reason: s.reason,
           poi: s.poi,
           jerk: s.jerk,
-          preShot: s.preShot
+          preShot: s.preShot,
+          player: s.player,
+          mode: s.mode
         });
       }
       // Also render on the dashboard if this device is the laptop (won't happen typically — laptop receives from phone)
@@ -3349,6 +3684,8 @@ log('Phone↔Laptop module ready', 'ok');
 // =====================================================================
 let targetShotCount = parseInt(localStorage.getItem('df_shotcount') || '10', 10);
 let micSource = localStorage.getItem('df_mic_source') || 'phone'; // 'laptop'|'phone'|'both'
+let sessionMode = localStorage.getItem('df_session_mode') || '1p'; // '1p' | '2p'
+let activePlayer = localStorage.getItem('df_active_player') || 'A'; // 'A' | 'B' — only meaningful when 2p
 
 window._dfPhone = (function(){
   // ---- Video clip ring buffer (25fps, ~1.6s window) ----
@@ -3440,6 +3777,20 @@ window._dfPhone = (function(){
             startMic().catch(()=>{});
           }
         }
+      } else if (c === 'setMode'){
+        const mv = msg.value;
+        if (mv === '1p' || mv === '2p'){
+          sessionMode = mv;
+          try { localStorage.setItem('df_session_mode', mv); } catch(e){}
+          log('Session mode = ' + mv, 'ok');
+        }
+      } else if (c === 'setPlayer'){
+        const p = msg.value;
+        if (p === 'A' || p === 'B'){
+          activePlayer = p;
+          try { localStorage.setItem('df_active_player', p); } catch(e){}
+          log('Active player = ' + p, 'ok');
+        }
       } else if (c === 'calibrate'){
         // Force re-detect: clear lock + history
         cornerHistory = []; calibrationLocked = false;
@@ -3502,7 +3853,11 @@ window._dfPhone = (function(){
       height: parseFloat(document.getElementById('in-height').value) || 11,
       shotCount: targetShotCount,
       micSource: micSource,
-      shotsTaken: sessionShots.length
+      mode: sessionMode,
+      player: activePlayer,
+      shotsTaken: sessionShots.length,
+      shotsA: sessionShots.filter(x => !x.untracked && (x.player||'A') === 'A').length,
+      shotsB: sessionShots.filter(x => !x.untracked && (x.player||'A') === 'B').length
     });
   }
   // Push state periodically (low-rate) so the laptop UI stays in sync
@@ -3527,8 +3882,17 @@ window._dfPhone = (function(){
         try { window._dfPhone.sendClipForShot(s.t, afterCount); } catch(e){}
       }
       // Auto-stop on reaching target count (only count TRACKED shots)
-      const trackedCount = sessionShots.filter(x => !x.untracked).length;
-      if (sessionArmed && trackedCount >= targetShotCount){
+      // In 2P mode, the session ends only when BOTH players have hit their target count.
+      let endNow = false;
+      if (sessionMode === '2p'){
+        const countA = sessionShots.filter(x => !x.untracked && x.player === 'A').length;
+        const countB = sessionShots.filter(x => !x.untracked && x.player === 'B').length;
+        endNow = countA >= targetShotCount && countB >= targetShotCount;
+      } else {
+        const trackedCount = sessionShots.filter(x => !x.untracked).length;
+        endNow = trackedCount >= targetShotCount;
+      }
+      if (sessionArmed && endNow){
         setTimeout(() => {
           setArmed(false);
           $('#btn-start').textContent = 'Start session';
@@ -3544,9 +3908,11 @@ window._dfPhone = (function(){
           if (Role.isConnected()){
             Role.send({
               type: 'sessionEnd',
+              mode: sessionMode,
               shots: sessionShots.map(s => ({
                 t:s.t, devIn:s.devIn, moa:s.moa, score:s.score, source:s.source,
-                untracked:!!s.untracked, reason:s.reason, poi:s.poi, jerk:s.jerk
+                untracked:!!s.untracked, reason:s.reason, poi:s.poi, jerk:s.jerk,
+                player: s.player || 'A', preShot: s.preShot ? { syntheticOnly: !!s.preShot.syntheticOnly } : null
               })),
               summary: summary
             });
@@ -3567,6 +3933,8 @@ const LaptopCtrl = (function(){
   let phoneState = {};
   let clipsByShotT = {}; // shotT -> { fps, frames:[Image], totalChunks, gotChunks, complete, firstT, lastT }
   let allShotsForResults = []; // populated on sessionEnd
+  let currentMode = localStorage.getItem('df_session_mode') || '1p';
+  let currentPlayer = localStorage.getItem('df_active_player') || 'A';
 
   // ---- Laptop mic (only used when micSource === 'laptop' or 'both') ----
   let lapMicStream = null, lapAudioCtx = null, lapAnalyser = null, lapMicData = null;
@@ -3673,6 +4041,36 @@ const LaptopCtrl = (function(){
       });
     });
 
+    // Mode segmented buttons (1P / 2P)
+    document.querySelectorAll('#ctrl-mode-seg button').forEach(btn => {
+      if (btn._wired) return; btn._wired = true;
+      btn.addEventListener('click', () => {
+        const m = btn.dataset.mode;
+        document.querySelectorAll('#ctrl-mode-seg button').forEach(b => b.classList.toggle('active', b === btn));
+        try { localStorage.setItem('df_session_mode', m); } catch(e){}
+        currentMode = m;
+        sendCmd('setMode', { value: m });
+        const playerBlock = document.getElementById('ctrl-player-block');
+        if (playerBlock) playerBlock.style.display = (m === '2p') ? 'flex' : 'none';
+        // Reset table to render with/without player column
+        if (typeof Dash !== 'undefined' && Dash.shots){ /* will re-render naturally on next shot/state */ }
+        rebuildDashTableHead();
+        rebuildSessionPanelFor2P();
+      });
+    });
+
+    // Active-player toggle (only meaningful when 2P)
+    document.querySelectorAll('#ctrl-player-seg button').forEach(btn => {
+      if (btn._wired) return; btn._wired = true;
+      btn.addEventListener('click', () => {
+        const p = btn.dataset.player;
+        document.querySelectorAll('#ctrl-player-seg button').forEach(b => b.classList.toggle('active', b === btn));
+        try { localStorage.setItem('df_active_player', p); } catch(e){}
+        currentPlayer = p;
+        sendCmd('setPlayer', { value: p });
+      });
+    });
+
     // Aim nudge buttons (±0.02 per press, c = recenter)
     document.querySelectorAll('.ctrl-aim button').forEach(btn => {
       if (btn._wired) return; btn._wired = true;
@@ -3714,6 +4112,64 @@ const LaptopCtrl = (function(){
     // Initial mic source from storage
     const savedMic = localStorage.getItem('df_mic_source') || 'laptop';
     document.querySelectorAll('#ctrl-mic-seg button').forEach(b => b.classList.toggle('active', b.dataset.mic === savedMic));
+    // Initial mode + player from storage
+    const savedMode = localStorage.getItem('df_session_mode') || '1p';
+    currentMode = savedMode;
+    document.querySelectorAll('#ctrl-mode-seg button').forEach(b => b.classList.toggle('active', b.dataset.mode === savedMode));
+    const playerBlock = document.getElementById('ctrl-player-block');
+    if (playerBlock) playerBlock.style.display = (savedMode === '2p') ? 'flex' : 'none';
+    const savedPlayer = localStorage.getItem('df_active_player') || 'A';
+    currentPlayer = savedPlayer;
+    document.querySelectorAll('#ctrl-player-seg button').forEach(b => b.classList.toggle('active', b.dataset.player === savedPlayer));
+    rebuildDashTableHead();
+    rebuildSessionPanelFor2P();
+  }
+
+  // Re-build dash table header to include Player col when in 2P
+  function rebuildDashTableHead(){
+    const head = document.querySelector('#dash-table thead tr');
+    if (!head) return;
+    if (currentMode === '2p'){
+      head.innerHTML = '<th>#</th><th>P</th><th>Time</th><th>In</th><th>MOA</th><th>Score</th><th>Direction</th>';
+    } else {
+      head.innerHTML = '<th>#</th><th>Time</th><th>In</th><th>MOA</th><th>Score</th><th>Direction</th>';
+    }
+  }
+
+  // Swap Session panel between single stats and two side-by-side scoreboard cards
+  function rebuildSessionPanelFor2P(){
+    const panel = document.querySelector('.dash-panel .body .dash-stats');
+    if (!panel) return;
+    const panelBody = panel.parentElement;
+    if (currentMode === '2p'){
+      // Insert a 2P scoreboard above the existing stats (hide existing default stats)
+      panel.style.display = 'none';
+      let board = panelBody.querySelector('.dash-2p-board');
+      if (!board){
+        board = document.createElement('div');
+        board.className = 'dash-2p-board';
+        board.innerHTML = `
+          <div class="p-card pA">
+            <div class="p-head">Player A</div>
+            <div class="p-row"><span>Shots</span><b id="d2p-Acount">0</b></div>
+            <div class="p-row"><span>Avg MOA</span><b id="d2p-Aavg">—</b></div>
+            <div class="p-row"><span>Best MOA</span><b id="d2p-Abest">—</b></div>
+          </div>
+          <div class="p-card pB">
+            <div class="p-head">Player B</div>
+            <div class="p-row"><span>Shots</span><b id="d2p-Bcount">0</b></div>
+            <div class="p-row"><span>Avg MOA</span><b id="d2p-Bavg">—</b></div>
+            <div class="p-row"><span>Best MOA</span><b id="d2p-Bbest">—</b></div>
+          </div>`;
+        panelBody.insertBefore(board, panel);
+      }
+      board.style.display = 'grid';
+    } else {
+      panel.style.display = '';
+      const board = panelBody.querySelector('.dash-2p-board');
+      if (board) board.style.display = 'none';
+    }
+    if (typeof Dash !== 'undefined' && typeof Dash.update2PStats === 'function') Dash.update2PStats();
   }
 
   // ---- Phone state UI updates ----
@@ -3841,8 +4297,54 @@ const LaptopCtrl = (function(){
   // ---- Results modal ----
   function showResults(msg){
     allShotsForResults = msg.shots || [];
-    const stats = document.getElementById('results-stats');
+    const mode = msg.mode || currentMode || '1p';
     const sum = msg.summary || {};
+
+    // Title flavor
+    const titleEl = document.getElementById('results-title');
+    const subEl = document.getElementById('results-sub');
+    if (mode === '2p'){
+      if (titleEl) titleEl.textContent = 'Head-to-head complete';
+      if (subEl) subEl.textContent = 'How both shooters broke — side by side, with the winner called.';
+    } else {
+      if (titleEl) titleEl.textContent = 'Session complete';
+      if (subEl) subEl.textContent = 'A full read on the last set — where you shot, how you broke, where to focus next.';
+    }
+
+    // 2P slot: side-by-side scoreboard + winner
+    const slot2P = document.getElementById('results-2p-slot');
+    const slotWin = document.getElementById('results-winner-slot');
+    slot2P.innerHTML = '';
+    slotWin.innerHTML = '';
+    if (mode === '2p'){
+      const perA = computePlayerStats('A', allShotsForResults);
+      const perB = computePlayerStats('B', allShotsForResults);
+      slot2P.innerHTML = `
+        <div class="results-2p-grid">
+          ${render2PCard('A', perA)}
+          ${render2PCard('B', perB)}
+        </div>`;
+      // winner = lowest avg MOA (ties broken by best)
+      let winner = null, detail = '';
+      if (perA.count > 0 && perB.count > 0){
+        if (perA.avg < perB.avg){ winner = 'A'; detail = `avg ${perA.avg.toFixed(2)} vs ${perB.avg.toFixed(2)} MOA`; }
+        else if (perB.avg < perA.avg){ winner = 'B'; detail = `avg ${perB.avg.toFixed(2)} vs ${perA.avg.toFixed(2)} MOA`; }
+        else { winner = 'tie'; detail = `both at ${perA.avg.toFixed(2)} MOA`; }
+      } else if (perA.count > 0){ winner = 'A'; detail = `Player A: ${perA.count} tracked shots`; }
+      else if (perB.count > 0){ winner = 'B'; detail = `Player B: ${perB.count} tracked shots`; }
+      if (winner){
+        const wname = winner === 'tie' ? 'It’s a tie' : `Player ${winner} wins`;
+        slotWin.innerHTML = `
+          <div class="results-winner">
+            <div class="wtitle">Match result</div>
+            <div class="wname">${wname}</div>
+            <div class="wdetail">${detail}</div>
+          </div>`;
+      }
+    }
+
+    // Top-level stats cards
+    const stats = document.getElementById('results-stats');
     stats.innerHTML = '';
     const cards = [
       { k:'Shots', v: sum.total || 0 },
@@ -3859,11 +4361,269 @@ const LaptopCtrl = (function(){
       stats.appendChild(div);
     });
 
-    // Render target with all shots
+    // Charts
+    drawTrendChart(allShotsForResults, mode);
+    drawPolarChart(allShotsForResults, mode);
+
+    // Coach text
+    const coach = document.getElementById('results-coach-text');
+    if (coach) coach.textContent = buildCoachText(allShotsForResults, mode);
+
+    // Target + per-shot list
     drawResultsCanvas();
-    // Render per-shot list
-    renderShotList();
+    renderShotList(mode);
     document.getElementById('results-modal').classList.add('open');
+  }
+
+  function computePlayerStats(P, shots){
+    const arr = shots.filter(s => (s.player||'A') === P && typeof s.moa === 'number' && !s.untracked);
+    return {
+      count: arr.length,
+      avg:  arr.length ? arr.reduce((a,b)=>a+b.moa,0)/arr.length : Infinity,
+      best: arr.length ? Math.min(...arr.map(s=>s.moa)) : Infinity,
+      avgScore: arr.length ? arr.reduce((a,b)=>a+(b.score||0),0)/arr.length : 0
+    };
+  }
+
+  function render2PCard(P, s){
+    const avg = isFinite(s.avg) ? s.avg.toFixed(2) : '—';
+    const best = isFinite(s.best) ? s.best.toFixed(2) : '—';
+    const score = s.count ? s.avgScore.toFixed(0) : '—';
+    return `
+      <div class="results-2p-card ${P}">
+        <div class="ptitle">Player ${P}</div>
+        <div class="pstats">
+          <div class="pstat"><div class="v">${s.count}</div><div class="k">Shots</div></div>
+          <div class="pstat"><div class="v">${avg}</div><div class="k">Avg MOA</div></div>
+          <div class="pstat"><div class="v">${best}</div><div class="k">Best MOA</div></div>
+        </div>
+      </div>`;
+  }
+
+  function drawTrendChart(shots, mode){
+    const c = document.getElementById('results-trend');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    // Bg
+    const bg = ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#0a1828'); bg.addColorStop(1,'#02060c');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+    const PAD = { l: 38, r: 12, t: 14, b: 24 };
+    const plotW = W - PAD.l - PAD.r;
+    const plotH = H - PAD.t - PAD.b;
+
+    const tracked = shots.filter(s => typeof s.moa === 'number' && !s.untracked);
+    if (!tracked.length){
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = 'italic 13px Spectral, Georgia, serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('No tracked shots to plot', W/2, H/2);
+      return;
+    }
+    const maxMoa = Math.max(2, ...tracked.map(s => s.moa)) * 1.15;
+
+    // Gridlines + axis
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+    for (let g=0; g<=4; g++){
+      const y = PAD.t + (g/4) * plotH;
+      ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W - PAD.r, y); ctx.stroke();
+      const moaVal = maxMoa - (g/4) * maxMoa;
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '10px JetBrains Mono, monospace';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(moaVal.toFixed(1), PAD.l - 4, y);
+    }
+
+    // X labels
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('1', PAD.l, H - PAD.b + 4);
+    ctx.fillText(String(tracked.length), W - PAD.r, H - PAD.b + 4);
+
+    const xFor = i => PAD.l + (tracked.length === 1 ? plotW/2 : (i / (tracked.length-1)) * plotW);
+    const yFor = m => PAD.t + (1 - (m / maxMoa)) * plotH;
+
+    if (mode === '2p'){
+      // Two lines
+      ['A','B'].forEach(P => {
+        const color = (P === 'A') ? '#FFB347' : '#C661E8';
+        // collect points (in same order as tracked, but only this player)
+        const pts = tracked.map((s,i) => ((s.player||'A') === P) ? {i, m: s.moa} : null).filter(Boolean);
+        if (pts.length < 1) return;
+        ctx.save();
+        ctx.shadowColor = color + '88'; ctx.shadowBlur = 10;
+        ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        pts.forEach((p,j) => { const x = xFor(p.i), y = yFor(p.m); if (j===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+        ctx.stroke();
+        ctx.restore();
+        // dots
+        ctx.fillStyle = color;
+        pts.forEach(p => { ctx.beginPath(); ctx.arc(xFor(p.i), yFor(p.m), 3.5, 0, Math.PI*2); ctx.fill(); });
+      });
+      // legend
+      ctx.font = 'bold 10px Manrope, sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#FFB347'; ctx.fillRect(W - PAD.r - 80, PAD.t + 2, 10, 2); ctx.fillText(' Player A', W - PAD.r - 68, PAD.t + 4);
+      ctx.fillStyle = '#C661E8'; ctx.fillRect(W - PAD.r - 80, PAD.t + 14, 10, 2); ctx.fillText(' Player B', W - PAD.r - 68, PAD.t + 16);
+    } else {
+      ctx.save();
+      ctx.shadowColor = 'rgba(250,226,50,0.5)'; ctx.shadowBlur = 14;
+      ctx.strokeStyle = '#fae232'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      tracked.forEach((s,i) => { const x = xFor(i), y = yFor(s.moa); if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+      ctx.stroke(); ctx.restore();
+      // dots colored by quality
+      tracked.forEach((s,i) => {
+        const x = xFor(i), y = yFor(s.moa);
+        ctx.fillStyle = s.moa <= 2 ? '#9fd3b5' : s.moa <= 5 ? '#fae232' : '#FF8A4C';
+        ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; ctx.stroke();
+      });
+    }
+  }
+
+  function drawPolarChart(shots, mode){
+    const c = document.getElementById('results-polar');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const W = c.width, H = c.height;
+    const bg = ctx.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#0a1828'); bg.addColorStop(1,'#02060c');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+    const cx = W/2, cy = H/2 + 6;
+    const R = Math.min(W, H*1.6) * 0.36;
+
+    // 8 directional bins (octants)
+    const BINS = 8;
+    function emptyBins(){ return new Array(BINS).fill(0); }
+    function angleToBin(a){
+      // a in [-pi, pi], shift so bin 0 = right (angle 0)
+      let t = a; if (t < 0) t += Math.PI*2;
+      return Math.floor((t / (Math.PI*2)) * BINS) % BINS;
+    }
+
+    const collectBins = (filter) => {
+      const b = emptyBins();
+      shots.filter(s => s.jerk && s.jerk.dir && filter(s) && !s.untracked).forEach(s => {
+        const d = s.jerk.dir;
+        const a = Math.atan2(d.y, d.x);
+        const m = Math.sqrt(d.x*d.x + d.y*d.y);
+        if (m < 1e-5) return;
+        b[angleToBin(a)] += 1;
+      });
+      return b;
+    };
+
+    // Draw guide rings + axes
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
+    for (let r=1; r<=3; r++){
+      ctx.beginPath(); ctx.arc(cx, cy, (r/3)*R, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    for (let i=0; i<BINS; i++){
+      const a = (i / BINS) * Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a)*R, cy + Math.sin(a)*R); ctx.stroke();
+    }
+
+    // Cardinal labels
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '10px Manrope, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('R', cx + R + 10, cy);
+    ctx.fillText('L', cx - R - 10, cy);
+    ctx.fillText('Up', cx, cy - R - 10);
+    ctx.fillText('Dn', cx, cy + R + 10);
+
+    const drawWedges = (bins, color, alpha) => {
+      const total = bins.reduce((a,b)=>a+b,0);
+      if (!total) return;
+      const max = Math.max(...bins);
+      bins.forEach((cnt, i) => {
+        if (!cnt) return;
+        const a0 = (i/BINS) * Math.PI*2 - (Math.PI/BINS);
+        const a1 = ((i+1)/BINS) * Math.PI*2 - (Math.PI/BINS);
+        const rad = (cnt / max) * R;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, rad, a0, a1);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      });
+    };
+
+    if (mode === '2p'){
+      drawWedges(collectBins(s => (s.player||'A') === 'A'), '#FFB347', 0.6);
+      drawWedges(collectBins(s => (s.player||'A') === 'B'), '#C661E8', 0.55);
+      // legend
+      ctx.font = 'bold 10px Manrope, sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#FFB347'; ctx.fillRect(8, H-18, 10, 6); ctx.fillText(' A', 22, H-15);
+      ctx.fillStyle = '#C661E8'; ctx.fillRect(48, H-18, 10, 6); ctx.fillText(' B', 62, H-15);
+    } else {
+      drawWedges(collectBins(()=>true), '#fae232', 0.7);
+    }
+  }
+
+  function buildCoachText(shots, mode){
+    const tracked = shots.filter(s => typeof s.moa === 'number' && !s.untracked);
+    if (!tracked.length) return 'Not enough tracked shots to call a pattern. Re-aim the camera at the target, take 5 more, and we’ll dig in.';
+
+    // Aggregate jerk labels
+    const labels = {};
+    let totalMag = 0, magCount = 0;
+    tracked.forEach(s => {
+      const lab = (s.jerk && s.jerk.label) || 'Unknown';
+      labels[lab] = (labels[lab] || 0) + 1;
+      if (s.jerk && typeof s.jerk.mag === 'number'){ totalMag += s.jerk.mag; magCount++; }
+    });
+    const top = Object.entries(labels).sort((a,b)=>b[1]-a[1])[0];
+    const topLab = top[0];
+    const topPct = Math.round((top[1] / tracked.length) * 100);
+    const avgMag = magCount ? (totalMag / magCount) : 0;
+
+    // Steadiness
+    const moaList = tracked.map(s => s.moa);
+    const avgMoa = moaList.reduce((a,b)=>a+b,0) / moaList.length;
+    const bestMoa = Math.min(...moaList);
+    const last3 = moaList.slice(-3);
+    const first3 = moaList.slice(0, 3);
+    const trending = (last3.reduce((a,b)=>a+b,0)/last3.length) - (first3.reduce((a,b)=>a+b,0)/first3.length);
+
+    let parts = [];
+    if (avgMoa <= 2) parts.push(`Solid set — average ${avgMoa.toFixed(1)} MOA tells me your hold is dialed in.`);
+    else if (avgMoa <= 5) parts.push(`Average grouped at ${avgMoa.toFixed(1)} MOA, best ${bestMoa.toFixed(1)} — there’s real precision underneath this.`);
+    else parts.push(`Average opened to ${avgMoa.toFixed(1)} MOA. We’ll tighten that by slowing the press, not the aim.`);
+
+    if (topLab !== 'Clean break' && topPct >= 40){
+      parts.push(`${topPct}% of your breaks showed “${topLab.toLowerCase()}” — that’s a repeatable pattern, which is good news because it’s fixable.`);
+      if (/right|left/i.test(topLab)) parts.push('Re-check your grip pressure on the support hand and let the trigger finger move straight back.');
+      if (/diving|low/i.test(topLab)) parts.push('You’re anticipating recoil. Add a few ball-and-dummy reps; let the click surprise you.');
+      if (/heeling|high/i.test(topLab)) parts.push('Watch for shoulders rising into the break — keep your stance loaded forward.');
+    } else if (topLab === 'Clean break'){
+      parts.push('Most breaks read clean. Keep this exact pace.');
+    }
+
+    if (trending < -0.4) parts.push(`You also tightened up across the set (↓${Math.abs(trending).toFixed(1)} MOA from first three to last three). Whatever you adjusted, keep it.`);
+    else if (trending > 0.4) parts.push(`The last few shots loosened by ${trending.toFixed(1)} MOA — fatigue or rushing. Next set, slow the third-stage press.`);
+
+    if (avgMag > 3) parts.push(`Jerk magnitude averaged ${avgMag.toFixed(1)} MOA; aim for under 2.0 next set.`);
+
+    if (mode === '2p'){
+      const A = computePlayerStats('A', shots), B = computePlayerStats('B', shots);
+      if (A.count && B.count){
+        const diff = Math.abs(A.avg - B.avg);
+        if (diff < 0.3) parts.push('Both shooters are within striking distance — the next set will decide it.');
+        else if (A.avg < B.avg) parts.push(`Player A leads by ${diff.toFixed(1)} MOA on average. Player B, slow the press and let the dot settle.`);
+        else parts.push(`Player B leads by ${diff.toFixed(1)} MOA on average. Player A, slow the press and let the dot settle.`);
+      }
+    }
+
+    return parts.join(' ');
   }
 
   function drawResultsCanvas(){
@@ -3891,7 +4651,7 @@ const LaptopCtrl = (function(){
     });
   }
 
-  function renderShotList(){
+  function renderShotList(mode){
     const list = document.getElementById('results-shots');
     list.innerHTML = '';
     allShotsForResults.forEach((s, i) => {
@@ -3903,13 +4663,15 @@ const LaptopCtrl = (function(){
       const dir = (s.jerk && s.jerk.label) || '—';
       const verdict = (s.jerk && s.jerk.verdict) || '';
       const hasClip = clipsByShotT[s.t] && clipsByShotT[s.t].complete;
+      const player = s.player || 'A';
+      const pBadge = (mode === '2p') ? `<span class="player-badge ${player}">P${player}</span>` : '';
       row.innerHTML = `
         <div class="num">${i+1}</div>
         <div class="meta">
-          <div>score ${score} · source ${s.source || '—'}</div>
+          <div>${pBadge}score ${score} · source ${s.source || '—'}</div>
           <div class="dir">${dir}${verdict ? ' · '+verdict : ''}</div>
         </div>
-        <div class="moa ${moaCls}">${moaText}${s.moa != null ? '<span style="font-size:10px;color:#888"> MOA</span>' : ''}${hasClip ? ' <span style="color:#fae232;font-size:14px;margin-left:6px">▶</span>' : ''}</div>
+        <div class="moa ${moaCls}">${moaText}${s.moa != null ? '<span style="font-size:10px;color:rgba(216,224,232,0.5)"> MOA</span>' : ''}${hasClip ? ' <span style="color:#fae232;font-size:14px;margin-left:6px">▶</span>' : ''}</div>
       `;
       if (hasClip){
         row.addEventListener('click', () => playClip(s.t));
@@ -4006,6 +4768,8 @@ const LaptopCtrl = (function(){
       if (distEl) sendCmd('setDist', { value: parseFloat(distEl.value) || 15 });
       if (twEl && thEl) sendCmd('setSize', { width: parseFloat(twEl.value) || 8.5, height: parseFloat(thEl.value) || 11 });
       if (cntEl) sendCmd('setShotCount', { value: parseInt(cntEl.value, 10) || 10 });
+      sendCmd('setMode', { value: currentMode });
+      sendCmd('setPlayer', { value: currentPlayer });
     }, 800);
   }
 
