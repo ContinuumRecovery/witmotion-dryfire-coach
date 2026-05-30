@@ -1382,11 +1382,13 @@ body.role-laptop .laptop-dash{display:block}
       <div class="ctrl-actions">
         <button id="ctrl-calibrate" class="ctrl-btn">Calibrate target</button>
         <button id="ctrl-gun-cal" class="ctrl-btn">Calibrate gun pose</button>
+        <button id="ctrl-ble-laptop" class="ctrl-btn" title="Pair the WitMotion IMU directly to this laptop (Chrome / Edge only)">Connect IMU sensor</button>
         <button id="ctrl-start" class="ctrl-btn primary">Start session</button>
         <button id="ctrl-stop" class="ctrl-btn warn" disabled>Stop</button>
         <button id="ctrl-bad-shot" class="ctrl-btn ghost" title="Remove the last shot from the session (use if a rack or false trigger got counted)">Bad shot — undo</button>
         <button id="ctrl-reset" class="ctrl-btn ghost">Reset shots</button>
       </div>
+      <div class="ctrl-ble-status" id="ctrl-ble-status" style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9fb4c8;">IMU sensor: not paired</div>
       <div class="ctrl-gun-cal-status" id="ctrl-gun-cal-status" style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#FF8A4C;">Gun pose not calibrated</div>
       <label class="pose-gate-toggle" style="display:flex;align-items:center;gap:8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#cbd5e1;cursor:pointer;">
         <input type="checkbox" id="ctrl-pose-gate" checked style="accent-color:#FAE232;" />
@@ -2805,18 +2807,28 @@ async function connectBLE(){
     });
     bleDevice.addEventListener('gattserverdisconnected', ()=>{
       log('BLE disconnected','warn');
-      $('#btn-ble').classList.remove('active');
-      $('#imu-status').textContent='—';
+      const phBtn = document.getElementById('btn-ble'); if (phBtn) phBtn.classList.remove('active');
+      const phStat = document.getElementById('imu-status'); if (phStat) phStat.textContent='—';
+      const lapBtn = document.getElementById('ctrl-ble-laptop'); if (lapBtn) lapBtn.classList.remove('active');
+      const lapStat = document.getElementById('ctrl-ble-status');
+      if (lapStat){ lapStat.textContent = 'IMU sensor: disconnected'; lapStat.style.color='#FF8A4C'; }
     });
     bleServer = await bleDevice.gatt.connect();
     const svc = await bleServer.getPrimaryService(WT_SERVICE);
     notifyChar = await svc.getCharacteristic(WT_NOTIFY);
     await notifyChar.startNotifications();
     notifyChar.addEventListener('characteristicvaluechanged', onWitNotify);
-    $('#btn-ble').classList.add('active');
-    $('#imu-status').textContent='connected';
+    const phBtn = document.getElementById('btn-ble'); if (phBtn) phBtn.classList.add('active');
+    const phStat = document.getElementById('imu-status'); if (phStat) phStat.textContent='connected';
+    const lapBtn = document.getElementById('ctrl-ble-laptop'); if (lapBtn) lapBtn.classList.add('active');
+    const lapStat = document.getElementById('ctrl-ble-status');
+    if (lapStat){ lapStat.textContent = `IMU sensor: paired — ${bleDevice.name || 'WitMotion'}`; lapStat.style.color='#9fd3b5'; }
     log('BLE connected: '+bleDevice.name,'ok');
-  } catch(e){ log('BLE error: '+e.message,'err'); }
+  } catch(e){
+    log('BLE error: '+e.message,'err');
+    const lapStat = document.getElementById('ctrl-ble-status');
+    if (lapStat){ lapStat.textContent = `IMU sensor: ${e.message}`; lapStat.style.color='#FF8A4C'; }
+  }
 }
 
 function onWitNotify(ev){
@@ -2835,10 +2847,41 @@ function onWitNotify(ev){
   recentGyro.push({x:gx,y:gy,z:gz,t:now});
   if (recentGyro.length>60) recentGyro.shift();
   const dev = Math.abs(mag-1.0);
-  if (dev>1.2 && now-lastClickTs>350){
-    lastClickTs=now; onClickDetected('imu', dev);
+  const isLaptop = (typeof Role !== 'undefined' && Role.isLaptop && Role.isLaptop());
+  // Update status indicators on whichever device is running
+  try {
+    const txt = `a=${mag.toFixed(2)}g`;
+    const phStatus = document.getElementById('imu-status'); if (phStatus) phStatus.textContent = txt;
+    const lapStatus = document.getElementById('ctrl-ble-status');
+    if (lapStatus && isLaptop){ lapStatus.textContent = `IMU sensor: live • ${txt}`; lapStatus.style.color='#9fd3b5'; }
+  } catch(e){}
+  // Forward gyro samples to phone (so phone-side jerk analysis can use laptop's IMU)
+  if (isLaptop && typeof Role !== 'undefined' && Role.isConnected && Role.isConnected()){
+    try {
+      // Throttle: send roughly every 4th packet to keep bandwidth sane (~50 msg/s → ~12 msg/s)
+      onWitNotify._fc = (onWitNotify._fc || 0) + 1;
+      if (onWitNotify._fc % 3 === 0){
+        Role.send({ type:'imuSample', ax, ay, az, gx, gy, gz, mag, t: now });
+      }
+    } catch(e){}
   }
-  $('#imu-status').textContent = `a=${mag.toFixed(2)}g`;
+  if (dev>1.2 && now-lastClickTs>350){
+    lastClickTs=now;
+    if (isLaptop && typeof Role !== 'undefined' && Role.isConnected && Role.isConnected()){
+      // Forward to phone so it scores against camera/homography
+      try { Role.send({ type:'cmd', cmd:'extClick', intensity: dev, source:'imu-laptop' }); } catch(e){}
+      try { flashLapIMU(); } catch(e){}
+    } else {
+      onClickDetected('imu', dev);
+    }
+  }
+}
+
+function flashLapIMU(){
+  const btn = document.getElementById('ctrl-ble-laptop');
+  if (!btn) return;
+  btn.style.background = '#fae232'; btn.style.color = '#000';
+  setTimeout(() => { btn.style.background=''; btn.style.color=''; }, 160);
 }
 
 // ---- Shot scoring ----
@@ -4155,6 +4198,24 @@ window._dfPhone = (function(){
   // ---- Inbound command handler ----
   function onLaptopMessage(msg){
     if (!msg || !msg.type) return;
+    // Allow laptop's BLE IMU samples through directly (not wrapped in 'cmd')
+    if (msg.type === 'imuSample'){
+      try {
+        const t = (typeof msg.t === 'number') ? msg.t : performance.now();
+        if (typeof recentGyro !== 'undefined'){
+          recentGyro.push({ x: msg.gx||0, y: msg.gy||0, z: msg.gz||0, t });
+          if (recentGyro.length > 60) recentGyro.shift();
+        }
+        // Mirror to the phone's pre-shot IMU buffer for jerk analysis at click time
+        if (typeof pushPreShotImu === 'function'){
+          pushPreShotImu({ ax: msg.ax||0, ay: msg.ay||0, az: msg.az||0, gx: msg.gx||0, gy: msg.gy||0, gz: msg.gz||0 });
+        }
+        // Live status indicator
+        const s = document.getElementById('imu-status');
+        if (s) s.textContent = `a=${(msg.mag||0).toFixed(2)}g (laptop)`;
+      } catch(e){}
+      return;
+    }
     if (msg.type !== 'cmd') return;
     const c = msg.cmd;
     try {
@@ -4576,6 +4637,21 @@ const LaptopCtrl = (function(){
     // Action buttons
     const calBtn = document.getElementById('ctrl-calibrate');
     if (calBtn && !calBtn._wired){ calBtn._wired = true; calBtn.addEventListener('click', () => { sendCmd('calibrate'); }); }
+    // Connect IMU sensor directly from the laptop (Web Bluetooth on Chrome/Edge)
+    const bleBtn = document.getElementById('ctrl-ble-laptop');
+    if (bleBtn && !bleBtn._wired){
+      bleBtn._wired = true;
+      // Hide if Web Bluetooth is unavailable in this browser
+      if (!navigator.bluetooth){
+        bleBtn.disabled = true;
+        bleBtn.title = 'Web Bluetooth not supported — use Chrome or Edge on desktop';
+        const lapStat = document.getElementById('ctrl-ble-status');
+        if (lapStat){ lapStat.textContent = 'IMU sensor: Web Bluetooth unavailable in this browser'; lapStat.style.color='#FF8A4C'; }
+      }
+      bleBtn.addEventListener('click', () => {
+        if (typeof connectBLE === 'function') connectBLE();
+      });
+    }
     // Gun-pose calibration: 2-step modal — point at target, then point down.
     const gunCalBtn = document.getElementById('ctrl-gun-cal');
     if (gunCalBtn && !gunCalBtn._wired){
