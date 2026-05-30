@@ -4140,10 +4140,24 @@ window._dfPhone = (function(){
           log('Active player = ' + p, 'ok');
         }
       } else if (c === 'calibrate'){
-        // Force re-detect: clear lock + history
+        // Triggered from laptop — do the same thing the phone's #btn-calib does
+        // for whichever calibration mode is active. Previously this only cleared
+        // the lock, which made the laptop button "appear broken" if the user
+        // was on auto/aruco mode (no continuous re-detect would start).
         cornerHistory = []; calibrationLocked = false;
-        log('Re-calibrating target (commanded by laptop)', 'ok');
-        toast('Re-calibrating', 'info', 1200);
+        try {
+          if (typeof startCamera === 'function' && !camStream){ startCamera().catch(()=>{}); }
+        } catch(e){}
+        const btn = document.getElementById('btn-calib');
+        if (btn){
+          // Simulate the same click users do on the phone for the active mode.
+          btn.click();
+          log('Re-calibrating target (commanded by laptop, mode=' + (typeof mode!=='undefined' ? mode : '?') + ')', 'ok');
+          toast('Re-calibrating — see phone screen', 'info', 1800);
+        } else {
+          log('Re-calibrating target (commanded by laptop) — phone btn-calib missing', 'warn');
+          toast('Re-calibrating', 'info', 1200);
+        }
       } else if (c === 'start'){
         sessionShots = []; trailing = [];
         $('#ss-shots').textContent='0'; $('#ss-avg').textContent='—'; $('#ss-best').textContent='—';
