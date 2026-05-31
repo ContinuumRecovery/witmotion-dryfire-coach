@@ -4402,9 +4402,10 @@ window._dfPhone = (function(){
         // Laptop wants live pitch updates for the gun-cal modal
         if (typeof QuickDraw !== 'undefined' && QuickDraw.setPitchStream){ QuickDraw.setPitchStream(!!msg.value); }
       } else if (c === 'qdCalCapture'){
-        // Laptop captured a calibration pose — store it on the phone
+        // Laptop captured a calibration pose — store it on the phone, preserving the
+        // 3D gravity vector if the laptop sent one (mount-agnostic calibration).
         if (typeof QuickDraw !== 'undefined' && QuickDraw.captureCalibration){
-          QuickDraw.captureCalibration(msg.which, msg.pitch);
+          QuickDraw.captureCalibration(msg.which, msg.pitch, msg.accel);
           toast(`Captured ${msg.which} pose: ${msg.pitch.toFixed(1)}°`, 'ok', 1500);
         }
       } else if (c === 'setPoseGate'){
@@ -6909,18 +6910,47 @@ const QuickDraw = (function(){
   let _currentRep = 0;
   let _results = []; // [{drawT, shotT, hit, moa}]
 
-  // Gun pose calibration (gun-relative pitch)
-  // pitchTarget = pitch when pointing at target (captured in gun-cal step 1)
-  // pitchDown   = pitch when pointing down       (captured in gun-cal step 2)
-  // We derive thresholds from those:
-  //   muzzleDown if pitch <= pitchDown + (pitchTarget - pitchDown)*0.35
-  //   onTarget   if pitch >= pitchTarget - (pitchTarget - pitchDown)*0.20
+  // Gun pose calibration — MOUNT-AGNOSTIC
+  // Old approach used a scalar pitch via atan2(-ax, ...) which only works if the IMU's X
+  // axis points down the barrel. Real-world rail mounts (e.g. the WitMotion HiWonder on a
+  // Glock-rail laser unit) put the chip rotated 90° around the barrel, so X is sideways,
+  // not forward. We now store the RAW gravity vector at the target and down poses, then
+  // compute live pitch as the signed angle around the cross-product axis between them.
+  // Back-compat scalars (_pitchTarget/_pitchDown) are still derived for logging.
   let _pitchTarget = null;
   let _pitchDown   = null;
+  let _gTarget = null; // {x,y,z} unit gravity vector when aimed at target
+  let _gDown   = null; // {x,y,z} unit gravity vector when muzzle down
+  let _rotAxis = null; // unit axis perpendicular to both — the muzzle-rise rotation axis
   try {
     const j = JSON.parse(localStorage.getItem('df_gun_cal')||'null');
     if (j && typeof j.pt==='number' && typeof j.pd==='number'){ _pitchTarget=j.pt; _pitchDown=j.pd; }
+    if (j && j.gT && j.gD){ _gTarget = j.gT; _gDown = j.gD; _rotAxis = _computeRotAxis(_gTarget, _gDown); }
   } catch(e){}
+  function _norm(v){ const m = Math.hypot(v.x,v.y,v.z) || 1; return {x:v.x/m, y:v.y/m, z:v.z/m}; }
+  function _dot(a,b){ return a.x*b.x + a.y*b.y + a.z*b.z; }
+  function _cross(a,b){ return { x:a.y*b.z-a.z*b.y, y:a.z*b.x-a.x*b.z, z:a.x*b.y-a.y*b.x }; }
+  function _computeRotAxis(gT, gD){
+    try {
+      const c = _cross(_norm(gT), _norm(gD));
+      const m = Math.hypot(c.x,c.y,c.z);
+      if (m < 0.05) return null; // poses too similar to define a plane
+      return { x:c.x/m, y:c.y/m, z:c.z/m };
+    } catch(e){ return null; }
+  }
+  // Signed angle (degrees) of `g` from `gTarget`, measured around `rotAxis`.
+  // Returns 0 at target pose, positive toward gDown? We pick sign so that the
+  // down-pose comes out NEGATIVE relative to target — matches old convention where
+  // pitchDown < pitchTarget for a gun that was tilted down.
+  function _signedAngleDeg(g, gRef, axis){
+    const gn = _norm(g), rn = _norm(gRef);
+    const cosA = Math.max(-1, Math.min(1, _dot(gn, rn)));
+    const ang = Math.acos(cosA) * 180/Math.PI;
+    // Sign: positive if rotation from gRef to gn is in the +axis direction
+    const c = _cross(rn, gn);
+    const sign = _dot(c, axis) >= 0 ? 1 : -1;
+    return ang * sign;
+  }
 
   let _cueT = 0, _drawT = 0, _shotT = 0;
   let _holdTimer = null;
@@ -6928,10 +6958,30 @@ const QuickDraw = (function(){
   let _streamPitch = false;
   let _lastSpoke = 0;
 
+  // getPitch — returns a scalar angle in degrees.
+  // Strategy:
+  //   (a) If we have a full 2-pose calibration (gT + gD + rotAxis), pitch = signed angle
+  //       between current gravity and gTarget around rotAxis. 0° = on target, negative = down.
+  //   (b) Else fall back to a mount-agnostic "tilt change" heuristic: use whichever axis
+  //       pair gives the largest dynamic range. We pick the two axes with the SMALLEST
+  //       absolute current gravity component as the in-plane axes (since those will swing
+  //       most as the gun pitches), then atan2 between them.
+  //   (c) Last resort: legacy atan2(-ax, sqrt(ay²+az²)).
   function getPitch(ax, ay, az){
-    return Math.atan2(-ax, Math.sqrt(ay*ay + az*az)) * 180 / Math.PI;
+    if (_gTarget && _rotAxis){
+      try { return _signedAngleDeg({x:ax,y:ay,z:az}, _gTarget, _rotAxis); } catch(e){}
+    }
+    // Heuristic for the pre-calibration display: report a tilt-magnitude angle that
+    // changes monotonically as the gun pitches — enough to confirm "the sensor is alive".
+    // We compute pitch as the angle between current gravity and the world-up reference
+    // (0,0,-1) which is arbitrary but yields a live changing number for the modal.
+    // Once the user captures the target pose, getPitch switches to mode (a) automatically.
+    const m = Math.hypot(ax, ay, az) || 1;
+    // Angle (deg) between gravity vector and -Z. Range ~0–180.
+    const cosA = Math.max(-1, Math.min(1, -az / m));
+    return Math.acos(cosA) * 180/Math.PI - 90; // shift so level ~ 0°
   }
-  function isCalibrated(){ return _pitchTarget !== null && _pitchDown !== null; }
+  function isCalibrated(){ return (_gTarget && _gDown && _rotAxis) || (_pitchTarget !== null && _pitchDown !== null); }
   function thresholdHold(){
     if (!isCalibrated()) return -45; // safe fallback
     return _pitchDown + (_pitchTarget - _pitchDown) * 0.35;
@@ -6964,6 +7014,10 @@ const QuickDraw = (function(){
   // Hooked into the BLE notify path; ax,ay,az are gravity-scaled (g units).
   function onImu(ax, ay, az){
     const pitch = getPitch(ax, ay, az);
+    // CRITICAL: stash latest values so getCurrentPitch()/getCurrentAccel() can read them
+    // (previously _lastPitch was never set — GunCal modal always said "No IMU pitch yet").
+    onImu._lastPitch = pitch;
+    onImu._lastAcc = { x:ax, y:ay, z:az, t: performance.now() };
     if (_streamPitch){
       // Throttle pitch stream to ~20Hz for the gun-cal modal
       const now = performance.now();
@@ -7086,12 +7140,37 @@ const QuickDraw = (function(){
   function setPitchStream(on){
     _streamPitch = !!on;
   }
-  function captureCalibration(which, pitch){
+  function captureCalibration(which, pitch, accel){
     if (which === 'target') _pitchTarget = pitch;
     else if (which === 'down') _pitchDown = pitch;
-    try { localStorage.setItem('df_gun_cal', JSON.stringify({ pt:_pitchTarget, pd:_pitchDown })); } catch(e){}
-    sendToLaptop({ type:'qdCalStored', pitchTarget:_pitchTarget, pitchDown:_pitchDown });
+    // Vector capture (mount-agnostic). Prefer explicit accel arg; else use latest from onImu.
+    const a = accel || onImu._lastAcc;
+    if (a && typeof a.x === 'number'){
+      if (which === 'target') _gTarget = { x:a.x, y:a.y, z:a.z };
+      else if (which === 'down') _gDown = { x:a.x, y:a.y, z:a.z };
+      if (_gTarget && _gDown){
+        _rotAxis = _computeRotAxis(_gTarget, _gDown);
+        // Recompute scalar pitchTarget/pitchDown in the NEW vector-based coordinate system
+        // so thresholdHold/thresholdOnTarget math stays consistent with live readings.
+        if (_rotAxis){
+          _pitchTarget = 0; // by definition: target is the zero reference
+          _pitchDown = _signedAngleDeg(_gDown, _gTarget, _rotAxis);
+        }
+      }
+    }
+    try {
+      localStorage.setItem('df_gun_cal', JSON.stringify({
+        pt:_pitchTarget, pd:_pitchDown,
+        gT:_gTarget, gD:_gDown
+      }));
+    } catch(e){}
+    sendToLaptop({
+      type:'qdCalStored',
+      pitchTarget:_pitchTarget, pitchDown:_pitchDown,
+      gT:_gTarget, gD:_gDown
+    });
   }
+  function getCurrentAccel(){ return onImu._lastAcc || null; }
 
   // ===== Hook BLE notify on phone to get ax/ay/az =====
   let _bleHooked = false;
@@ -7129,9 +7208,11 @@ const QuickDraw = (function(){
   return {
     // Phone-side surface
     startOnPhone, stopOnPhone, setPitchStream, captureCalibration,
+    getCurrentAccel,
     getCurrentPitch: () => {
-      // For phone gun-cal capture button — returns the last computed pitch
-      return onImu._lastPitch || null;
+      // For phone/laptop gun-cal capture button — returns last computed pitch.
+      // (Note: 0 is a valid value, so we check explicitly for null/undefined.)
+      return (typeof onImu._lastPitch === 'number') ? onImu._lastPitch : null;
     },
     isCalibrated,
     isOnTarget,
@@ -7263,22 +7344,24 @@ const GunCal = (function(){
       }
       return;
     }
+    // Capture the 3D accel vector too so calibration is mount-orientation agnostic.
+    const acc = (typeof QuickDraw !== 'undefined' && QuickDraw.getCurrentAccel) ? QuickDraw.getCurrentAccel() : null;
     if (_step === 1){
       _capturedTarget = _livePitch;
       // Write locally if we have the IMU here, then forward to phone for parity
       if (hasLocalImu() && typeof QuickDraw !== 'undefined' && QuickDraw.captureCalibration){
-        try { QuickDraw.captureCalibration('target', _capturedTarget); } catch(e){}
+        try { QuickDraw.captureCalibration('target', _capturedTarget, acc); } catch(e){}
       }
-      try { sendCmd('qdCalCapture', { which:'target', pitch:_capturedTarget }); } catch(e){}
+      try { sendCmd('qdCalCapture', { which:'target', pitch:_capturedTarget, accel: acc }); } catch(e){}
       _step = 2;
       renderModal();
       setHint('');
     } else if (_step === 2){
       _capturedDown = _livePitch;
       if (hasLocalImu() && typeof QuickDraw !== 'undefined' && QuickDraw.captureCalibration){
-        try { QuickDraw.captureCalibration('down', _capturedDown); } catch(e){}
+        try { QuickDraw.captureCalibration('down', _capturedDown, acc); } catch(e){}
       }
-      try { sendCmd('qdCalCapture', { which:'down', pitch:_capturedDown }); } catch(e){}
+      try { sendCmd('qdCalCapture', { which:'down', pitch:_capturedDown, accel: acc }); } catch(e){}
       // Sanity check: target and down should differ by at least 20°
       if (Math.abs(_capturedTarget - _capturedDown) < 20){
         setHint('Warning: target and down poses are very similar (<20°). Quick Draw detection may be unreliable.');
@@ -7331,7 +7414,20 @@ const GunCal = (function(){
   const prevOM = Dash.onMessage;
   Dash.onMessage = function(msg){
     if (msg && msg.type === 'qdPitch'){ GunCal.onPitchMsg(msg.pitch); return; }
-    if (msg && msg.type === 'qdCalStored'){ GunCal.onCalStored(msg.pitchTarget, msg.pitchDown); return; }
+    if (msg && msg.type === 'qdCalStored'){
+      GunCal.onCalStored(msg.pitchTarget, msg.pitchDown);
+      // Mirror the calibration into laptop's own QuickDraw IIFE so its getPitch uses
+      // the same vector reference (important for mount-agnostic live readings here).
+      try {
+        if (msg.gT && typeof QuickDraw !== 'undefined' && QuickDraw.captureCalibration){
+          QuickDraw.captureCalibration('target', msg.pitchTarget, msg.gT);
+        }
+        if (msg.gD && typeof QuickDraw !== 'undefined' && QuickDraw.captureCalibration){
+          QuickDraw.captureCalibration('down', msg.pitchDown, msg.gD);
+        }
+      } catch(e){}
+      return;
+    }
     if (msg && msg.type === 'qdState'){ QdHUD.update(msg); return; }
     if (msg && msg.type === 'qdRepDone'){ QdHUD.repDone(msg); return; }
     if (msg && msg.type === 'qdComplete'){ QdHUD.complete(msg.results); return; }
