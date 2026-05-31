@@ -1567,6 +1567,41 @@ body.role-laptop .laptop-dash{display:block}
       <h4>Session settings</h4>
       <div id="drawer-session-slot"></div>
     </div>
+    <div class="drawer-section" id="drawer-display">
+      <h4>Target display</h4>
+      <div class="drawer-row" style="flex-direction:column;align-items:stretch;gap:6px;">
+        <label for="drawer-rect-style" style="font-size:11px;color:#9fb4c8;text-transform:uppercase;letter-spacing:0.5px;">Perspective target</label>
+        <select id="drawer-rect-style" style="background:rgba(14,34,50,0.9);color:#fae232;border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-size:13px;padding:8px 10px;font-family:'Manrope',sans-serif;font-weight:600;">
+          <optgroup label="Standard targets">
+            <option value="bullseye">Bullseye</option>
+            <option value="ipsc">IPSC</option>
+            <option value="b8">B-8 (NRA)</option>
+            <option value="dot">Dot Drill</option>
+          </optgroup>
+          <optgroup label="Realistic">
+            <option value="silhouette">Silhouette (full)</option>
+            <option value="paper-photo">Paper (photo-real)</option>
+          </optgroup>
+          <optgroup label="Live">
+            <option value="live">Flattened live view</option>
+          </optgroup>
+          <optgroup label="Precision">
+            <option value="grid">MOA grid</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="drawer-row" style="margin-top:10px;justify-content:flex-start;gap:14px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);cursor:pointer;">
+          <input type="checkbox" id="drawer-rect-trail" style="accent-color:#fae232;"> Trail
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);cursor:pointer;">
+          <input type="checkbox" id="drawer-rect-heatmap" style="accent-color:#fae232;"> Heat
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2);cursor:pointer;">
+          <input type="checkbox" id="drawer-rect-group" style="accent-color:#fae232;"> Group
+        </label>
+      </div>
+    </div>
     <div class="drawer-section" id="drawer-actions">
       <h4>Quick actions</h4>
       <div id="drawer-actions-slot"></div>
@@ -6273,24 +6308,55 @@ try {
 })();
 
 (function wireRectControls(){
+  function save(){ try { localStorage.setItem('df_rect_opts', JSON.stringify(rectOpts)); } catch(e){} }
+  // Pair an in-panel control with its mirror in the drawer so changing either one updates
+  // the other AND triggers a re-render. The drawer mirror exists so the dropdown is reachable
+  // when the settings drawer scrim covers the rectified-target panel.
+  function pairSelect(primaryId, mirrorId, key){
+    const a = document.getElementById(primaryId);
+    const b = document.getElementById(mirrorId);
+    const els = [a, b].filter(Boolean);
+    if (!els.length) return;
+    for (const el of els){
+      el.value = rectOpts[key];
+      if (el._wiredPair) continue;
+      el._wiredPair = true;
+      el.addEventListener('change', () => {
+        rectOpts[key] = el.value;
+        save();
+        // Sync the other element so both stay in lockstep
+        for (const other of els){ if (other !== el) other.value = el.value; }
+        try { Dash.renderRect(); } catch(e){}
+      });
+    }
+  }
+  function pairCheckbox(primaryId, mirrorId, key){
+    const a = document.getElementById(primaryId);
+    const b = document.getElementById(mirrorId);
+    const els = [a, b].filter(Boolean);
+    if (!els.length) return;
+    for (const el of els){
+      el.checked = !!rectOpts[key];
+      if (el._wiredPair) continue;
+      el._wiredPair = true;
+      el.addEventListener('change', () => {
+        rectOpts[key] = el.checked;
+        save();
+        for (const other of els){ if (other !== el) other.checked = el.checked; }
+        try { Dash.renderRect(); } catch(e){}
+      });
+    }
+  }
   function wire(){
-    const styleEl = document.getElementById('rect-style');
-    const trailEl = document.getElementById('rect-trail');
-    const heatEl  = document.getElementById('rect-heatmap');
-    const groupEl = document.getElementById('rect-group');
-    if (!styleEl) return;
-    styleEl.value = rectOpts.style;
-    if (trailEl) trailEl.checked = rectOpts.trail;
-    if (heatEl)  heatEl.checked  = rectOpts.heatmap;
-    if (groupEl) groupEl.checked  = rectOpts.group;
-    function save(){ try { localStorage.setItem('df_rect_opts', JSON.stringify(rectOpts)); } catch(e){} }
-    styleEl.addEventListener('change', () => { rectOpts.style = styleEl.value; save(); try { Dash.renderRect(); } catch(e){} });
-    if (trailEl) trailEl.addEventListener('change', () => { rectOpts.trail = trailEl.checked; save(); try { Dash.renderRect(); } catch(e){} });
-    if (heatEl)  heatEl.addEventListener('change',  () => { rectOpts.heatmap = heatEl.checked; save(); try { Dash.renderRect(); } catch(e){} });
-    if (groupEl) groupEl.addEventListener('change',  () => { rectOpts.group = groupEl.checked; save(); try { Dash.renderRect(); } catch(e){} });
+    pairSelect('rect-style',   'drawer-rect-style',   'style');
+    pairCheckbox('rect-trail',   'drawer-rect-trail',   'trail');
+    pairCheckbox('rect-heatmap', 'drawer-rect-heatmap', 'heatmap');
+    pairCheckbox('rect-group',   'drawer-rect-group',   'group');
   }
   setTimeout(wire, 200);
   document.addEventListener('DOMContentLoaded', wire);
+  // Re-run wiring after the drawer is built (it injects its DOM lazily)
+  setTimeout(wire, 1500);
 })();
 
 // Patch Dash.renderRect to use rectOpts
