@@ -6966,6 +6966,26 @@ const GunCal = (function(){
     const el = document.getElementById('guncal-pitch');
     if (el) el.textContent = (typeof p === 'number') ? `${p.toFixed(1)}°` : '—°';
   }
+  // ------- IMU source detection (laptop has local BLE? else use phone) -------
+  function hasLocalImu(){
+    // True if Web Bluetooth paired the WitMotion to this laptop
+    try { return !!(typeof bleDevice !== 'undefined' && bleDevice && bleDevice.gatt && bleDevice.gatt.connected); }
+    catch(e){ return false; }
+  }
+  let _localPitchTimer = null;
+  function startLocalPitchPoll(){
+    if (_localPitchTimer) clearInterval(_localPitchTimer);
+    _localPitchTimer = setInterval(() => {
+      try {
+        const p = (typeof QuickDraw !== 'undefined' && QuickDraw.getCurrentPitch) ? QuickDraw.getCurrentPitch() : null;
+        if (typeof p === 'number') setPitch(p);
+      } catch(e){}
+    }, 50); // 20 Hz
+  }
+  function stopLocalPitchPoll(){
+    if (_localPitchTimer){ clearInterval(_localPitchTimer); _localPitchTimer = null; }
+  }
+
   function start(){
     _step = 1;
     _capturedTarget = null; _capturedDown = null;
@@ -6974,28 +6994,46 @@ const GunCal = (function(){
     setPitch(null);
     const m = document.getElementById('guncal-modal');
     if (m) m.style.display = 'flex';
-    // Ask phone to stream pitch
-    try { sendCmd('qdStreamPitch', { value:true }); } catch(e){}
+    if (hasLocalImu()){
+      // Use the laptop's own BLE IMU
+      setHint('Using laptop’s paired IMU. Aim, hold steady, then press Capture.');
+      startLocalPitchPoll();
+    } else {
+      // Fall back to asking the phone to stream pitch
+      try { sendCmd('qdStreamPitch', { value:true }); } catch(e){}
+    }
   }
   function close(){
     const m = document.getElementById('guncal-modal');
     if (m) m.style.display = 'none';
+    stopLocalPitchPoll();
     try { sendCmd('qdStreamPitch', { value:false }); } catch(e){}
     _step = 0;
   }
   function capture(){
     if (_livePitch === null){
-      setHint('No IMU pitch yet — make sure BLE IMU is connected on the phone.');
+      if (hasLocalImu()){
+        setHint('No IMU pitch yet — the sensor is paired but no data has arrived. Wiggle the gun gently and try again.');
+      } else {
+        setHint('No IMU pitch yet — pair the IMU to this laptop with the Connect IMU button, or make sure it’s connected on the phone.');
+      }
       return;
     }
     if (_step === 1){
       _capturedTarget = _livePitch;
+      // Write locally if we have the IMU here, then forward to phone for parity
+      if (hasLocalImu() && typeof QuickDraw !== 'undefined' && QuickDraw.captureCalibration){
+        try { QuickDraw.captureCalibration('target', _capturedTarget); } catch(e){}
+      }
       try { sendCmd('qdCalCapture', { which:'target', pitch:_capturedTarget }); } catch(e){}
       _step = 2;
       renderModal();
       setHint('');
     } else if (_step === 2){
       _capturedDown = _livePitch;
+      if (hasLocalImu() && typeof QuickDraw !== 'undefined' && QuickDraw.captureCalibration){
+        try { QuickDraw.captureCalibration('down', _capturedDown); } catch(e){}
+      }
       try { sendCmd('qdCalCapture', { which:'down', pitch:_capturedDown }); } catch(e){}
       // Sanity check: target and down should differ by at least 20°
       if (Math.abs(_capturedTarget - _capturedDown) < 20){
