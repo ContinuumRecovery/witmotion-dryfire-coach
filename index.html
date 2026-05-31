@@ -7009,23 +7009,67 @@ const QuickDraw = (function(){
     return Math.acos(cosA) * 180/Math.PI - 90; // shift so level ~ 0°
   }
   function isCalibrated(){ return (_gTarget && _gDown && _rotAxis) || (_pitchTarget !== null && _pitchDown !== null); }
+  // ---- READY / DRAW logic ----------------------------------------------------
+  // "Muzzle down (ready)" means the gun is pointed AT the calibrated down pose OR LOWER.
+  // We don't gate on hitting a precise target angle on the way back up — any meaningful
+  // lift off the down pose counts as the draw. This is what the user asked for: the system
+  // should fire on "anywhere below the down position", not look for a specific angle.
+  // We pick a sign-agnostic implementation so the math works regardless of mount orientation.
+  //   - If _pitchTarget >= _pitchDown (typical: target near 0°, down negative):
+  //       down = pitch <= _pitchDown + SLACK_DOWN
+  //       lift  = pitch  > _pitchDown + LIFT_DELTA
+  //   - Else (sign-flipped mount):
+  //       down = pitch >= _pitchDown - SLACK_DOWN
+  //       lift  = pitch  < _pitchDown - LIFT_DELTA
+  // SLACK_DOWN: small tolerance so the user doesn't have to hold perfectly still at the
+  //             captured angle to register ready (also lets "deeper" angles still count).
+  // LIFT_DELTA: minimum angular rise off down before we treat it as a draw — keeps small
+  //             tremors from triggering false shots. Capped at half the captured spread so
+  //             even a small spread still works.
+  // Slack is normally 8°, but never more than 40% of the captured spread — otherwise a
+  // tiny spread calibration (e.g. user captured target -4° / down +1°) would make every
+  // pose count as "down" because the slack swallows the whole range.
+  function _slackDown(){
+    const spread = Math.abs((_pitchTarget||0) - (_pitchDown||0));
+    return Math.max(2, Math.min(8, spread * 0.4));
+  }
+  function _liftDelta(){
+    if (!isCalibrated()) return 12;
+    const spread = Math.abs((_pitchTarget||0) - (_pitchDown||0));
+    // 50% of the spread, clamped to [6°, 20°]
+    return Math.max(6, Math.min(20, spread * 0.5));
+  }
+  function isMuzzleDown(pitch){
+    if (!isCalibrated()) return pitch <= -45;
+    const slack = _slackDown();
+    if (_pitchTarget >= _pitchDown){
+      return pitch <= (_pitchDown + slack);
+    } else {
+      return pitch >= (_pitchDown - slack);
+    }
+  }
+  // "On target" for the draw transition just means: meaningfully lifted off down.
+  // We do NOT require hitting the captured target angle — the laser hit is the real
+  // accuracy measure, the IMU only times the draw motion.
+  function isOnTarget(pitch){
+    if (!isCalibrated()) return pitch >= -10;
+    const delta = _liftDelta();
+    if (_pitchTarget >= _pitchDown){
+      return pitch >= (_pitchDown + delta);
+    } else {
+      return pitch <= (_pitchDown - delta);
+    }
+  }
+  // Back-compat exports (some logging/UI may still read these).
   function thresholdHold(){
-    if (!isCalibrated()) return -45; // safe fallback
-    return _pitchDown + (_pitchTarget - _pitchDown) * 0.35;
+    if (!isCalibrated()) return -45;
+    const slack = _slackDown();
+    return (_pitchTarget >= _pitchDown) ? (_pitchDown + slack) : (_pitchDown - slack);
   }
   function thresholdOnTarget(){
     if (!isCalibrated()) return -10;
-    return _pitchTarget - (_pitchTarget - _pitchDown) * 0.20;
-  }
-  // "Muzzle is below threshold" — because we calibrate, just compare numerically.
-  // If pitchTarget > pitchDown, muzzle-down = pitch <= holdThresh. Otherwise reverse.
-  function isMuzzleDown(pitch){
-    if (!isCalibrated()) return pitch <= -45;
-    return (_pitchTarget >= _pitchDown) ? (pitch <= thresholdHold()) : (pitch >= thresholdHold());
-  }
-  function isOnTarget(pitch){
-    if (!isCalibrated()) return pitch >= -10;
-    return (_pitchTarget >= _pitchDown) ? (pitch >= thresholdOnTarget()) : (pitch <= thresholdOnTarget());
+    const delta = _liftDelta();
+    return (_pitchTarget >= _pitchDown) ? (_pitchDown + delta) : (_pitchDown - delta);
   }
 
   // ----- Phone -> laptop messaging -----

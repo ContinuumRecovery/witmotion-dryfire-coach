@@ -37,8 +37,7 @@ const { chromium } = require('playwright');
   if (gc) {
     await gc.click();
     await page.waitForTimeout(600);
-    // The drawer scrim sits on top — push it under so it doesn't intercept modal clicks during this test
-    await page.evaluate(() => { const s = document.getElementById('drawer-scrim'); if (s) s.style.display = 'none'; const d = document.getElementById('settings-drawer'); if (d) d.style.display = 'none'; });
+
     const modal = await page.$('#guncal-modal');
     if (modal) {
       await modal.screenshot({ path: 'qa/verify-guncal-3buttons.png' });
