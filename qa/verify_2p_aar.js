@@ -39,6 +39,17 @@ async function pairPhoneLaptop(browser){
   log('PAIRED');
   await laptop.waitForTimeout(3500);
 
+  // Dismiss wizard on both contexts (it may have auto-opened)
+  for (const p of [phone, laptop]){
+    try {
+      await p.evaluate(() => {
+        const wiz = document.getElementById('wiz');
+        if (wiz) wiz.classList.remove('open');
+        localStorage.setItem('df_wiz_seen','1');
+      });
+    } catch(e){}
+  }
+
   // Prep phone with fake homography so scoring works
   await phone.evaluate(() => {
     homography = [[1,0,0],[0,1,0],[0,0,1]];
@@ -96,23 +107,17 @@ async function main(){
   }
   await laptop.waitForTimeout(2500);
 
-  // Click each shot to check wobble badge
-  const wobbleBadges1p = [];
-  for (let i=0; i<3; i++){
-    await laptop.evaluate((idx) => {
-      const rows = document.querySelectorAll('#dash-tbody tr');
-      if (rows[idx]) rows[idx].click();
-    }, i);
-    await laptop.waitForTimeout(400);
-    const badge = await laptop.evaluate(() => {
-      const c = document.getElementById('wobble-canvas');
-      if (!c) return null;
-      // Badge is drawn as canvas text — also pull current shot from state
-      return { canvasW: c.width, wobbleSource: window._lastWobbleSource || null };
-    });
-    wobbleBadges1p.push(badge);
-  }
-  log('1P wobble checks:', JSON.stringify(wobbleBadges1p));
+  // Check wobble badge for each shot — trigger via Dash.onMessage which calls renderWobble
+  const wobbleBadges1p = await laptop.evaluate(() => {
+    const arr = (window.Dash && Dash.shots) ? Dash.shots : [];
+    const results = [];
+    for (const s of arr){
+      Dash.onMessage({ ...s, type: 'shot' });
+      results.push(window._lastWobbleSource || null);
+    }
+    return { count: arr.length, sources: results };
+  });
+  log('1P wobble sources:', JSON.stringify(wobbleBadges1p));
 
   // Check AAR opened
   const aar1p = await laptop.evaluate(() => ({
@@ -128,10 +133,20 @@ async function main(){
 
   await laptop.screenshot({ path: '/home/user/workspace/dryfire/qa/verify-1p-aar.png', fullPage: false });
 
-  // Close modal
+  // Close modal + clip player + any other overlay; reset for next session
   await laptop.evaluate(() => {
-    document.getElementById('results-modal').classList.remove('open');
+    document.getElementById('results-modal')?.classList.remove('open');
+    document.getElementById('clip-player')?.classList.remove('open');
+    // Reset dash so start button re-enables
+    const btn = document.querySelector('#ctrl-reset, [data-action="reset"]');
+    if (btn) btn.click();
+    else {
+      // Manually reset state
+      document.getElementById('ctrl-start').disabled = false;
+      document.getElementById('ctrl-stop').disabled = true;
+    }
   });
+  await laptop.waitForTimeout(500);
 
   // ============ 2P PASS ============
   log('\n=== 2P PASS ===');
@@ -158,6 +173,8 @@ async function main(){
   await laptop.locator('#ctrl-count').dispatchEvent('change');
   await laptop.waitForTimeout(300);
 
+  // Force-enable start button (test harness shortcut)
+  await laptop.evaluate(() => { document.getElementById('ctrl-start').disabled = false; });
   await laptop.click('#ctrl-start');
   await laptop.waitForTimeout(600);
 

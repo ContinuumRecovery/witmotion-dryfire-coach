@@ -92,8 +92,47 @@
   body.focus-mode #win-taskbar .tb-btn:not(#tb-focus):not(#tb-theme):not(#tb-reset-layout){ display:none; }
   body.focus-mode #win-taskbar{ opacity:0.45; transition:opacity .25s; }
   body.focus-mode #win-taskbar:hover{ opacity:1; }
-  #tb-focus.active, #tb-theme.active{ background:rgba(250,226,50,0.20); border-color:rgba(250,226,50,0.55); color:#fae232; }
-  :root[data-theme="light"] #tb-focus.active, :root[data-theme="light"] #tb-theme.active{ background:rgba(255,205,40,0.30); border-color:rgba(180,140,20,0.6); color:#5a3f08; }
+  #tb-focus.active, #tb-theme.active, #tb-settings.active{ background:rgba(250,226,50,0.20); border-color:rgba(250,226,50,0.55); color:#fae232; }
+  :root[data-theme="light"] #tb-focus.active, :root[data-theme="light"] #tb-theme.active, :root[data-theme="light"] #tb-settings.active{ background:rgba(255,205,40,0.30); border-color:rgba(180,140,20,0.6); color:#5a3f08; }
+
+  /* ── Slide-out settings drawer (right edge) ───────────────────── */
+  #settings-drawer{
+    position:fixed; top:0; right:0; height:100vh; width:min(440px, 96vw);
+    z-index:9000; transform:translateX(100%); transition:transform .28s cubic-bezier(0.4,0,0.2,1);
+    background:linear-gradient(180deg, rgba(13,14,15,0.98), rgba(26,29,32,0.98));
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-left:1px solid rgba(250,226,50,0.18); box-shadow:-8px 0 32px rgba(0,0,0,0.5);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  #settings-drawer.open{ transform:translateX(0); }
+  :root[data-theme="light"] #settings-drawer{ background:linear-gradient(180deg, rgba(250,246,236,0.98), rgba(236,229,211,0.98)); border-left-color:rgba(180,140,20,0.30);}
+  #drawer-scrim{ position:fixed; inset:0; z-index:8999; background:rgba(0,0,0,0.45); opacity:0; pointer-events:none; transition:opacity .2s; }
+  #drawer-scrim.show{ opacity:1; pointer-events:auto; }
+  #settings-drawer .drawer-header{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.06);
+    font-family:'Spectral',Georgia,serif; font-size:18px; color:var(--text);
+  }
+  #settings-drawer .drawer-close{
+    background:transparent; border:1px solid rgba(255,255,255,0.12); color:var(--text-2);
+    padding:4px 10px; border-radius:6px; cursor:pointer; font-family:'Manrope',sans-serif; font-size:12px;
+  }
+  #settings-drawer .drawer-close:hover{ border-color:rgba(250,226,50,0.5); color:#fae232; }
+  #settings-drawer .drawer-body{ flex:1; overflow-y:auto; padding:8px 0 24px; }
+  #settings-drawer .drawer-section{ padding:14px 18px 12px; border-bottom:1px solid rgba(255,255,255,0.04); }
+  #settings-drawer .drawer-section:last-child{ border-bottom:none; }
+  #settings-drawer .drawer-section h4{
+    margin:0 0 10px; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.16em;
+    text-transform:uppercase; color:rgba(216,224,232,0.5); font-weight:600;
+  }
+  :root[data-theme="light"] #settings-drawer .drawer-section h4{ color:rgba(60,40,10,0.55);}
+  #settings-drawer .drawer-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
+  #settings-drawer .drawer-row:last-child{ margin-bottom:0;}
+  #settings-drawer .drawer-row label{ font-size:12px; color:var(--text-2); flex:1;}
+  #settings-drawer .drawer-vol{ width:100%; accent-color:#fae232; cursor:pointer; height:24px; }
+  #settings-drawer .drawer-row input[type=range]{ flex:1; cursor:pointer; accent-color:#fae232; }
+  #drawer-vol-pct{ font-family:'JetBrains Mono',monospace; font-size:11px; color:#fae232; min-width:38px; text-align:right;}
+  body.focus-mode #tb-settings{ display:inline-flex !important; }
 
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{
@@ -962,7 +1001,8 @@ body.role-phone #phone-diag-toggle{display:block;}
   padding:8px 12px;gap:8px;align-items:center;
   box-shadow:0 4px 18px rgba(0,0,0,0.5);
 }
-body.role-laptop #sound-widget{display:flex;}
+/* Old sound widget hidden — superseded by drawer */
+body.role-laptop #sound-widget{display:none;}
 #sound-toggle{background:transparent;border:none;font-size:18px;cursor:pointer;padding:2px 4px;line-height:1;}
 #sound-vol{width:70px;accent-color:#fae232;cursor:pointer;}
 /* ── Painterly laptop dashboard (Farewell-North inspired) ──────────────── */
@@ -1504,10 +1544,52 @@ body.role-laptop .laptop-dash{display:block}
 <div id="win-taskbar">
   <span style="font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:rgba(216,224,232,0.4);font-family:'Manrope',sans-serif;font-weight:600;">DRYFIRE COACH</span>
   <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-settings" title="Open all setup &amp; preferences">⚙ Settings</button>
   <button class="tb-btn" id="tb-focus" title="Hide everything except the target + live view">Focus mode</button>
   <button class="tb-btn" id="tb-theme" title="Toggle light/dark/auto theme">☽ Dark</button>
   <button class="tb-btn tb-reset" id="tb-reset-layout">Reset Layout</button>
 </div>
+
+<!-- Slide-out settings drawer -->
+<div id="drawer-scrim"></div>
+<aside id="settings-drawer" aria-hidden="true">
+  <div class="drawer-header">
+    <span>Settings &amp; setup</span>
+    <button class="drawer-close" id="drawer-close-btn">Close ✕</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <div class="drawer-section" id="drawer-setup">
+      <h4>Setup</h4>
+      <div id="drawer-setup-slot"></div>
+    </div>
+    <div class="drawer-section" id="drawer-session">
+      <h4>Session settings</h4>
+      <div id="drawer-session-slot"></div>
+    </div>
+    <div class="drawer-section" id="drawer-actions">
+      <h4>Quick actions</h4>
+      <div id="drawer-actions-slot"></div>
+    </div>
+    <div class="drawer-section">
+      <h4>Audio</h4>
+      <div class="drawer-row">
+        <label for="drawer-vol">Gunshot &amp; FX volume</label>
+        <span id="drawer-vol-pct">60%</span>
+      </div>
+      <input id="drawer-vol" class="drawer-vol" type="range" min="0" max="1" step="0.05" value="0.6" />
+      <div class="drawer-row" style="margin-top:10px;">
+        <label for="drawer-sound-toggle">Play sound on hits</label>
+        <button id="drawer-sound-toggle" class="drawer-close" style="min-width:60px;">On</button>
+      </div>
+    </div>
+    <div class="drawer-section">
+      <h4>Display</h4>
+      <div class="drawer-row"><label>Theme</label><span id="drawer-theme-readout" style="color:#fae232;font-family:'JetBrains Mono',monospace;font-size:11px;">☽ Dark</span></div>
+      <div class="drawer-row"><label>Focus mode</label><span id="drawer-focus-readout" style="color:rgba(216,224,232,0.6);font-family:'JetBrains Mono',monospace;font-size:11px;">off</span></div>
+      <div style="font-size:11px;color:rgba(216,224,232,0.45);margin-top:8px;font-family:'JetBrains Mono',monospace;">Tip: hold Shift while dragging a panel to snap to edges</div>
+    </div>
+  </div>
+</aside>
 
 <!-- Quick Draw laptop HUD -->
 <div id="qd-laptop-hud" style="display:none;position:fixed;inset:0;z-index:700;background:rgba(3,8,16,0.96);backdrop-filter:blur(12px);flex-direction:column;align-items:center;justify-content:flex-start;gap:0;overflow:hidden;">
@@ -5590,7 +5672,7 @@ const WindowManager = (function(){
         const startX = e.clientX, startY = e.clientY;
         const ox = parseInt(el.style.left,10), oy = parseInt(el.style.top,10);
         const vw = window.innerWidth, vh = window.innerHeight - TASKBAR_H;
-        const SNAP = 10; // px threshold
+        const SNAP = 3; // tight px threshold so panels don't "suck" together
         const myW = el.offsetWidth, myH = el.offsetHeight;
         // Pre-compute snap targets from other windows + viewport
         const targetsX = [0, vw/2 - myW/2, vw - myW]; // left, hcenter, right
@@ -5613,8 +5695,11 @@ const WindowManager = (function(){
         function onMove(me){
           let nx = clamp(ox + me.clientX - startX, 0, vw - 40);
           let ny = clamp(oy + me.clientY - startY, 0, vh - 36);
-          const sx = nearest(nx, targetsX); if (sx !== null) nx = sx;
-          const sy = nearest(ny, targetsY); if (sy !== null) ny = sy;
+          // Snap only when Shift is held — keeps free-drag the default
+          if (me.shiftKey){
+            const sx = nearest(nx, targetsX); if (sx !== null) nx = sx;
+            const sy = nearest(ny, targetsY); if (sy !== null) ny = sy;
+          }
           el.style.left = nx + 'px'; el.style.top = ny + 'px';
           // Edge-snap to max via aero-style halves
           if (me.clientX <= 2) showSnapHint('left', vw, vh);
@@ -5924,6 +6009,131 @@ const SoundFX = (function(){
     }
     return origOM.call(Dash, msg);
   };
+})();
+
+// =====================================================================
+// Settings drawer — slide-out from right edge
+// Moves all setup + session controls + audio out of the dashboard panel
+// =====================================================================
+const SettingsDrawer = (function(){
+  let _open = false;
+  let _movedSetup = false;
+  let _movedSession = false;
+  let _movedActions = false;
+
+  function moveContentIntoDrawer(){
+    // Move setup wizard (steps 1–3) into Setup section — once
+    if (!_movedSetup){
+      const wizard = document.getElementById('setup-wizard');
+      const slot = document.getElementById('drawer-setup-slot');
+      if (wizard && slot){ slot.appendChild(wizard); _movedSetup = true; }
+    }
+    // Move all ctrl-grid blocks + connect-IMU into Session section
+    if (!_movedSession){
+      const grid = document.querySelector('#dash-controls-panel .ctrl-grid');
+      const slot = document.getElementById('drawer-session-slot');
+      if (grid && slot){ slot.appendChild(grid); _movedSession = true; }
+    }
+    // Move calibrate buttons + pose-gate toggle + BLE-status + gun-cal-status into Quick actions
+    if (!_movedActions){
+      const slot = document.getElementById('drawer-actions-slot');
+      if (slot){
+        const ids = ['ctrl-calibrate','ctrl-gun-cal','ctrl-ble-laptop','ctrl-ble-status','ctrl-gun-cal-status'];
+        for (const id of ids){ const el = document.getElementById(id); if (el) slot.appendChild(el); }
+        const poseLabel = document.querySelector('.pose-gate-toggle');
+        if (poseLabel) slot.appendChild(poseLabel);
+        // Make action buttons sit on their own lines for clarity
+        const style = document.createElement('style');
+        style.textContent = `
+          #drawer-actions-slot .ctrl-btn{ display:block; width:100%; margin-bottom:8px; }
+          #drawer-actions-slot .ctrl-ble-status, #drawer-actions-slot .ctrl-gun-cal-status{ margin:6px 0 10px; }
+          #drawer-actions-slot .pose-gate-toggle{ margin-top:6px; }
+          /* Slim the dashboard controls panel since most went to drawer */
+          #dash-controls-panel .setup-wizard{ display:none; }
+          #dash-controls-panel .ctrl-body{ padding:14px; }
+          #dash-controls-panel .ctrl-actions{ display:flex; flex-wrap:wrap; gap:8px; }
+          #dash-controls-panel .ctrl-actions .ctrl-btn{ flex:1 1 calc(50% - 4px); min-width:120px; }
+        `;
+        document.head.appendChild(style);
+        _movedActions = true;
+      }
+    }
+  }
+
+  function open(){
+    if (_open) return;
+    moveContentIntoDrawer();
+    document.getElementById('settings-drawer').classList.add('open');
+    document.getElementById('drawer-scrim').classList.add('show');
+    document.getElementById('tb-settings').classList.add('active');
+    _open = true;
+  }
+  function close(){
+    if (!_open) return;
+    document.getElementById('settings-drawer').classList.remove('open');
+    document.getElementById('drawer-scrim').classList.remove('show');
+    document.getElementById('tb-settings').classList.remove('active');
+    _open = false;
+  }
+  function toggle(){ _open ? close() : open(); }
+
+  function wire(){
+    const tbBtn = document.getElementById('tb-settings');
+    const closeBtn = document.getElementById('drawer-close-btn');
+    const scrim = document.getElementById('drawer-scrim');
+    if (tbBtn && !tbBtn._wired){ tbBtn._wired = true; tbBtn.addEventListener('click', toggle); }
+    if (closeBtn && !closeBtn._wired){ closeBtn._wired = true; closeBtn.addEventListener('click', close); }
+    if (scrim && !scrim._wired){ scrim._wired = true; scrim.addEventListener('click', close); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && _open) close(); });
+
+    // Wire drawer volume + sound toggle to existing SoundFX module
+    const dvol = document.getElementById('drawer-vol');
+    const dpct = document.getElementById('drawer-vol-pct');
+    const dtog = document.getElementById('drawer-sound-toggle');
+    const initVol = parseFloat(localStorage.getItem('df_sound_vol') || '0.6');
+    const initOn = (localStorage.getItem('df_sound_on') ?? 'true') !== 'false';
+    if (dvol){
+      dvol.value = initVol;
+      if (dpct) dpct.textContent = Math.round(initVol*100) + '%';
+      dvol.addEventListener('input', () => {
+        const v = parseFloat(dvol.value);
+        try { SoundFX.setVol(v); } catch(e){}
+        if (dpct) dpct.textContent = Math.round(v*100) + '%';
+      });
+    }
+    if (dtog){
+      dtog.textContent = initOn ? 'On' : 'Off';
+      dtog.style.color = initOn ? '#fae232' : 'rgba(216,224,232,0.5)';
+      dtog.addEventListener('click', () => {
+        const next = dtog.textContent !== 'On';
+        try { SoundFX.setEnabled(next); } catch(e){}
+        dtog.textContent = next ? 'On' : 'Off';
+        dtog.style.color = next ? '#fae232' : 'rgba(216,224,232,0.5)';
+      });
+    }
+
+    // Keep readouts in sync
+    function syncReadouts(){
+      const tr = document.getElementById('drawer-theme-readout');
+      if (tr){
+        const m = localStorage.getItem('df_theme') || 'dark';
+        const lab = { dark: '☽ Dark', light: '☀ Light', auto: '◑ Auto' };
+        tr.textContent = lab[m] || lab.dark;
+      }
+      const fr = document.getElementById('drawer-focus-readout');
+      if (fr){
+        const on = document.body.classList.contains('focus-mode');
+        fr.textContent = on ? 'on' : 'off';
+        fr.style.color = on ? '#fae232' : 'rgba(216,224,232,0.6)';
+      }
+    }
+    setInterval(syncReadouts, 500);
+  }
+
+  if (document.readyState !== 'loading') setTimeout(wire, 200);
+  else document.addEventListener('DOMContentLoaded', () => setTimeout(wire, 200));
+
+  return { open, close, toggle };
 })();
 
 // =====================================================================
