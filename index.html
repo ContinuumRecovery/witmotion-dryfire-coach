@@ -1639,16 +1639,20 @@ body.role-laptop .laptop-dash{display:block}
     <div id="qd-clock" style="font-family:'JetBrains Mono',monospace;font-size:clamp(48px,10vw,96px);font-weight:700;color:#fae232;text-shadow:0 0 40px rgba(250,226,50,0.5);line-height:1;">0.000</div>
     <div id="qd-rep-counter" style="font-family:'Manrope',sans-serif;font-size:14px;color:rgba(216,224,232,0.5);letter-spacing:0.8px;">Rep 1 / 5</div>
     <div id="qd-last-result" style="font-family:'JetBrains Mono',monospace;font-size:15px;color:#9fd3b5;min-height:22px;"></div>
-    <!-- Per-rep results table -->
-    <div id="qd-summary"></div>
+    <!-- Running game score during play -->
+    <div id="qd-running-score" style="font-family:'Manrope',sans-serif;font-size:13px;color:rgba(216,224,232,0.55);letter-spacing:0.6px;min-height:18px;"></div>
+    <!-- Final summary slot (filled on qdComplete with hero score + grade card) -->
+    <div id="qd-summary" style="width:100%;max-width:680px;"></div>
     <div style="max-width:680px;width:100%;overflow:auto;max-height:220px;border:1px solid rgba(255,255,255,0.06);border-radius:12px;background:rgba(8,18,28,0.5);">
       <table style="width:100%;border-collapse:collapse;font-size:12px;font-family:'JetBrains Mono',monospace;">
         <thead><tr style="background:rgba(14,34,48,0.85);">
           <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">#</th>
+          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">React (s)</th>
           <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">Draw (s)</th>
-          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">Shot (s)</th>
           <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">Result</th>
           <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">MOA</th>
+          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">Score</th>
+          <th style="color:#fae232;text-align:left;padding:8px 10px;font-family:'Manrope',sans-serif;font-size:10px;letter-spacing:1.2px;text-transform:uppercase;">Grade</th>
         </tr></thead>
         <tbody id="qd-rep-tbody"></tbody>
       </table>
@@ -7051,6 +7055,52 @@ const QuickDraw = (function(){
   let _streamPitch = false;
   let _lastSpoke = 0;
 
+  // ===== Scoring / game-rule constants =====
+  // Arming timeout: how long the user has to get the muzzle down after a rep starts
+  // before the rep auto-fails (score 0). Long enough to be civil, short enough to keep
+  // a real game cadence.
+  const ARMING_TIMEOUT_MS = 10000;
+  // Reaction-time scoring: linear from 0..MAX_REACT_S
+  //   0.20s or faster -> 100 (no human can beat this; reward perfection)
+  //   1.50s or slower ->   0
+  const REACT_FAST_S = 0.20;
+  const REACT_SLOW_S = 1.50;
+  // Accuracy scoring tiers (MOA = minutes-of-angle, lower is tighter)
+  // 100 pts for sub-3 MOA, sliding scale to 0 at 30 MOA, complete miss = 0.
+  function _accScore(hit, moa){
+    if (!hit) return 0;
+    if (!isFinite(moa) || moa <= 0) return 80; // tracked hit but no MOA = decent default
+    if (moa <= 3)  return 100;
+    if (moa >= 30) return 0;
+    // Smooth ramp 100 -> 0 across 3..30 MOA
+    return Math.round(100 * (30 - moa) / 27);
+  }
+  function _reactScore(reactT){
+    if (!isFinite(reactT) || reactT <= 0) return 0;
+    if (reactT <= REACT_FAST_S) return 100;
+    if (reactT >= REACT_SLOW_S) return 0;
+    return Math.round(100 * (REACT_SLOW_S - reactT) / (REACT_SLOW_S - REACT_FAST_S));
+  }
+  // Combined per-rep: 60% reaction, 40% accuracy. A perfect hit at 0.2s = 100.
+  // A timeout / fail rep = 0 across the board.
+  function _repScore(failed, reactT, hit, moa){
+    if (failed) return { react:0, acc:0, total:0, failed:true };
+    const r = _reactScore(reactT);
+    const a = _accScore(hit, moa);
+    const total = Math.round(0.6 * r + 0.4 * a);
+    return { react:r, acc:a, total, failed:false };
+  }
+  function _gradeFor(score){
+    if (score >= 95) return 'S';
+    if (score >= 85) return 'A';
+    if (score >= 70) return 'B';
+    if (score >= 55) return 'C';
+    if (score >= 40) return 'D';
+    return 'F';
+  }
+  let _armingTimer = null;
+  let _armingDeadline = 0;
+
   // getPitch — returns a scalar angle in degrees.
   // Strategy:
   //   (a) If we have a full 2-pose calibration (gT + gD + rotAxis), pitch = signed angle
@@ -7142,9 +7192,15 @@ const QuickDraw = (function(){
   function sendToLaptop(payload){
     try { if (typeof Role !== 'undefined' && Role.send) Role.send(payload); } catch(e){}
   }
-  function pushState(){
-    sendToLaptop({ type:'qdState', state:_state, rep:_currentRep, total:_totalReps,
-      drawT:_drawT, shotT:_shotT, calibrated: isCalibrated() });
+  function pushState(extra){
+    const payload = { type:'qdState', state:_state, rep:_currentRep, total:_totalReps,
+      drawT:_drawT, shotT:_shotT, calibrated: isCalibrated() };
+    if (_state === 'arming' && _armingDeadline){
+      payload.armingMsRemaining = Math.max(0, _armingDeadline - performance.now());
+      payload.armingTimeoutMs = ARMING_TIMEOUT_MS;
+    }
+    if (extra) Object.assign(payload, extra);
+    sendToLaptop(payload);
   }
 
   // ----- Phone-only IMU handler -----
@@ -7167,6 +7223,7 @@ const QuickDraw = (function(){
 
     if (_state === 'arming'){
       if (isMuzzleDown(pitch)){
+        clearTimeout(_armingTimer); _armingTimer = null; _armingDeadline = 0;
         _state = 'holding'; pushState();
         const holdDur = 5000 + Math.random() * 5000;
         _holdTimer = setTimeout(() => {
@@ -7228,9 +7285,49 @@ const QuickDraw = (function(){
     if (_drawT === 0) _drawT = _shotT;
     const hit = shotData && !shotData.untracked;
     const moa = (shotData && shotData.moa) || 0;
-    _results.push({ drawT:_drawT/1000, shotT:_shotT/1000, hit, moa });
+    const reactT = _shotT / 1000;
+    const score = _repScore(false, reactT, hit, moa);
+    _results.push({
+      drawT:_drawT/1000, shotT:_shotT/1000, reactT, hit, moa,
+      score: score.total, reactScore: score.react, accScore: score.acc,
+      grade: _gradeFor(score.total), failed:false
+    });
     _state = 'shot';
-    sendToLaptop({ type:'qdRepDone', rep:_currentRep, drawT:_drawT/1000, shotT:_shotT/1000, hit, moa });
+    sendToLaptop({
+      type:'qdRepDone', rep:_currentRep,
+      drawT:_drawT/1000, shotT:_shotT/1000, reactT,
+      hit, moa, failed:false,
+      score: score.total, reactScore: score.react, accScore: score.acc,
+      grade: _gradeFor(score.total)
+    });
+    _currentRep++;
+    if (_currentRep >= _totalReps){
+      setTimeout(() => finishSession(), 1800);
+    } else {
+      setTimeout(() => startRep(), 2200);
+    }
+  }
+
+  // Called when arming deadline expires without muzzle-down. Logs a failed rep,
+  // pushes a 'failed' state for the HUD, then advances to next rep (or finishes).
+  function failRepArmingTimeout(){
+    if (!_active) return;
+    if (_state !== 'arming') return;
+    clearTimeout(_armingTimer); _armingTimer = null; _armingDeadline = 0;
+    const score = _repScore(true, 0, false, 0);
+    _results.push({
+      drawT:0, shotT:0, reactT:0, hit:false, moa:0,
+      score: score.total, reactScore: score.react, accScore: score.acc,
+      grade: _gradeFor(score.total), failed:true
+    });
+    _state = 'failed';
+    pushState();
+    sendToLaptop({
+      type:'qdRepDone', rep:_currentRep,
+      drawT:0, shotT:0, reactT:0, hit:false, moa:0, failed:true,
+      score: score.total, reactScore: score.react, accScore: score.acc,
+      grade: 'F'
+    });
     _currentRep++;
     if (_currentRep >= _totalReps){
       setTimeout(() => finishSession(), 1800);
@@ -7243,14 +7340,33 @@ const QuickDraw = (function(){
     _cueT = 0; _drawT = 0; _shotT = 0;
     clearTimeout(_holdTimer); _holdTimer = null;
     clearTimeout(_drawHighTimer); _drawHighTimer = null;
+    clearTimeout(_armingTimer); _armingTimer = null;
     _state = 'arming';
+    _armingDeadline = performance.now() + ARMING_TIMEOUT_MS;
+    _armingTimer = setTimeout(failRepArmingTimeout, ARMING_TIMEOUT_MS);
     pushState();
   }
 
   function finishSession(){
     _state = 'results';
+    clearTimeout(_armingTimer); _armingTimer = null; _armingDeadline = 0;
+    // Compute overall game stats
+    const reps = _results.slice();
+    let totalScore = 0, hitCount = 0, failCount = 0;
+    reps.forEach(r => {
+      totalScore += (r.score || 0);
+      if (r.hit) hitCount++;
+      if (r.failed) failCount++;
+    });
+    const overall = reps.length ? Math.round(totalScore / reps.length) : 0;
+    const grade = _gradeFor(overall);
+    const accPct = reps.length ? Math.round(hitCount / reps.length * 100) : 0;
     pushState();
-    sendToLaptop({ type:'qdComplete', results:_results.slice() });
+    sendToLaptop({
+      type:'qdComplete', results:reps,
+      overall, grade, accuracyPct: accPct,
+      hitCount, failCount, totalReps: reps.length
+    });
     _active = false;
   }
 
@@ -7271,7 +7387,8 @@ const QuickDraw = (function(){
   function stopOnPhone(){
     _active = false;
     _state = 'idle';
-    clearTimeout(_holdTimer); clearTimeout(_drawHighTimer);
+    clearTimeout(_holdTimer); clearTimeout(_drawHighTimer); clearTimeout(_armingTimer);
+    _armingTimer = null; _armingDeadline = 0;
     pushState();
   }
   function setPitchStream(on){
@@ -7595,7 +7712,7 @@ const GunCal = (function(){
     }
     if (msg && msg.type === 'qdState'){ QdHUD.update(msg); return; }
     if (msg && msg.type === 'qdRepDone'){ QdHUD.repDone(msg); return; }
-    if (msg && msg.type === 'qdComplete'){ QdHUD.complete(msg.results); return; }
+    if (msg && msg.type === 'qdComplete'){ QdHUD.complete(msg.results, msg); return; }
     if (msg && msg.type === 'qdError'){
       if (typeof toast === 'function') toast(msg.error || 'Quick Draw error', 'warn', 4000);
       return;
@@ -7609,9 +7726,16 @@ const GunCal = (function(){
 // =====================================================================
 const QdHUD = (function(){
   let _clockInterval = null;
+  let _armingInterval = null;
   let _cueLocalT = 0;
+  let _armingDeadline = 0;
+  let _armingTotalMs = 10000;
   let _lastDrawT = 0, _lastShotT = 0;
   let _repDoneCount = 0;
+  let _runningScores = [];
+
+  // Per-rep result row color by grade
+  const GRADE_COLOR = { S:'#fae232', A:'#9fd3b5', B:'#9bd5ee', C:'#FF8A4C', D:'#C661E8', F:'#e8231a' };
 
   function ensureShown(state){
     const hud = document.getElementById('qd-laptop-hud');
@@ -7619,14 +7743,26 @@ const QdHUD = (function(){
     if (state === 'idle' || !state){ hud.style.display='none'; return; }
     hud.style.display = 'flex';
     const tbody = document.getElementById('qd-rep-tbody');
-    if (tbody && _repDoneCount === 0) tbody.innerHTML = '';
+    if (tbody && _repDoneCount === 0){
+      tbody.innerHTML = '';
+      // Also clear stale summary + running score on a brand new game
+      const sumEl = document.getElementById('qd-summary'); if (sumEl) sumEl.innerHTML = '';
+      const run = document.getElementById('qd-running-score'); if (run) run.textContent = '';
+      _runningScores = [];
+    }
   }
-  function setLabel(text){ const l = document.getElementById('qd-label'); if (l) l.textContent = text; }
+  function setLabel(text, color){
+    const l = document.getElementById('qd-label');
+    if (l){ l.textContent = text; l.style.color = color || 'rgba(216,224,232,0.6)'; }
+  }
   function setRepCounter(rep, total){ const r = document.getElementById('qd-rep-counter'); if (r) r.textContent = `Rep ${(rep||0)+1} / ${total||5}`; }
   function showThreat(on){ const b = document.getElementById('qd-threat-banner'); if (b) b.style.display = on ? 'flex' : 'none'; }
-  function setClock(s){ const c = document.getElementById('qd-clock'); if (c) c.textContent = s.toFixed(3); }
+  function setClock(s, color){
+    const c = document.getElementById('qd-clock');
+    if (c){ c.textContent = s.toFixed(3); if (color) c.style.color = color; else c.style.color = '#fae232'; }
+  }
   function startClock(){
-    stopClock();
+    stopClock(); stopArmingClock();
     _cueLocalT = performance.now();
     _clockInterval = setInterval(() => {
       const elapsed = (performance.now() - _cueLocalT) / 1000;
@@ -7634,19 +7770,65 @@ const QdHUD = (function(){
     }, 16);
   }
   function stopClock(){ clearInterval(_clockInterval); _clockInterval = null; }
+  function startArmingClock(deadline, total){
+    stopArmingClock(); stopClock();
+    _armingDeadline = deadline;
+    _armingTotalMs = total || 10000;
+    _armingInterval = setInterval(() => {
+      const remaining = Math.max(0, _armingDeadline - performance.now()) / 1000;
+      // Countdown clock turns orange in last 3s, red in last 1s
+      const color = remaining <= 1 ? '#e8231a' : (remaining <= 3 ? '#FF8A4C' : '#9bd5ee');
+      setClock(remaining, color);
+      if (remaining <= 0){ stopArmingClock(); }
+    }, 50);
+  }
+  function stopArmingClock(){ clearInterval(_armingInterval); _armingInterval = null; }
 
   const LABELS = {
-    idle:'Ready', arming:'Hold steady — muzzle down', holding:'Stand by…',
-    cue:'THREAT!', drawing:'DRAW!', shot:'Shot recorded', results:'Session complete'
+    idle:'Ready', arming:'Get muzzle down', holding:'Hold steady…',
+    cue:'THREAT!', drawing:'DRAW!', shot:'Shot recorded',
+    failed:'TIMED OUT', results:'Session complete'
   };
+  const LABEL_COLORS = {
+    arming:'#9bd5ee', holding:'rgba(159,211,181,0.85)', cue:'#e8231a',
+    drawing:'#fae232', shot:'#9fd3b5', failed:'#e8231a', results:'#fae232'
+  };
+
+  function renderRunningScore(){
+    const el = document.getElementById('qd-running-score');
+    if (!el) return;
+    if (!_runningScores.length){ el.textContent = ''; return; }
+    const total = _runningScores.reduce((a,b)=>a+b, 0);
+    const avg = Math.round(total / _runningScores.length);
+    el.textContent = `Running score: ${avg}/100  ·  Grade ${gradeForLocal(avg)}  ·  ${_runningScores.length} rep${_runningScores.length===1?'':'s'} logged`;
+  }
+  function gradeForLocal(score){
+    if (score >= 95) return 'S';
+    if (score >= 85) return 'A';
+    if (score >= 70) return 'B';
+    if (score >= 55) return 'C';
+    if (score >= 40) return 'D';
+    return 'F';
+  }
 
   function update(msg){
     ensureShown(msg.state);
-    setLabel(LABELS[msg.state] || msg.state);
+    setLabel(LABELS[msg.state] || msg.state, LABEL_COLORS[msg.state]);
     setRepCounter(msg.rep, msg.total);
     showThreat(msg.state === 'cue' || msg.state === 'drawing');
 
+    if (msg.state === 'arming'){
+      // Show countdown until muzzle goes down
+      const remaining = typeof msg.armingMsRemaining === 'number' ? msg.armingMsRemaining : (msg.armingTimeoutMs || 10000);
+      const total = msg.armingTimeoutMs || 10000;
+      startArmingClock(performance.now() + remaining, total);
+    }
+    if (msg.state === 'holding'){
+      // Stop arming countdown, sit at 0 until threat
+      stopArmingClock(); stopClock(); setClock(0);
+    }
     if (msg.state === 'cue'){
+      stopArmingClock();
       // Speak "Threat!" on the laptop too
       try {
         if (window.speechSynthesis){
@@ -7660,46 +7842,95 @@ const QdHUD = (function(){
       } catch(e){}
       startClock();
     }
-    if (msg.state === 'arming' || msg.state === 'idle' || msg.state === 'results'){
-      // Reset clock when waiting / done
-      if (msg.state === 'arming') setClock(0);
-    }
     if (msg.state === 'shot'){
-      stopClock();
+      stopClock(); stopArmingClock();
       const elapsed = (msg.shotT || 0) / 1000;
       if (elapsed > 0) setClock(elapsed);
+    }
+    if (msg.state === 'failed'){
+      stopClock(); stopArmingClock();
+      setClock(0, '#e8231a');
+    }
+    if (msg.state === 'idle' || msg.state === 'results'){
+      stopClock(); stopArmingClock();
     }
   }
   function repDone(msg){
     _repDoneCount++;
     _lastDrawT = msg.drawT; _lastShotT = msg.shotT;
+    if (typeof msg.score === 'number') _runningScores.push(msg.score);
     const tbody = document.getElementById('qd-rep-tbody');
     if (tbody){
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${msg.rep+1}</td><td>${msg.drawT.toFixed(3)}</td><td>${msg.shotT.toFixed(3)}</td><td style="color:${msg.hit?'#9fd3b5':'#FF8A4C'}">${msg.hit?'HIT':'MISS'}</td><td>${msg.moa ? msg.moa.toFixed(1) : '—'}</td>`;
+      const grade = msg.grade || gradeForLocal(msg.score || 0);
+      const gColor = GRADE_COLOR[grade] || '#9fd3b5';
+      const resultTxt = msg.failed ? 'FAIL' : (msg.hit ? 'HIT' : 'MISS');
+      const resultColor = msg.failed ? '#e8231a' : (msg.hit ? '#9fd3b5' : '#FF8A4C');
+      const reactT = typeof msg.reactT === 'number' ? msg.reactT : msg.shotT;
+      tr.innerHTML = `
+        <td style="padding:6px 10px;">${msg.rep+1}</td>
+        <td style="padding:6px 10px;">${msg.failed ? '—' : reactT.toFixed(3)}</td>
+        <td style="padding:6px 10px;">${msg.failed ? '—' : msg.drawT.toFixed(3)}</td>
+        <td style="padding:6px 10px;color:${resultColor};font-weight:600;">${resultTxt}</td>
+        <td style="padding:6px 10px;">${(msg.moa && !msg.failed) ? msg.moa.toFixed(1) : '—'}</td>
+        <td style="padding:6px 10px;color:${gColor};font-weight:700;">${msg.score || 0}</td>
+        <td style="padding:6px 10px;color:${gColor};font-weight:700;font-family:'Spectral',serif;font-size:14px;">${grade}</td>`;
       tbody.appendChild(tr);
     }
     const last = document.getElementById('qd-last-result');
-    if (last) last.textContent = `Draw: ${msg.drawT.toFixed(2)}s  Shot: ${msg.shotT.toFixed(2)}s  ${msg.hit?'HIT':'MISS'}${msg.moa?(' '+msg.moa.toFixed(1)+' MOA'):''}`;
+    if (last){
+      if (msg.failed){
+        last.style.color = '#e8231a';
+        last.textContent = `Rep ${msg.rep+1}: TIMED OUT — no muzzle-down within window. Score 0.`;
+      } else {
+        const grade = msg.grade || gradeForLocal(msg.score || 0);
+        const gColor = GRADE_COLOR[grade] || '#9fd3b5';
+        last.style.color = gColor;
+        last.textContent = `Rep ${msg.rep+1}: ${(msg.reactT || msg.shotT).toFixed(2)}s ${msg.hit ? 'HIT' : 'MISS'}${msg.moa ? ' ' + msg.moa.toFixed(1) + ' MOA' : ''}  ·  ${msg.score}/100 (${grade})`;
+      }
+    }
+    renderRunningScore();
   }
-  function complete(results){
+  function complete(results, meta){
+    // `meta` carries pre-computed overall + grade from the phone; recompute locally
+    // as a fallback in case an older client sent only `results`.
     if (!results || !results.length) return;
-    const avgDraw = results.reduce((a,b)=>a+b.drawT,0)/results.length;
-    const avgShot = results.reduce((a,b)=>a+b.shotT,0)/results.length;
-    const fastest = Math.min(...results.map(r=>r.shotT));
-    const slowest = Math.max(...results.map(r=>r.shotT));
-    const hits = results.filter(r=>r.hit).length;
-    const acc = (hits/results.length*100).toFixed(0);
+    const reps = results;
+    const avgReact = reps.reduce((a,b)=>a + (b.reactT || b.shotT || 0), 0) / reps.length;
+    const avgDraw  = reps.reduce((a,b)=>a + (b.drawT || 0), 0) / reps.length;
+    const validShots = reps.filter(r => !r.failed && (r.shotT || r.reactT));
+    const fastest = validShots.length ? Math.min(...validShots.map(r => r.reactT || r.shotT)) : 0;
+    const slowest = validShots.length ? Math.max(...validShots.map(r => r.reactT || r.shotT)) : 0;
+    const hits = reps.filter(r => r.hit).length;
+    const fails = reps.filter(r => r.failed).length;
+    const overall = (meta && typeof meta.overall === 'number')
+      ? meta.overall
+      : Math.round(reps.reduce((a,b)=>a + (b.score || 0), 0) / reps.length);
+    const grade = (meta && meta.grade) || gradeForLocal(overall);
+    const acc = (meta && typeof meta.accuracyPct === 'number') ? meta.accuracyPct : Math.round(hits / reps.length * 100);
+    const gColor = GRADE_COLOR[grade] || '#fae232';
     const sumEl = document.getElementById('qd-summary');
     if (sumEl) sumEl.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px;">
-        <div class="stat"><div class="v">${avgDraw.toFixed(2)}s</div><div class="k">Avg Draw</div></div>
-        <div class="stat"><div class="v">${avgShot.toFixed(2)}s</div><div class="k">Avg Shot</div></div>
-        <div class="stat"><div class="v">${fastest.toFixed(2)}s</div><div class="k">Fastest</div></div>
-        <div class="stat"><div class="v">${slowest.toFixed(2)}s</div><div class="k">Slowest</div></div>
-        <div class="stat"><div class="v">${acc}%</div><div class="k">Accuracy</div></div>
+      <div style="margin:12px 0 14px;padding:18px 22px;border-radius:16px;background:linear-gradient(160deg,rgba(14,34,48,0.85),rgba(6,18,28,0.85));border:1px solid ${gColor}55;box-shadow:0 0 40px ${gColor}22;display:flex;align-items:center;gap:24px;">
+        <div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;width:120px;">
+          <div style="font-family:'Spectral',serif;font-size:88px;font-weight:700;color:${gColor};line-height:1;text-shadow:0 0 40px ${gColor}99;">${grade}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(216,224,232,0.55);letter-spacing:0.8px;margin-top:2px;">${overall}/100</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Spectral',serif;font-size:22px;color:#fae232;margin-bottom:8px;">Session complete</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;">
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#fae232;">${avgReact.toFixed(2)}s</div><div style="font-family:'Manrope',sans-serif;font-size:10px;color:rgba(216,224,232,0.55);letter-spacing:0.6px;text-transform:uppercase;">Avg React</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#fae232;">${fastest ? fastest.toFixed(2)+'s' : '—'}</div><div style="font-family:'Manrope',sans-serif;font-size:10px;color:rgba(216,224,232,0.55);letter-spacing:0.6px;text-transform:uppercase;">Fastest</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#fae232;">${slowest ? slowest.toFixed(2)+'s' : '—'}</div><div style="font-family:'Manrope',sans-serif;font-size:10px;color:rgba(216,224,232,0.55);letter-spacing:0.6px;text-transform:uppercase;">Slowest</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#9fd3b5;">${acc}%</div><div style="font-family:'Manrope',sans-serif;font-size:10px;color:rgba(216,224,232,0.55);letter-spacing:0.6px;text-transform:uppercase;">Accuracy</div></div>
+            <div><div style="font-family:'JetBrains Mono',monospace;font-size:18px;color:${fails ? '#e8231a' : '#9fd3b5'};">${fails}</div><div style="font-family:'Manrope',sans-serif;font-size:10px;color:rgba(216,224,232,0.55);letter-spacing:0.6px;text-transform:uppercase;">Timeouts</div></div>
+          </div>
+        </div>
       </div>`;
+    // Clear running-score line — final summary takes over
+    const run = document.getElementById('qd-running-score'); if (run) run.textContent = '';
     _repDoneCount = 0;
+    _runningScores = [];
   }
   return { update, repDone, complete, _forceShow: () => ensureShown('arming') };
 })();
