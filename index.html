@@ -1428,6 +1428,7 @@ body.role-laptop .laptop-dash{display:block}
         <button id="ctrl-bad-shot" class="ctrl-btn ghost" title="Remove the last shot from the session (use if a rack or false trigger got counted)">Bad shot — undo</button>
         <button id="ctrl-reset" class="ctrl-btn ghost">Reset shots</button>
       </div>
+      <div class="ctrl-calibrate-help" id="ctrl-calibrate-help" style="margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#FF8A4C;"></div>
       <div class="ctrl-ble-status" id="ctrl-ble-status" style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#9fb4c8;">IMU sensor: not paired</div>
       <div class="ctrl-gun-cal-status" id="ctrl-gun-cal-status" style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#FF8A4C;">Gun pose not calibrated</div>
       <label class="pose-gate-toggle" style="display:flex;align-items:center;gap:8px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#cbd5e1;cursor:pointer;">
@@ -4718,7 +4719,40 @@ const LaptopCtrl = (function(){
 
     // Action buttons
     const calBtn = document.getElementById('ctrl-calibrate');
-    if (calBtn && !calBtn._wired){ calBtn._wired = true; calBtn.addEventListener('click', () => { sendCmd('calibrate'); }); }
+    if (calBtn && !calBtn._wired){
+      calBtn._wired = true;
+      calBtn.addEventListener('click', () => {
+        const paired = !!(Role && Role.isConnected && Role.isConnected());
+        if (!paired){
+          // Target calibration uses the phone's rear camera to detect ArUco markers;
+          // the laptop has no view of the printed target. Make this explicit instead
+          // of silently no-op'ing the way it used to.
+          try { toast && toast('Pair a phone first — target calibration uses the phone camera', 'warn', 2200); } catch(e){}
+          const lapStat = document.getElementById('ctrl-ble-status');
+          // Briefly flash the status row so the user sees the reason inline
+          const help = document.getElementById('ctrl-calibrate-help');
+          if (help){ help.textContent = 'Pair a phone (Setup → Pair phone) — needs the phone camera to see the target'; help.style.color = '#FF8A4C'; }
+          return;
+        }
+        sendCmd('calibrate');
+      });
+    }
+    // Live enable/disable calibrate button based on phone pairing state.
+    // (Phone is REQUIRED for target calibration because the laptop has no camera
+    // pointed at the printed target. Gun-pose calibration works locally via BLE.)
+    function _updateCalibrateAvail(){
+      const b = document.getElementById('ctrl-calibrate');
+      if (!b) return;
+      const paired = !!(Role && Role.isConnected && Role.isConnected());
+      b.disabled = !paired;
+      b.title = paired ? 'Calibrate the phone\u2019s view of the printed target' : 'Pair a phone first (Setup \u2192 Pair phone). Target calibration needs the phone camera.';
+      b.style.opacity = paired ? '' : '0.55';
+      b.style.cursor = paired ? '' : 'not-allowed';
+      const help = document.getElementById('ctrl-calibrate-help');
+      if (help && paired){ help.textContent = ''; }
+    }
+    _updateCalibrateAvail();
+    if (!window._calAvailPoll){ window._calAvailPoll = setInterval(_updateCalibrateAvail, 800); }
     // Connect IMU sensor directly from the laptop (Web Bluetooth on Chrome/Edge)
     const bleBtn = document.getElementById('ctrl-ble-laptop');
     if (bleBtn && !bleBtn._wired){
@@ -6038,7 +6072,7 @@ const SettingsDrawer = (function(){
     if (!_movedActions){
       const slot = document.getElementById('drawer-actions-slot');
       if (slot){
-        const ids = ['ctrl-calibrate','ctrl-gun-cal','ctrl-ble-laptop','ctrl-ble-status','ctrl-gun-cal-status'];
+        const ids = ['ctrl-calibrate','ctrl-calibrate-help','ctrl-gun-cal','ctrl-ble-laptop','ctrl-ble-status','ctrl-gun-cal-status'];
         for (const id of ids){ const el = document.getElementById(id); if (el) slot.appendChild(el); }
         const poseLabel = document.querySelector('.pose-gate-toggle');
         if (poseLabel) slot.appendChild(poseLabel);
